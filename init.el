@@ -1,4 +1,4 @@
-(setq debug-on-error t)
+;; (setq debug-on-error t)
 (if (file-exists-p "/usr/local/Cellar/cask/0.6.0/cask.el")
     (require 'cask "/usr/local/Cellar/cask/0.6.0/cask.el")
   (require 'cask "~/.cask/cask.el"))
