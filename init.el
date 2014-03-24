@@ -1,13 +1,25 @@
-;; (setq debug-on-error t)
-(if (file-exists-p "/usr/local/Cellar/cask/0.6.0/cask.el")
-    (require 'cask "/usr/local/Cellar/cask/0.6.0/cask.el")
-  (require 'cask "~/.cask/cask.el"))
+;;
+;; March 24 2014, Christian Hopps <chopps@gmail.com>
+;;
+;; Copyright (c) 2014 by Christian E. Hopps
+;; All rights reserved.
+;;
+;; Requiremens prior to first-load: cask intall
+;; See emacs-init.org on how to install cask.
+;;
+(if (not (file-exists-p "/usr/local/Cellar/cask"))
+    (require 'cask "~/.cask/cask.el")
+  (require 'cask
+           (replace-regexp-in-string "\n$" ""
+                                     (shell-command-to-string
+                                      "brew list cask | grep cask.el"))))
 (cask-initialize)
 (require 'pallet)
 (require 'req-package)
 
 ;; Load the rest of our config from the emacs-init.org file.
 (require 'ob-tangle)
+;; (setq debug-on-error t)
 (org-babel-load-file
   (expand-file-name "emacs-init.org"
                     user-emacs-directory))
