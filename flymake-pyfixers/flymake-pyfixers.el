@@ -133,9 +133,13 @@
       (-keep 'flycheck-error-message (flycheck-overlay-errors-at (point)))
     (let* ((line-no             (flymake-current-line-no))
            (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-           (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
-           caadr menu-data))))
-  
+           (menu-data           (flymake-make-err-menu-data line-no line-err-info-list)))
+           (caadr menu-data))))
+
+(defun pyfixer:print-errlist ()
+  (interactive)
+  (message "%s" (pyfixer:get-errlist)))
+
 (defun pyfixer:fix-current-line ()
   "Display a fix for the current line"
   (interactive)
