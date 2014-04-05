@@ -1427,27 +1427,31 @@
   #+BEGIN_SRC emacs-lisp
     (defun my-org-mode-hook
       (message "Org-mode-hook"))
-
+    
     (setq org-directory "~/org-mode")
     (setq org-src-fontify-natively t)
     (setq org-default-notes-file (concat org-directory "/notes.org"))
     (setq org2blog/wp-use-sourcecode-shortcode t)
-
+    
     (org-babel-do-load-languages
      'org-babel-load-languages
      '((python . t)))
-
-
+    
+    ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
+    (bind-key "M-h" 'org-metaleft org-mode-map)
+    (bind-key "M-l" 'org-metaright org-mode-map)
+    (bind-key "M-k" 'org-metaup org-mode-map)
+    (bind-key "M-j" 'org-metadown org-mode-map)
+    
     (define-key global-map "\C-cc" 'org-capture)
-
+    
+    
     ;; (require 'org-mode)
-
+    
     (eval-after-load "org-mode"
       '(progn
-         (message "org-mode loaded")
-
          (require 'org-latext)
-
+    
          ;; (org-babel-do-load-languages
          ;;  'org-babel-do-load-languages
          ))
