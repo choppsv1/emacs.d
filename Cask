@@ -1,7 +1,7 @@
-(source gnu)
-(source melpa)
-(source marmalade)
 (source org)
+(source marmalade)
+(source melpa)
+(source gnu)
 
 (depends-on "auto-complete")
 (depends-on "cask")
@@ -19,6 +19,7 @@
 (depends-on "flycheck")
 (depends-on "flycheck-cask")
 (depends-on "flycheck-haskell")
+(depends-on "flymake-cursor")
 (depends-on "fuzzy")
 (depends-on "ggtags")
 (depends-on "goto-chg")
