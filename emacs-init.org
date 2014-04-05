@@ -1259,16 +1259,16 @@
      (eval-after-load "python"
        '(progn
           (message "Initializing python mode settings")
-     
+          
           ;; Consider _ a part of words for python
           (modify-syntax-entry ?_ "w" python-mode-syntax-table)
-     
+          
           (require 'pylookup)
           (require 'jedi)
-          ; (setq jedi:setup-keys t)
-     
-          ; (require 'ipython)
-          ; Use the following to enable ipython use with python.el rather than python-mode.el
+                                             ; (setq jedi:setup-keys t)
+          
+                                             ; (require 'ipython)
+                                             ; Use the following to enable ipython use with python.el rather than python-mode.el
           (setq
            python-shell-interpreter "ipython"
            python-shell-interpreter-args ""
@@ -1280,22 +1280,22 @@
            "';'.join(module_completion('''%s'''))\n"
            python-shell-completion-string-code
            "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-     
-     
+          
+          
           (when (require 'elpy nil t)
             (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
             (setq elpy-rpc-backend "jedi")
             (elpy-enable)
-            (setq elpy-default-minor-modes (delq 'flymake-mode elpy-default-minor-modes))
+            ;; (when (require 'flycheck nil t)
+            ;;   (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
+            ;;   (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
             (setq elpy-default-minor-modes (delq 'highlight-indentation-mode elpy-default-minor-modes))
-            (add-to-list 'elpy-default-minor-modes 'flycheck-mode)
-     
-     
+            
             (elpy-use-ipython)
             ;; (elpy-clean-modeline)
             (when (not (setq python-check-command (locate-file "pycheckers.sh" load-path)))
               (setq python-check-command "flake8")))
-     
+          
           (if (file-exists-p "/home/chopps/sw/xrut-cel-5/bin/python")
               (setenv "PYMACS_PYTHON" "/home/chopps/sw/xrut-cel-5/bin/python")
             (if (file-exists-p "/auto/xrut/sw/xrut-cel-5/bin/python")
@@ -1304,11 +1304,11 @@
                   (setenv "PYMACS_PYTHON" "/Users/chopps/venv/bin/python")
                 (if (file-exists-p "/usr/local/bin/python"  )
                     (setenv "PYMACS_PYTHON" "/usr/local/bin/python")))))
-     
+          
           ;;-------------
           ;; Python hook
           ;;-------------
-     
+          
           (defun my-python-mode-hook ()
             (jedi:setup)
             ;; Fill values
@@ -1321,17 +1321,17 @@
             (highlight-indentation-mode nil)
             )
           (add-hook 'python-mode-hook 'my-python-mode-hook)
-     
-     
+          
+          
           ;;------------------------
           ;; plake8/pylint pyfixers
           ;;------------------------
-     
+          
           ;; Pyflake version of fixers
           (require 'flymake-pyfixers)
           (global-set-key "\C-c\M-\\" 'pyfixer:ignore-current-line)
           (global-set-key "\C-c\C-\\" 'pyfixer:fix-current-line)
-     
+          
           (require 's)
           (defun python-sort-import-list ()
             "Split an single import lines with multiple module imports into separate lines sort results"
