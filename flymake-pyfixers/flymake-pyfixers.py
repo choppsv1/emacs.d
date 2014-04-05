@@ -16,12 +16,12 @@ class foo (object):
     # foobar
     def method2 (self, unused):
         foo = 1
-        foo += 1*2
+        foo += 1 * 2
         foo -= 1 + 2
-        foo /= 1 - 2
+        foo /= 1-2
         foo = 1 / 2
         foo = 1 % 2
-        foo = 1 ^ 2
+        foo = 1^ 2
         foo = 1 & 2
         foo = 1 | 2
         foo = 1 << 2

@@ -46,6 +46,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :family "Menlo"))))
+ '(flycheck-error ((t (:background "Red1" :foreground "Black" :underline (:color "Red1" :style wave)))))
+ '(flycheck-warning ((t (:background "DarkOrange" :foreground "Black" :underline (:color "DarkOrange" :style wave)))))
  '(flymake-warnline ((t (:inherit default :underline (:color "Orange3" :style wave)))))
  '(font-lock-comment-face ((t (:foreground "Red" :inverse-video nil :underline nil :slant normal :weight bold))))
  '(mode-line ((t (:background "navajo white" :foreground "Black"))))

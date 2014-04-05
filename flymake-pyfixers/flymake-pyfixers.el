@@ -127,13 +127,19 @@
                     (flymake-start-syntax-check))
                 (message "No pyfixer function for: %s" errno)))))))
 
+(defun pyfixer:get-errlist ()
+  "Get a list of error messages from either flymake or flycheck"
+  (if (member 'flycheck-mode minor-mode-list)
+      (-keep 'flycheck-error-message (flycheck-overlay-errors-at (point)))
+    (let* ((line-no             (flymake-current-line-no))
+           (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
+           (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
+           caadr menu-data))))
+  
 (defun pyfixer:fix-current-line ()
   "Display a fix for the current line"
   (interactive)
-  (let* ((line-no             (flymake-current-line-no))
-      (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-      (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
-      (errlist (caadr menu-data)))
+  (let* ((errlist (pyfixer:get-errlist)))
     (message "Errlist: %s" errlist)
     (mapcar 'pyfixer:fix-error errlist)))
 
@@ -151,10 +157,7 @@
 (defun pyfixer:ignore-current-line ()
   "Display a fix for the current line"
   (interactive)
-  (let* ((line-no             (flymake-current-line-no))
-      (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-      (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
-      (errlist (caadr menu-data)))
+  (let* ((errlist (pyfixer:get-errlist)))
     (message "Errlist: %s" errlist)
     (mapcar 'pyfixer:ignore-error errlist)))
 
