@@ -113,7 +113,7 @@
   (if errdata
       (let (errno fixer)
         ;; Handle flake8 or pylint messages
-        (if (string-match "\\(^\\([EW][0-9]+\\) \\|\\[\\([EW][0-9]+\\)\\(-.*\\)\\?*\\]\\).*" errdata)
+        (if (string-match "\\(^\\([EWRC][0-9]+\\) \\|\\[\\([EWRC][0-9]+\\)]\\).*" errdata)
             (progn
               (if (not (setq errno (match-string 2 errdata)))
                   (setq errno (match-string 3 errdata)))
@@ -129,12 +129,22 @@
 
 (defun pyfixer:get-errlist ()
   "Get a list of error messages from either flymake or flycheck"
-  (if (member 'flycheck-mode minor-mode-list)
-      (-keep 'flycheck-error-message (flycheck-overlay-errors-at (point)))
+  (progn
     (let* ((line-no             (flymake-current-line-no))
            (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
            (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
-           caadr menu-data))))
+           (errlist (caadr menu-data)))
+      (message "Menu-data: %s" (car errlist))
+      errlist)))
+
+;; (defun pyfixer:get-errlist ()
+;;   "Get a list of error messages from either flymake or flycheck"
+;;   (if (member 'flycheck-mode minor-mode-list)
+;;       (-keep 'flycheck-error-message (flycheck-overlay-errors-at (point)))
+;;     (let* ((line-no             (flymake-current-line-no))
+;;            (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
+;;            (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
+;;            caadr menu-data))))
   
 (defun pyfixer:fix-current-line ()
   "Display a fix for the current line"
@@ -148,7 +158,8 @@
   (if errdata
       (let (errno fixer)
         ;; Handle pylint messages
-        (if (string-match "\\[\\([EW][0-9]+\\)\\(-.*\\)\\?*\\].*" errdata)
+        ;; (if (string-match "\\[\\([EW][0-9]+\\)\\(-.*\\)\\?*\\].*" errdata)
+        (if (string-match "\\[\\([CERW][0-9]+\\)\\].*" errdata)
             (progn
               (setq errno (match-string 1 errdata))
               (end-of-line)
