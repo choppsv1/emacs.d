@@ -8,6 +8,7 @@ import re
 from Pymacs import lisp
 interactions = {}
 
+
 class foo (object):
 
     def method1 (self):
@@ -18,10 +19,10 @@ class foo (object):
         foo = 1
         foo += 1 * 2
         foo -= 1 + 2
-        foo /= 1-2
+        foo /= 1 - 2
         foo = 1 / 2
         foo = 1 % 2
-        foo = 1^ 2
+        foo = 1 ^ 2
         foo = 1 & 2
         foo = 1 | 2
         foo = 1 << 2

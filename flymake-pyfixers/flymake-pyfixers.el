@@ -146,6 +146,11 @@
 ;;            (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
 ;;            caadr menu-data))))
   
+
+(defun pyfixer:print-errlist ()
+  (interactive)
+  (message "%s" (pyfixer:get-errlist)))
+
 (defun pyfixer:fix-current-line ()
   "Display a fix for the current line"
   (interactive)
