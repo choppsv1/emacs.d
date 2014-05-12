@@ -1286,9 +1286,9 @@
             (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
             (setq elpy-rpc-backend "jedi")
             (elpy-enable)
-            ;; (when (require 'flycheck nil t)
-            ;;   (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
-            ;;   (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
+            (when (require 'flycheck nil t)
+              (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
+              (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
             (setq elpy-default-minor-modes (delq 'highlight-indentation-mode elpy-default-minor-modes))
             
             (elpy-use-ipython)
