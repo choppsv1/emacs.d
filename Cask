@@ -1,6 +1,6 @@
+(source gnu)
 (source marmalade)
 (source melpa)
-(source gnu)
 (source org)
 
 (depends-on "benchmark-init")
@@ -9,6 +9,7 @@
 (depends-on "deferred")
 (depends-on "epc")
 (depends-on "epl")
+(depends-on "evil")
 (depends-on "exec-path-from-shell")
 (depends-on "f")
 (depends-on "find-file-in-project")
@@ -26,6 +27,7 @@
 (depends-on "jedi")
 (depends-on "magit")
 (depends-on "nose")
+(depends-on "pallet")
 (depends-on "pkg-info")
 (depends-on "popup")
 (depends-on "popwin")
