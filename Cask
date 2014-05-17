@@ -1,8 +1,9 @@
-(source gnu)
-(source melpa)
 (source marmalade)
+(source melpa)
+(source gnu)
 (source org)
 
+(depends-on "benchmark-init")
 (depends-on "concurrent")
 (depends-on "ctable")
 (depends-on "deferred")
