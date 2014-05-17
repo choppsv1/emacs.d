@@ -142,15 +142,18 @@
    #+BEGIN_SRC emacs-lisp
      (if (not (getenv "HOSTNAME"))
          (setenv "HOSTNAME" (shell-command-to-string "hostname")))
-
+     
      (if (or (string-match "^\\(rtp\\|sjc\\|bxb\\)-chopps" (getenv "HOSTNAME"))
              (string-match "^dex" (getenv "HOSTNAME")))
          (setq athome t)
       (setq athome nil))
-
+     
      (if (string-match "^Darwin" (shell-command-to-string "uname -s"))
          (setq on-mac t)
        (setq on-mac nil))
+     
+     (if (and on-mac (string= default-directory "/"))
+         (cd "~"))
    #+END_SRC
 
 ** Load-path
@@ -251,6 +254,11 @@
      (require 'uniquify)
      (setq uniquify-buffer-name-style 'forward)
    #+END_SRC
+* Frames
+  #+BEGIN_SRC emacs-lisp
+    ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
+    (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 98)))
+  #+END_SRC
 * Evil
 
   #+BEGIN_SRC emacs-lisp
@@ -1445,6 +1453,8 @@
     
     (define-key global-map "\C-cc" 'org-capture)
     
+    (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
+   #+END_SRC
     
     ;; (require 'org-mode)
     
@@ -1477,60 +1487,61 @@
               :password (netrc-get blog "password"))))
    #+END_SRC
 * Auto-complete
+
   #+BEGIN_SRC emacs-lisp
     (if (boundp 'viper-harness-minor-mode)
         (progn
           (viper-harness-minor-mode "auto-complete")
           ;; XX (viper-harness-minor-mode "auto-complete-extension")
           (viper-harness-minor-mode "auto-complete-config")))
-
+    
     (require 'auto-complete-config)
-
+    
     ; XXX (require 'auto-complete-extension)
     (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
     (ac-config-default)
-
+    
     (defun ac-python-mode-setup ()
       (setq ac-sources (append '(ac-source-yasnippet ac-source-gtags) ac-sources)))
     (add-hook 'python-mode-hook 'ac-python-mode-setup)
-
-
+    
+    
     (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
-
+    
     (setq ac-auto-start nil)        ; don't run ac-complete continuously
     (setq ac-trigger-key "TAB")     ; do start auto-complete when a tab is encountered
     (setq ac-trigger-commands '(chopps-python-tab)) ; when entered enables completion
     (define-key ac-menu-map "\C-n" 'ac-next)
     (define-key ac-menu-map "\C-p" 'ac-previous)
     (define-key ac-menu-map "\e" 'ac-complete)
-
-
+    
+    
     (setq ac-trigger-commands-on-completing
           (cons 'viper-intercept-ESC-key ac-trigger-commands-on-completing))
-
+    
     ;;----------------------------+
     ;; File and buffer completion
     ;;----------------------------+
-
+    
     (require 'ido)
     (ido-mode t)
-
+    
     ;;-----------+
     ;; Yasnippet
     ;;-----------+
-
+    
     ;Don't map TAB to yasnippet
     ;In fact, set it to something we'll never use because
     ;we'll only ever trigger it indirectly.
-
+    
     (require 'yasnippet)
     ;; (yas/global-mode 1)
     (yas-reload-all)
-
-
+    
+    
     ; default now (setq yas/snippet-dirs '("~/.emacs.d/snippets"))
     ;(setq yas/snippet-dirs '("~/.emacs.d/snippets" "~/.emacs.d/extras/imported"))
-
+    
     (eval-after-load "yasnippet"
       '(progn
          (message "yasnippet loading")
