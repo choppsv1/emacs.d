@@ -5,3 +5,7 @@
 /el-get/
 /emacs-init.el
 /tramp
+*.pyc
+*.elc
+/url/
+/eshell/

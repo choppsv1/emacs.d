@@ -351,6 +351,13 @@
     ;; (setq iswitchb-buffer-ignore '("^ " "^\\*"))
     (setq iswitchb-buffer-ignore '("^ "))
     (setq-default save-place t)
+    
+    (defun dont-kill-but-bury-scratch ()
+      "Don't kill but burry *scratch* buffer."
+      (if (equal (buffer-name (current-buffer)) "*scratch*")
+          (progn (bury-buffer) nil)
+        t))
+    (add-hook 'kill-buffer-query-functions 'dont-kill-but-bury-scratch)
   #+END_SRC
 
 ** Cleanup Buffers Automatically
@@ -1433,38 +1440,44 @@
 ** Haskell
 * Org-Mode
   #+BEGIN_SRC emacs-lisp
-    (defun my-org-mode-hook
-      (message "Org-mode-hook"))
-    
-    (setq org-directory "~/org-mode")
-    (setq org-src-fontify-natively t)
-    (setq org-default-notes-file (concat org-directory "/notes.org"))
-    (setq org2blog/wp-use-sourcecode-shortcode t)
-    
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((python . t)))
-    
-    ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
-    (bind-key "M-h" 'org-metaleft org-mode-map)
-    (bind-key "M-l" 'org-metaright org-mode-map)
-    (bind-key "M-k" 'org-metaup org-mode-map)
-    (bind-key "M-j" 'org-metadown org-mode-map)
-    
-    (define-key global-map "\C-cc" 'org-capture)
-    
-    (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
-   #+END_SRC
-    
-    ;; (require 'org-mode)
-    
-    (eval-after-load "org-mode"
-      '(progn
-         (require 'org-latext)
-    
-         ;; (org-babel-do-load-languages
-         ;;  'org-babel-do-load-languages
-         ))
+        (defun my-org-mode-hook ()
+          (message "Org-mode-hook")
+          (org-set-local 'yas/trigger-key [tab])
+          (yas-minor-mode)
+          (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
+          )
+        
+        (setq org-directory "~/org-mode")
+        (setq org-src-fontify-natively t)
+        (setq org-default-notes-file (concat org-directory "/notes.org"))
+        (setq org2blog/wp-use-sourcecode-shortcode t)
+        
+        (org-babel-do-load-languages
+         'org-babel-load-languages
+         '((python . t) (dot . t))
+         )
+        
+        (add-to-list 'org-modules 'org-mac-message)
+        (setq org-mac-mail-account "Work")
+        
+        ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
+        (bind-key "M-h" 'org-metaleft org-mode-map)
+        (bind-key "M-l" 'org-metaright org-mode-map)
+        (bind-key "M-k" 'org-metaup org-mode-map)
+        (bind-key "M-j" 'org-metadown org-mode-map)
+        
+        (define-key global-map "\C-cc" 'org-capture)
+        
+        (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
+        
+        ;; (require 'org-mode)
+        
+        (eval-after-load "org"
+          '(progn
+             (message "org-mode after load")
+             (add-hook 'org-mode-hook 'my-org-mode-hook)
+             ;; (require 'org-latext)
+             ))
   #+END_SRC
 
 ** Blogging
@@ -1487,7 +1500,6 @@
               :password (netrc-get blog "password"))))
    #+END_SRC
 * Auto-complete
-
   #+BEGIN_SRC emacs-lisp
     (if (boundp 'viper-harness-minor-mode)
         (progn
@@ -1535,6 +1547,7 @@
     ;we'll only ever trigger it indirectly.
     
     (require 'yasnippet)
+    ;; (yas/initialize)
     ;; (yas/global-mode 1)
     (yas-reload-all)
     
@@ -1584,6 +1597,7 @@
                  "#+TITLE: _ " \n
                  > "#+AUTHOR: Christian E. Hopps" \n
                  > "#+EMAIL: chopps@gmail.com" \n
+                 > "#+STARTUP: indent" \n
                  > "" \n
                  ))
              (define-auto-insert
@@ -1652,11 +1666,12 @@
              ;;-----------+
     
              (define-auto-insert
-               '("\\.org" . "Home Org mode skeletop")
+               '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.org" . "Work org mode skeleton")
                '("Short description: "
-                 "#+TITLE: _ " \n
+                 "#+TITLE: " _ \n
                  > "#+AUTHOR: Christian E. Hopps" \n
                  > "#+EMAIL: chopps@cisco.com" \n
+                 > "#+STARTUP: indent" \n
                  > "" \n
                  ))
              (define-auto-insert
@@ -1726,6 +1741,7 @@
         (auto-insert-mode)
   #+END_SRC
 * Keys
+
   #+BEGIN_SRC emacs-lisp
     ;;(setq vc-default-back-end 'ACMEC)
     (define-key global-map "\C-xv-" 'ediff-revision)
@@ -1769,6 +1785,7 @@
        (defun viper-translate-all-ESC-keysequences () t))
   #+END_SRC
 * Modeline
+
   #+BEGIN_SRC emacs-lisp
     (column-number-mode t)
     (setq line-number-mode t)
@@ -1776,6 +1793,7 @@
   #+END_SRC
 
 * Display
+
   #+BEGIN_SRC emacs-lisp
     (setq x-mouse-click-focus-ignore-position t)
     (setq mouse-yank-at-point t)
@@ -1813,6 +1831,7 @@
                           (font-lock-mode 1))))
   #+END_SRC
 * XRUT
+
   #+BEGIN_SRC emacs-lisp
     ;; XRUT functionality
 
@@ -1880,10 +1899,12 @@
         ))
   #+END_SRC
 * Projects
+
   #+BEGIN_SRC emacs-lisp
      (require 'projectile nil t)
   #+END_SRC
 * Legacy Bottom
+
   #+BEGIN_SRC emacs-lisp
         (setq scroll-step 1)
         (setq make-backup-files nil)
