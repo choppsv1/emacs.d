@@ -1,6 +1,7 @@
 #+TITLE: Emacs Configuration
 #+AUTHOR: Christian E. Hopps
 #+EMAIL: chopps@gmail.com
+#+STARTUP: indent
 
 #+NAME: Note
 #+BEGIN_SRC emacs-lisp
@@ -267,24 +268,24 @@
       (progn
         (setq evil-search-wrap nil)
         (setq evil-want-C-i-jump nil)
-
+    
         (evil-mode 1)
-
+    
         ;; (setq evil-esc-delay 0)
         (setq evil-esc-delay 0.001)
         (evil-change-to-initial-state)
-
+    
         (defun evil-undefine ()
           (interactive)
           (let (evil-mode-map-alist)
             (call-interactively (key-binding (this-command-keys)))))
-
+    
         (define-key evil-normal-state-map [escape] 'keyboard-quit)
         (define-key evil-visual-state-map [escape] 'keyboard-quit)
         (define-key evil-normal-state-map (kbd "TAB") 'evil-undefine)
         ;; (define-key evil-normal-state-map (kbd "RET") 'evil-undefine)
         ;; (define-key evil-normal-state-map " " 'evil-undefine)
-
+    
         ;; Undefine vi keys in all modes.
         (let ((undef '("\C-a" "\C-e" "\C-n" "\C-p")))
           (while undef
@@ -292,13 +293,13 @@
             (define-key evil-visual-state-map (car undef) 'evil-undefine)
             (define-key evil-insert-state-map (car undef) 'evil-undefine)
             (setq undef (cdr undef))))
-
+    
         ;; Undefine vi keys in insert mode.
         (let ((undef '("\C-k")))
           (while undef
             (define-key evil-insert-state-map (car undef) 'evil-undefine)
             (setq undef (cdr undef))))
-
+    
         ;; Remove RET and SPC from motion map so they can be overridden by various modes
         (defun my-move-key (keymap-from keymap-to key)
           "Moves key binding from one keymap to another, deleting from the old location. "
@@ -306,7 +307,7 @@
           (define-key keymap-from key nil))
         (my-move-key evil-motion-state-map evil-normal-state-map (kbd "RET"))
         (my-move-key evil-motion-state-map evil-normal-state-map " ")
-
+    
                                             ;(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
                                             ;(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
                                             ;(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
@@ -1067,7 +1068,7 @@
     (setq mail-from-style 'angles)
     (setq mail-archive-file-name (expand-file-name "~/Personal/Mail/mail-archive"))
   #+END_SRC
-* Screen/TMX
+* Screen/TMUX
   #+BEGIN_SRC emacs-lisp
     (defun sigusr1-handler ()
       (interactive)
@@ -1439,6 +1440,7 @@
 
 ** Haskell
 * Org-Mode
+** Basic Setup
   #+BEGIN_SRC emacs-lisp
         (defun my-org-mode-hook ()
           (message "Org-mode-hook")
@@ -1476,7 +1478,7 @@
           '(progn
              (message "org-mode after load")
              (add-hook 'org-mode-hook 'my-org-mode-hook)
-             ;; (require 'org-latext)
+             (require 'org-latex)
              ))
   #+END_SRC
 
@@ -1499,7 +1501,8 @@
               :username (netrc-get blog "login")
               :password (netrc-get blog "password"))))
    #+END_SRC
-* Auto-complete
+* Completion
+** Auto Complete
   #+BEGIN_SRC emacs-lisp
     (if (boundp 'viper-harness-minor-mode)
         (progn
@@ -1531,13 +1534,22 @@
     (setq ac-trigger-commands-on-completing
           (cons 'viper-intercept-ESC-key ac-trigger-commands-on-completing))
     
+  #+END_SRC
+
+** File and Buffer Completion (ido)
     ;;----------------------------+
     ;; File and buffer completion
     ;;----------------------------+
     
+  #+BEGIN_SRC emacs-lisp
     (require 'ido)
     (ido-mode t)
-    
+  #+END_SRC
+
+** Yasnippet
+
+  #+BEGIN_SRC emacs-lisp
+
     ;;-----------+
     ;; Yasnippet
     ;;-----------+
