@@ -19,6 +19,17 @@
  '(max-specpdl-size 5)
  '(ns-alternate-modifier (quote meta))
  '(ns-command-modifier (quote alt))
+ '(org-agenda-files (quote ("~/org-mode/index.org")))
+ '(org-taskjuggler-default-global-properties "shift s40 \"Part time shift\" {
+  workinghours wed, thu, fri off
+}
+# Export the scheduled project as Microsoft Project XML format.
+export \"MS-Project\" {
+  formats mspxml
+  loadunit quarters
+}
+")
+ '(org-taskjuggler-valid-resource-attributes (quote (limits vacation shift booking efficiency journalentry rate workinghours flags supplement)))
  '(safe-local-variable-values (quote ((pymacs-auto-reload . t))))
  '(show-trailing-whitespace t)
  '(temporary-file-directory "/tmp")
@@ -46,9 +57,10 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :family "Menlo"))))
- '(flycheck-error ((t (:background "Red1" :foreground "Black" :underline (:color "Red1" :style wave)))))
- '(flycheck-warning ((t (:background "DarkOrange" :foreground "Black" :underline (:color "DarkOrange" :style wave)))))
+ '(flycheck-error ((t (:background "Red1" :foreground "Black" :underline (:color "Red1" :style wave)))) t)
+ '(flycheck-warning ((t (:background "DarkOrange" :foreground "Black" :underline (:color "DarkOrange" :style wave)))) t)
  '(flymake-warnline ((t (:inherit default :underline (:color "Orange3" :style wave)))))
  '(font-lock-comment-face ((t (:foreground "Red" :inverse-video nil :underline nil :slant normal :weight bold))))
  '(mode-line ((t (:background "navajo white" :foreground "Black"))))
- '(mode-line-buffer-id ((t (:foreground "DarkBlue" :weight bold)))))
+ '(mode-line-buffer-id ((t (:foreground "DarkBlue" :weight bold))))
+ '(org-column ((t (:background "grey10" :strike-through nil :underline nil :slant normal :weight normal :height 120 :family "Monaco")))))
