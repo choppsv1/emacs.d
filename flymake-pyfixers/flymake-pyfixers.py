@@ -132,17 +132,16 @@ def fixer_fixup_imports (error, errtext):
 
 fixers = {
     # Pyflake errors
-    "W291": fixer_remove_trailing_ws,  
+    "W291": fixer_remove_trailing_ws,
     "W293": fixer_remove_trailing_ws,
     # "E225": fixer_add_one_space_around_equals,
     # "E231": fixer_comma_space,
     # "E251": fixer_remove_space_around_equals,
     # "E301": fixer_add_blank_line,
     # "E302": fixer_add_blank_line,
-    #"E303": fixer_remove_blank_lines,
+    # "E303": fixer_remove_blank_lines,
     "E401": fixer_fixup_imports,
     "E711": fixer_equals_none,
-
     # Pylint errors
     # "W0511": fixer_xxx,
 }

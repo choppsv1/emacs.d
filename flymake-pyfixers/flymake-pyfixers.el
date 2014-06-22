@@ -26,6 +26,7 @@
         ("E228" . 'pyfixer:space-around-op)
         ("E231" . 'pyfixer:comma-space)
         ("E251" . 'pyfixer:remove-space-around-equals)
+        ("E265" . 'pyfixer:fix-block-comment) ; block comment should start with '# '
         ("E301" . 'pyfixer:add-blank-line)
         ("E302" . 'pyfixer:add-blank-line)
         ("E303" . 'pyfixer:remove-blank-lines)
@@ -35,6 +36,34 @@
       values functions are quoted to allow pre-referencing")
 
 ;; Elisp version of fixers
+
+(defun pyfixer:add-blank-line (errno errinfo)
+  "Add blank line above current line"
+  (save-excursion
+    (let ((lines 0))
+      (if (string-match "expected \\([0-9]+\\) blank lines?, found \\([0-9]+\\)" errinfo)
+          (setq lines (- (string-to-number (match-string 1 errinfo))
+                         (string-to-number (match-string 2 errinfo)))))
+      (beginning-of-line)
+      (previous-line)
+      (while (not (line-no-commentp))
+        (previous-line))
+      (next-line)
+      (newline lines))))
+
+(defun pyfixer:fix-block-comment (errno errinfo)
+  "Fix space after comment start"
+  (let ((end (line-end-position)))
+    (save-excursion
+      (beginning-of-line)
+      (while (re-search-forward "#\\([^ ]\\)" end t)
+        (replace-match "# \\1")
+        (setq end (line-end-position)))
+      (beginning-of-line)
+      (while (re-search-forward "#[\t ][\t ]+" end t)
+        (replace-match "# ")
+        (setq end (line-end-position))))))
+
 (defun pyfixer:space-around-op (errno errinfo)
   "Fix space around equals warning"
   (let ((end (line-end-position)))
@@ -93,20 +122,6 @@
            (end (line-end-position))
            (line (buffer-substring-no-properties start end)))
       (not (string-match "[:space:]*#.*" line)))))
-
-(defun pyfixer:add-blank-line (errno errinfo)
-  "Add blank line above current line"
-  (save-excursion
-    (let ((lines 0))
-      (if (string-match "expected \\([0-9]+\\) blank lines?, found \\([0-9]+\\)" errinfo)
-          (setq lines (- (string-to-number (match-string 1 errinfo))
-                         (string-to-number (match-string 2 errinfo)))))
-      (beginning-of-line)
-      (previous-line)
-      (while (not (line-no-commentp))
-        (previous-line))
-      (next-line)
-      (newline lines))))
 
 (defun pyfixer:fix-error (errdata)
   "Fix the given errdata"
