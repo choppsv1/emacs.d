@@ -139,10 +139,9 @@ fixers = {
     # "E251": fixer_remove_space_around_equals,
     # "E301": fixer_add_blank_line,
     # "E302": fixer_add_blank_line,
-    #"E303": fixer_remove_blank_lines,
+    # "E303": fixer_remove_blank_lines,
     "E401": fixer_fixup_imports,
     "E711": fixer_equals_none,
-
     # Pylint errors
     # "W0511": fixer_xxx,
 }

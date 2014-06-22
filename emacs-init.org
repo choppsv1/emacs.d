@@ -1621,7 +1621,7 @@
              (define-auto-insert
                '("\\.org" . "Home Org mode skeletop")
                '("Short description: "
-                 "#+TITLE: _ " \n
+                 "#+TITLE: " _ \n
                  > "#+AUTHOR: Christian E. Hopps" \n
                  > "#+EMAIL: chopps@gmail.com" \n
                  > "#+STARTUP: indent" \n
