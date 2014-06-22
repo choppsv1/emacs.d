@@ -11,29 +11,35 @@
   (require 'pymacs)
   (message "add-directory: %s" (file-name-directory load-file-name))
   (add-to-list 'pymacs-load-path (file-name-directory load-file-name))
-  (pymacs-load "flymake-pyfixers" "pyfixer:"))
+  (pymacs-load "flymake-pyfixers" "pyfixer:")
+  )
 
+(message "A")
 (defvar pyfixer:flymake-fixers
-      '(
-        ("W291" . 'pyfixer:fixer-remove-trailing-ws)
-        ("E221" . 'pyfixer:space-around-op)
-        ("E222" . 'pyfixer:space-around-op)
-        ("E225" . 'pyfixer:space-around-op)
-        ("E226" . 'pyfixer:space-around-op)
-        ("E225" . 'pyfixer:space-around-op)
-        ("E226" . 'pyfixer:space-around-op)
-        ("E227" . 'pyfixer:space-around-op)
-        ("E228" . 'pyfixer:space-around-op)
-        ("E231" . 'pyfixer:comma-space)
-        ("E251" . 'pyfixer:remove-space-around-equals)
-        ("E301" . 'pyfixer:add-blank-line)
-        ("E302" . 'pyfixer:add-blank-line)
-        ("E303" . 'pyfixer:remove-blank-lines)
-        ("E711" . 'pyfixer:equals-none)
-        )
-      "Associative array to locate fixers for pyflake errros, the
+  '(
+    ("W291" . 'pyfixer:fixer-remove-trailing-ws)
+    ("E203" . 'pyfixer:space-before-colon)
+    ("E221" . 'pyfixer:space-around-op)
+    ("E222" . 'pyfixer:space-around-op)
+    ("E225" . 'pyfixer:space-around-op)
+    ("E226" . 'pyfixer:space-around-op)
+    ("E225" . 'pyfixer:space-around-op)
+    ("E226" . 'pyfixer:space-around-op)
+    ("E227" . 'pyfixer:space-around-op)
+    ("E228" . 'pyfixer:space-around-op)
+    ("E231" . 'pyfixer:comma-space)
+    ("E251" . 'pyfixer:remove-space-around-equals)
+    ("E301" . 'pyfixer:add-blank-line)
+    ("E302" . 'pyfixer:add-blank-line)
+    ("E303" . 'pyfixer:remove-blank-lines)
+    ("E401" . 'pyfixer:multiple-imports-one-line)
+    ("E711" . 'pyfixer:equals-none)
+    ("E712" . 'pyfixer:equals-false)
+    )
+  "Associative array to locate fixers for pyflake errros, the
       values functions are quoted to allow pre-referencing")
 
+(message "A1")
 ;; Elisp version of fixers
 (defun pyfixer:space-around-op (errno errinfo)
   "Fix space around equals warning"
@@ -45,6 +51,7 @@
         (replace-match " \\1 ")
         (setq end (line-end-position))))))
 
+(message "A2")
 (defun pyfixer:remove-space-around-equals (errno errinfo)
   "Fix space around equals warning"
   (let ((end (line-end-position)))
@@ -54,6 +61,17 @@
         (replace-match "=")
         (setq end (line-end-position))))))
 
+(message "A3")
+(defun pyfixer:space-before-colon (errno errinfo)
+  "Fix space around equals warning"
+  (let ((end (line-end-position)))
+    (save-excursion
+      (beginning-of-line)
+      (while (re-search-forward " *:" end t)
+        (replace-match ":")
+        (setq end (line-end-position))))))
+
+(message "A4")
 (defun pyfixer:comma-space (errno errinfo)
   "Fix space around comma warning"
   (let ((end (line-end-position))
@@ -65,6 +83,7 @@
         (replace-match ", " t)
         (setq end (line-end-position))))))
 
+(message "A5")
 (defun pyfixer:equals-none (errno errinfo)
   "Fix space around equals warning"
   (let ((end (line-end-position)))
@@ -77,6 +96,50 @@
         (replace-match "is not None")
         (setq end (line-end-position))))))
 
+(message "B1")
+(defun pyfixer:equals-false (errno errinfo)
+  "Fix space around equals warning"
+  (let ((end (line-end-position)))
+    (save-excursion
+      (beginning-of-line)
+      (while (re-search-forward "== *False" end t)
+        (replace-match "is False")
+        (setq end (line-end-position)))
+      (while (re-search-forward "!= *False" end t)
+        (replace-match "is not False")
+        (setq end (line-end-position))))))
+
+(message "B2")
+(defun pyfixer:multiple-imports-one-line (errno errinfo)
+  "transform a single line multiple import statement into single import statements, sorted"
+  (let ((begin (line-beginning-position))
+        (end (line-end-position))
+        impend modlist bigstr)
+    (save-excursion
+      (beginning-of-line)
+      (save-match-data
+        (when (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t)
+          (setq impend (match-end 0))
+          (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1)))))
+          (setq modlist (sort modlist 's-less?))
+          (setq modlist (mapcar (lambda (x) (concat "import " x)) modlist))
+          (setq bigstr (s-join "\n" modlist))
+          (save-restriction
+            (narrow-to-region begin impend)
+            (delete-region begin impend)
+            (goto-char begin)
+            (insert bigstr)))))))
+
+;; (message "B4")
+;; (let ((beg (point)))
+;;   (save-excursion
+;;     ;; move N-1 lines forward
+;;     (beginning-of-line 0)
+;;     (forward-line 1)
+;;     (forward-char -1)
+;;     (delete-region beg (point)))))
+
+(message "B5")
 (defun pyfixer:remove-blank-lines (errno errinfo)
   "Remove blank line above current line"
   (let ((beg (point)))
@@ -87,6 +150,7 @@
       (forward-char -1)
       (delete-region beg (point)))))
 
+(message "B6")
 (defun line-no-commentp ()
   (save-match-data
     (let* ((start (line-beginning-position))
@@ -94,6 +158,7 @@
            (line (buffer-substring-no-properties start end)))
       (not (string-match "[:space:]*#.*" line)))))
 
+(message "B7")
 (defun pyfixer:add-blank-line (errno errinfo)
   "Add blank line above current line"
   (save-excursion
@@ -108,6 +173,7 @@
       (next-line)
       (newline lines))))
 
+(message "C")
 (defun pyfixer:fix-error (errdata)
   "Fix the given errdata"
   (if errdata
@@ -122,20 +188,42 @@
               (if (and (not fixer) (functionp 'pyfixers-get-fixer-func))
                   (setq fixer (pyfixers-get-fixer-func errno)))
               (if fixer
-                  (progn
-                    (funcall fixer errno errdata)
-                    (flymake-start-syntax-check))
+                  (funcall fixer errno errdata)
                 (message "No pyfixer function for: %s" errno)))))))
 
-(defun pyfixer:get-errlist ()
+(defun pyfixer:get-errlist-given-line (line-no)
   "Get a list of error messages from either flymake or flycheck"
   (progn
-    (let* ((line-no             (flymake-current-line-no))
-           (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
+    (let* ((line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
            (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
            (errlist (caadr menu-data)))
       (message "Menu-data: %s" (car errlist))
       errlist)))
+
+(defun pyfixer:get-errlist ()
+  "Get a list of error messages from either flymake or flycheck"
+  (pyfixer:get-errlist-given-line (flymake-current-line-no)))
+
+(defun pyfixer:fix-line-in-list (err-list last-line-no)
+  "Recursively fix lines in list"
+  (progn
+    (let ((line-no (caar err-list))
+          (new-list (cdr err-list)))
+      (if new-list
+          (pyfixer:fix-line-in-list new-list line-no))
+      (if (not (eq last-line-no line-no))
+          (progn
+            (goto-line line-no)
+            (pyfixer:fix-current-line))))))
+
+(defun pyfixer:fix-all-errors ()
+  "Get all errors"
+  (interactive)
+  (save-excursion
+    (pyfixer:fix-line-in-list flymake-err-info -1))
+  (flymake-start-syntax-check))
+
+;;(bind-key "C-x C-q" 'pyfixer:fix-all-errors)
 
 ;; (defun pyfixer:get-errlist ()
 ;;   "Get a list of error messages from either flymake or flycheck"
@@ -145,7 +233,8 @@
 ;;            (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
 ;;            (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
 ;;            caadr menu-data))))
-  
+
+(message "D")
 
 (defun pyfixer:print-errlist ()
   (interactive)
@@ -156,7 +245,8 @@
   (interactive)
   (let* ((errlist (pyfixer:get-errlist)))
     (message "Errlist: %s" errlist)
-    (mapcar 'pyfixer:fix-error errlist)))
+    (mapcar 'pyfixer:fix-error errlist)
+    (flymake-start-syntax-check)))
 
 (defun pyfixer:ignore-error (errdata)
   "Ignore the given errdata pylint error"
@@ -175,7 +265,9 @@
   (interactive)
   (let* ((errlist (pyfixer:get-errlist)))
     (message "Errlist: %s" errlist)
-    (mapcar 'pyfixer:ignore-error errlist)))
+    (mapcar 'pyfixer:ignore-error errlist)
+    (flymake-start-syntax-check)))
 
 
+(message "E")
 (provide 'flymake-pyfixers)

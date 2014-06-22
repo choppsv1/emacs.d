@@ -109,6 +109,7 @@
 
   #+BEGIN_SRC emacs-lisp
     (setenv "LC_CTYPE" "UTF-8")
+    ;; then we can't run scripts from the shell (setenv "PY_XRUT_DOING_DOC" "1")
   #+END_SRC
 
 ** Start the emacs server
@@ -849,6 +850,10 @@
                                           "? box123456 "
                                           "?==========="])
 
+         (rebox-register-template 75 576 ["????????????"
+                                          "? box123456 "
+                                          "????????????"])
+
          (rebox-register-template 81 186 ["?? -----------"
                                           "??  box123456 "
                                           "?? -----------"])
@@ -1272,112 +1277,115 @@
    #+END_SRC
 ** Python
    #+BEGIN_SRC emacs-lisp
-     (eval-after-load "python"
-       '(progn
-          (message "Initializing python mode settings")
-          
-          ;; Consider _ a part of words for python
-          (modify-syntax-entry ?_ "w" python-mode-syntax-table)
-          
-          (require 'pylookup)
-          (require 'jedi)
-                                             ; (setq jedi:setup-keys t)
-          
-                                             ; (require 'ipython)
-                                             ; Use the following to enable ipython use with python.el rather than python-mode.el
-          (setq
-           python-shell-interpreter "ipython"
-           python-shell-interpreter-args ""
-           python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-           python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-           python-shell-completion-setup-code
-           "from IPython.core.completerlib import module_completion"
-           python-shell-completion-module-string-code
-           "';'.join(module_completion('''%s'''))\n"
-           python-shell-completion-string-code
-           "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-          
-          
-          (when (require 'elpy nil t)
-            (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
-            (setq elpy-rpc-backend "jedi")
-            (elpy-enable)
-            ;; (when (require 'flycheck nil t)
-            ;;   (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
-            ;;   (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
-            (setq elpy-default-minor-modes (delq 'highlight-indentation-mode elpy-default-minor-modes))
-            
-            (elpy-use-ipython)
-            ;; (elpy-clean-modeline)
-            (when (not (setq python-check-command (locate-file "pycheckers.sh" load-path)))
-              (setq python-check-command "flake8")))
-          
-          (if (file-exists-p "/home/chopps/sw/xrut-cel-5/bin/python")
-              (setenv "PYMACS_PYTHON" "/home/chopps/sw/xrut-cel-5/bin/python")
-            (if (file-exists-p "/auto/xrut/sw/xrut-cel-5/bin/python")
-                (setenv "PYMACS_PYTHON" "/auto/xrut/sw/xrut-cel-5/bin/python")
-              (if (file-exists-p "/Users/chopps/venv/bin/python"  )
-                  (setenv "PYMACS_PYTHON" "/Users/chopps/venv/bin/python")
-                (if (file-exists-p "/usr/local/bin/python"  )
-                    (setenv "PYMACS_PYTHON" "/usr/local/bin/python")))))
-          
-          ;;-------------
-          ;; Python hook
-          ;;-------------
-          
-          (defun my-python-mode-hook ()
-            (jedi:setup)
-            ;; Fill values
-            (setq comment-column 60)
-            (setq fill-column 120)
-            (turn-on-auto-fill)
-            ;; Rebox
-            (set (make-local-variable 'rebox-style-loop) '(72 73 74 11))
-            (rebox-mode 1)
-            (highlight-indentation-mode nil)
-            )
-          (add-hook 'python-mode-hook 'my-python-mode-hook)
-          
-          
-          ;;------------------------
-          ;; plake8/pylint pyfixers
-          ;;------------------------
-          
-          ;; Pyflake version of fixers
-          (require 'flymake-pyfixers)
-          (global-set-key "\C-c\M-\\" 'pyfixer:ignore-current-line)
-          (global-set-key "\C-c\C-\\" 'pyfixer:fix-current-line)
-          
-          (require 's)
-          (defun python-sort-import-list ()
-            "Split an single import lines with multiple module imports into separate lines sort results"
-            (interactive)
-            (if (not (use-region-p))
-                (error "No region defined"))
-            (let* ((start (region-beginning))
-                   (end (region-end))
-                   (value 0)
-                   found)
-              (save-excursion
-                (let* (modlist impstart impend bigstr)
-                  (setq modlist '())
-                  (goto-char start)
-                  (when (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t)
-                    (setq impstart (match-beginning 0))
-                    (setq impend (match-end 0))
-                    (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1)))))
-                    (while (setq found (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t))
-                      (setq impend (match-end 0))
-                      (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1))))))
-                    (setq modlist (sort modlist 's-less?))
-                    (setq modlist (mapcar (lambda (x) (concat "import " x)) modlist))
-                    (setq bigstr (s-join "\n" modlist))
-                    (save-restriction
-                      (narrow-to-region impstart impend)
-                      (delete-region impstart impend)
-                      (goto-char impstart)
-                      (insert bigstr)))))))
-          ))
+          (eval-after-load "python"
+            '(progn
+               (message "Initializing python mode settings")
+
+               ;; Consider _ a part of words for python
+               (modify-syntax-entry ?_ "w" python-mode-syntax-table)
+
+               (require 'pylookup)
+               (require 'jedi)
+                                                  ; (setq jedi:setup-keys t)
+
+                                                  ; (require 'ipython)
+                                                  ; Use the following to enable ipython use with python.el rather than python-mode.el
+               (setq
+                python-shell-interpreter "ipython"
+                python-shell-interpreter-args ""
+                python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+                python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+                python-shell-completion-setup-code
+                "from IPython.core.completerlib import module_completion"
+                python-shell-completion-module-string-code
+                "';'.join(module_completion('''%s'''))\n"
+                python-shell-completion-string-code
+                "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+
+               ;; (define-key global-map (kbd "C-c o") 'iedit-mode)
+
+               (when (require 'elpy nil t)
+                 (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
+                 (setq elpy-rpc-backend "jedi")
+                 (elpy-enable)
+                 ;; (when (require 'flycheck nil t)
+                 ;;   (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
+                 ;;   (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
+                 (setq elpy-default-minor-modes (delq 'highlight-indentation-mode elpy-default-minor-modes))
+                 (setq elpy-default-minor-modes (delq 'eldoc-mode elpy-default-minor-modes))
+
+                 (elpy-use-ipython)
+                 ;; (elpy-clean-modeline)
+                 (when (not (setq python-check-command (locate-file "pycheckers.sh" load-path)))
+                   (setq python-check-command "flake8")))
+
+               (if (file-exists-p "/home/chopps/sw/xrut-cel-5/bin/python")
+                   (setenv "PYMACS_PYTHON" "/home/chopps/sw/xrut-cel-5/bin/python")
+                 (if (file-exists-p "/auto/xrut/sw/xrut-cel-5/bin/python")
+                     (setenv "PYMACS_PYTHON" "/auto/xrut/sw/xrut-cel-5/bin/python")
+                   (if (file-exists-p "/Users/chopps/venv/bin/python"  )
+                       (setenv "PYMACS_PYTHON" "/Users/chopps/venv/bin/python")
+                     (if (file-exists-p "/usr/local/bin/python"  )
+                         (setenv "PYMACS_PYTHON" "/usr/local/bin/python")))))
+
+               ;;-------------
+               ;; Python hook
+               ;;-------------
+
+               (defun my-python-mode-hook ()
+                 (jedi:setup)
+                 ;; Fill values
+                 (setq comment-column 60)
+                 (setq fill-column 120)
+                 (turn-on-auto-fill)
+                 ;; Rebox
+                 (set (make-local-variable 'rebox-style-loop) '(72 73 74 11))
+                 (rebox-mode 1)
+                 (highlight-indentation-mode nil)
+                 )
+               (add-hook 'python-mode-hook 'my-python-mode-hook)
+
+
+               ;;------------------------
+               ;; plake8/pylint pyfixers
+               ;;------------------------
+
+               ;; Pyflake version of fixers
+               (require 'flymake-pyfixers)
+               (global-set-key "\C-c\M-\\" 'pyfixer:ignore-current-line)
+               (global-set-key "\C-c\C-\\" 'pyfixer:fix-current-line)
+               (global-set-key "\C-c8" 'pyfixer:fix-all-errors)
+
+               (require 's)
+               (defun python-sort-import-list ()
+                 "Split an single import lines with multiple module imports into separate lines sort results"
+                 (interactive)
+                 (if (not (use-region-p))
+                     (error "No region defined"))
+                 (let* ((start (region-beginning))
+                        (end (region-end))
+                        (value 0)
+                        found)
+                   (save-excursion
+                     (let* (modlist impstart impend bigstr)
+                       (setq modlist '())
+                       (goto-char start)
+                       (when (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t)
+                         (setq impstart (match-beginning 0))
+                         (setq impend (match-end 0))
+                         (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1)))))
+                         (while (setq found (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t))
+                           (setq impend (match-end 0))
+                           (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1))))))
+                         (setq modlist (sort modlist 's-less?))
+                         (setq modlist (mapcar (lambda (x) (concat "import " x)) modlist))
+                         (setq bigstr (s-join "\n" modlist))
+                         (save-restriction
+                           (narrow-to-region impstart impend)
+                           (delete-region impstart impend)
+                           (goto-char impstart)
+                           (insert bigstr)))))))
+               ))
    #+END_SRC
 ** Pymacs
    #+BEGIN_SRC emacs-lisp
@@ -1809,6 +1817,9 @@
     (column-number-mode t)
     (setq line-number-mode t)
     (set-face-attribute 'mode-line nil :box nil)
+
+    (setq sml/theme 'respectful)
+    (sml/setup)
   #+END_SRC
 
 * Display
