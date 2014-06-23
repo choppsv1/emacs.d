@@ -123,6 +123,7 @@
        (when (fboundp mode) (funcall mode -1)))
      (setq inhibit-startup-screen t)
      (setq inhibit-startup-message t)
+     (defalias 'yes-or-no-p 'y-or-n-p)
    #+END_SRC
 
 ** No Junk
@@ -256,11 +257,34 @@
      (require 'uniquify)
      (setq uniquify-buffer-name-style 'forward)
    #+END_SRC
+* Custom
+Locate emacs customization file.
+
+#+BEGIN_SRC emacs-lisp
+  (setq custom-file "~/.emacs.d/custom.el")
+  (load custom-file 'noerror)
+#+END_SRC
+
 * Frames
   #+BEGIN_SRC emacs-lisp
     ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
     (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 98)))
   #+END_SRC
+* Themes
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+
+  (if (display-graphic-p)
+      (load-theme 'chopps)
+    (load-theme 'chopps))
+  ;; (load-theme 'noctilux)
+
+  ;; (load-theme 'taylor)
+  ;; (load-theme 'hober)
+
+  (sml/setup)
+#+END_SRC
+
 * Evil
 
   #+BEGIN_SRC emacs-lisp
@@ -320,6 +344,10 @@
 * VCS
   #+BEGIN_SRC emacs-lisp
     (req-package magit)
+    (autoload 'svn-status "dsvn" "Run `svn status'." t)
+    (autoload 'svn-update "dsvn" "Run `svn update'." t)
+    (require 'vc-svn)
+
   #+END_SRC
 * End Req-Packages
 
@@ -1843,8 +1871,10 @@
     (setq line-number-mode t)
     (set-face-attribute 'mode-line nil :box nil)
 
-    (setq sml/theme 'respectful)
-    (sml/setup)
+    ;; (defun chopps-after-init ()
+    ;;   (setq sml/theme 'respectful)
+    ;;   (sml/setup))
+    ;; (add-hook 'after-init-hook 'chopps-after-init)
   #+END_SRC
 
 * Display
@@ -1961,52 +1991,15 @@
 * Legacy Bottom
 
   #+BEGIN_SRC emacs-lisp
-        (setq scroll-step 1)
-        (setq make-backup-files nil)
-        (setq default-major-mode 'text-mode)
-        (put 'set-goal-column 'disabled nil)
-        (put 'eval-expression 'disabled nil)
-        (put 'scroll-left 'disabled nil)
+    (setq default-major-mode 'text-mode)
+    (put 'set-goal-column 'disabled nil)
+    (put 'eval-expression 'disabled nil)
+    (put 'scroll-left 'disabled nil)
 
-        ;; Don't bug me with yes-no questions
-        (defalias 'yes-or-no-p 'y-or-n-p)
+    ;; Don't bug me with yes-no questions
 
-        ;; (ref:y-or-n)
-        ;; (setq kill-buffer-query-functions (ref:process-query)
-        ;;         (remq 'process-kill-buffer-query-function
-        ;;                       kill-buffer-query-functions))
+    ;; (setq kill-buffer-query-functions (ref:process-query)
+    ;;         (remq 'process-kill-buffer-query-function
+    ;;                       kill-buffer-query-functions))
 
-        ;(require 'mouse)
-        ;(xterm-mouse-mode t)
-
-        ;;---------------
-        ;; Customization
-        ;;---------------
-
-        ;; CUSTOM FILE -- we could do seperate for mac and now
-        (if (and athome on-mac)
-            ;; at home on mac
-            (setq custom-file (locate-user-emacs-file "custom.el"))
-          (if athome
-              ;; at home on bsd
-              (setq custom-file (locate-user-emacs-file "custom.el"))
-            ;; at work
-            (setq custom-file (locate-user-emacs-file "custom.el"))))
-        (load custom-file 'noerror)
-
-        ;;--------
-        ;; Themes
-        ;;--------
-
-        (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
-
-        (if (display-graphic-p)
-            (load-theme 'chopps)
-          (load-theme 'chopps))
-          ;; (load-theme 'noctilux)
-
-        ;; (load-theme 'taylor)
-        ;; (load-theme 'hober)
-
-    (setq custom-file "~/.emacs.d/custom.el")
   #+END_SRC

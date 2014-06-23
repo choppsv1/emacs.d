@@ -14,7 +14,6 @@
   (pymacs-load "flymake-pyfixers" "pyfixer:")
   )
 
-(message "A")
 (defvar pyfixer:flymake-fixers
   '(
     ("W291" . 'pyfixer:fixer-remove-trailing-ws)
@@ -39,7 +38,6 @@
   "Associative array to locate fixers for pyflake errros, the
       values functions are quoted to allow pre-referencing")
 
-(message "A1")
 ;; Elisp version of fixers
 
 (defun pyfixer:add-blank-line (errno errinfo)
@@ -79,7 +77,6 @@
         (replace-match " \\1 ")
         (setq end (line-end-position))))))
 
-(message "A2")
 (defun pyfixer:remove-space-around-equals (errno errinfo)
   "Fix space around equals warning"
   (let ((end (line-end-position)))
@@ -89,7 +86,6 @@
         (replace-match "=")
         (setq end (line-end-position))))))
 
-(message "A3")
 (defun pyfixer:space-before-colon (errno errinfo)
   "Fix space around equals warning"
   (let ((end (line-end-position)))
@@ -99,7 +95,6 @@
         (replace-match ":")
         (setq end (line-end-position))))))
 
-(message "A4")
 (defun pyfixer:comma-space (errno errinfo)
   "Fix space around comma warning"
   (let ((end (line-end-position))
@@ -111,7 +106,6 @@
         (replace-match ", " t)
         (setq end (line-end-position))))))
 
-(message "A5")
 (defun pyfixer:equals-none (errno errinfo)
   "Fix space around equals warning"
   (let ((end (line-end-position)))
@@ -124,7 +118,6 @@
         (replace-match "is not None")
         (setq end (line-end-position))))))
 
-(message "B1")
 (defun pyfixer:equals-false (errno errinfo)
   "Fix space around equals warning"
   (let ((end (line-end-position)))
@@ -137,7 +130,6 @@
         (replace-match "is not False")
         (setq end (line-end-position))))))
 
-(message "B2")
 (defun pyfixer:multiple-imports-one-line (errno errinfo)
   "transform a single line multiple import statement into single import statements, sorted"
   (let ((begin (line-beginning-position))
@@ -158,7 +150,6 @@
             (goto-char begin)
             (insert bigstr)))))))
 
-;; (message "B4")
 ;; (let ((beg (point)))
 ;;   (save-excursion
 ;;     ;; move N-1 lines forward
@@ -167,7 +158,6 @@
 ;;     (forward-char -1)
 ;;     (delete-region beg (point)))))
 
-(message "B5")
 (defun pyfixer:remove-blank-lines (errno errinfo)
   "Remove blank line above current line"
   (let ((beg (point)))
@@ -178,7 +168,6 @@
       (forward-char -1)
       (delete-region beg (point)))))
 
-(message "B6")
 (defun line-no-commentp ()
   (save-match-data
     (let* ((start (line-beginning-position))
@@ -186,8 +175,7 @@
            (line (buffer-substring-no-properties start end)))
       (not (string-match "[:space:]*#.*" line)))))
 
-<<<<<<< HEAD
-(message "B7")
+
 (defun pyfixer:add-blank-line (errno errinfo)
   "Add blank line above current line"
   (save-excursion
@@ -202,9 +190,6 @@
       (next-line)
       (newline lines))))
 
-(message "C")
-=======
->>>>>>> 2fbca5da3eb635d725e69b6e57629e99d8c566e3
 (defun pyfixer:fix-error (errdata)
   "Fix the given errdata"
   (if errdata
@@ -265,8 +250,6 @@
 ;;            (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
 ;;            caadr menu-data))))
 
-(message "D")
-
 (defun pyfixer:print-errlist ()
   (interactive)
   (message "%s" (pyfixer:get-errlist)))
@@ -300,5 +283,4 @@
     (flymake-start-syntax-check)))
 
 
-(message "E")
 (provide 'flymake-pyfixers)
