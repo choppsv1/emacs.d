@@ -842,11 +842,11 @@
                                           "? box123456  "
                                           "? ----------+"])
 
-         (rebox-register-template 73 276 ["? =========="
+         (rebox-register-template 73 376 ["? =========="
                                           "? box123456  "
                                           "? =========="])
 
-         (rebox-register-template 74 376 ["?-----------"
+         (rebox-register-template 74 176 ["?-----------"
                                           "? box123456 "
                                           "?-----------"])
 
@@ -854,11 +854,11 @@
                                           "? box123456  "
                                           "?-----------+"])
 
-         (rebox-register-template 76 476 ["?==========="
+         (rebox-register-template 76 376 ["?==========="
                                           "? box123456 "
                                           "?==========="])
 
-         (rebox-register-template 75 576 ["????????????"
+         (rebox-register-template 77 576 ["????????????"
                                           "? box123456 "
                                           "????????????"])
 
@@ -1474,45 +1474,46 @@
 * Org-Mode
 ** Basic Setup
   #+BEGIN_SRC emacs-lisp
-            (defun my-org-mode-hook ()
-              (message "Org-mode-hook")
-              (org-set-local 'yas/trigger-key [tab])
-              (yas-minor-mode)
-              (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
-              )
-            
-            (setq org-directory "~/org-mode")
-            (setq org-src-fontify-natively t)
-            (setq org-default-notes-file (concat org-directory "/notes.org"))
-            (setq org2blog/wp-use-sourcecode-shortcode t)
-            
-            (org-babel-do-load-languages
-             'org-babel-load-languages
-             '((python . t) (dot . t))
-             )
-            
-            (add-to-list 'org-modules 'org-mac-message)
-            (setq org-mac-mail-account "Work")
-            
-            ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
-            (bind-key "M-h" 'org-metaleft org-mode-map)
-            (bind-key "M-l" 'org-metaright org-mode-map)
-            (bind-key "M-k" 'org-metaup org-mode-map)
-            (bind-key "M-j" 'org-metadown org-mode-map)
-            
-            (define-key global-map "\C-cc" 'org-capture)
-            
-            (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
-            
-            ;; (require 'org-mode)
-            
-            (eval-after-load "org"
-              '(progn
-                 (message "org-mode after load")
-                 (add-hook 'org-mode-hook 'my-org-mode-hook)
-                 (require 'ox-taskjuggler)
-                 (require 'org-latex)
-                 ))
+                (defun my-org-mode-hook ()
+                  (message "Org-mode-hook")
+                  (org-set-local 'yas/trigger-key [tab])
+                  (yas-minor-mode)
+                  (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
+                  (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
+                  )
+                
+                (setq org-directory "~/org-mode")
+                (setq org-src-fontify-natively t)
+                (setq org-default-notes-file (concat org-directory "/notes.org"))
+                (setq org2blog/wp-use-sourcecode-shortcode t)
+                
+                (org-babel-do-load-languages
+                 'org-babel-load-languages
+                 '((python . t) (dot . t))
+                 )
+                
+                (add-to-list 'org-modules 'org-mac-message)
+                (setq org-mac-mail-account "Work")
+                
+                ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
+                (bind-key "M-h" 'org-metaleft org-mode-map)
+                (bind-key "M-l" 'org-metaright org-mode-map)
+                (bind-key "M-k" 'org-metaup org-mode-map)
+                (bind-key "M-j" 'org-metadown org-mode-map)
+                
+                (define-key global-map "\C-cc" 'org-capture)
+                
+                (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
+                
+                ;; (require 'org-mode)
+                
+                (eval-after-load "org"
+                  '(progn
+                     (message "org-mode after load")
+                     (add-hook 'org-mode-hook 'my-org-mode-hook)
+                     (require 'ox-taskjuggler)
+                     (require 'org-latex)
+                     ))
   #+END_SRC
 
 ** Blogging
