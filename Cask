@@ -60,6 +60,7 @@
 (depends-on "s")
 (depends-on "shell-switcher")
 (depends-on "shut-up")
+(depends-on "smart-mode-line")
 (depends-on "switch-window")
 (depends-on "use-package")
 (depends-on "yasnippet")
