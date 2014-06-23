@@ -12,6 +12,7 @@
 (depends-on "dash")
 (depends-on "deferred")
 (depends-on "dot-mode")
+(depends-on "dsvn")
 (depends-on "elpy")
 (depends-on "epc")
 (depends-on "epl")
