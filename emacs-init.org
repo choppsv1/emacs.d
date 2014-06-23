@@ -862,19 +862,27 @@ Locate emacs customization file.
     (eval-after-load "rebox2"
       '(progn
          (message "rebox2 loaded")
-         (rebox-register-template 71 176 ["? -----------"
-                                          "?  box123456 "
-                                          "? -----------"])
+         (rebox-register-template 71 176 ["? ----------"
+                                          "? box123456 "
+                                          "? ----------"])
 
-         (rebox-register-template 72 276 ["?-----------+"
+         (rebox-register-template 72 276 ["? ----------+"
                                           "? box123456  "
-                                          "?-----------+"])
+                                          "? ----------+"])
 
-         (rebox-register-template 73 376 ["?-----------"
+         (rebox-register-template 73 276 ["? =========="
+                                          "? box123456  "
+                                          "? =========="])
+
+         (rebox-register-template 74 376 ["?-----------"
                                           "? box123456 "
                                           "?-----------"])
 
-         (rebox-register-template 74 476 ["?==========="
+         (rebox-register-template 75 276 ["?-----------+"
+                                          "? box123456  "
+                                          "?-----------+"])
+
+         (rebox-register-template 76 476 ["?==========="
                                           "? box123456 "
                                           "?==========="])
 
@@ -897,7 +905,7 @@ Locate emacs customization file.
          (rebox-register-template 84 486 ["??==========="
                                           "?? box123456 "
                                           "??==========="])
-         (setq rebox-style-loop '(73 74 11))
+         (setq rebox-style-loop '(72 73 11))
 
          ;; (rebox-set-default-style 093)
          ;; (setq rebox-style-loop '(24 16))
@@ -1140,6 +1148,18 @@ Locate emacs customization file.
             (message "Enabling TMUX signal handling")
             (define-key special-event-map [sigusr1] 'sigusr1-handler))))
   #+END_SRC
+* Flymake
+#+BEGIN_SRC emacs-lisp
+
+          (defvar chopps-flymake-minor-mode-map
+            (let ((map (make-sparse-keymap)))
+              (define-key map (kbd "M-p") 'flymake-goto-prev-error)
+              (define-key map (kbd "M-n") 'flymake-goto-next-error)
+              map)
+            "Keymap for my flymake minor mode")
+
+#+END_SRC
+
 * Programming Modes
 ** CC Mode
    #+BEGIN_SRC emacs-lisp
@@ -1315,7 +1335,6 @@ Locate emacs customization file.
                (require 'pylookup)
                (require 'jedi)
                                                   ; (setq jedi:setup-keys t)
-
                                                   ; (require 'ipython)
                                                   ; Use the following to enable ipython use with python.el rather than python-mode.el
                (setq
@@ -1372,7 +1391,6 @@ Locate emacs customization file.
                  (highlight-indentation-mode nil)
                  )
                (add-hook 'python-mode-hook 'my-python-mode-hook)
-
 
                ;;------------------------
                ;; plake8/pylint pyfixers
@@ -1819,21 +1837,27 @@ Locate emacs customization file.
     ;;; make Backspace be a delete key
     ;(global-set-key "\C-h" 'backward-delete-char-untabify)
 
-    (global-set-key [?\C-/] 'dabbrev-expand)
+    (global-set-key (kbd "C-/") 'dabbrev-expand)
 
     (global-set-key (kbd "M-q") 'rebox-comment)
 
     (global-set-key (kbd "M-Q") 'fill-paragraph)
 
-    (define-key global-map "\M-W" 'kill-region-to-ssh)
+    (define-key global-map (kbd "M-W") 'kill-region-to-ssh)
 
-    (define-key global-map "\C-\M-h" 'help-command)
+    (define-key global-map (kbd "C-M-h") 'help-command)
 
     (global-set-key (kbd "A-`") 'other-frame)
 
     (global-set-key [C-tab] 'other-window-or-frame)
 
     (global-set-key (kbd "C-\\") 'other-window-or-frame)
+
+    ;; Find emacs source
+    (global-set-key (kbd "C-h C-l") 'find-library)
+    (global-set-key (kbd "C-h C-f") 'find-function)
+    (global-set-key (kbd "C-h C-k") 'find-function-on-key)
+    (global-set-key (kbd "C-h C-v") 'find-variable)
 
     (if (getenv "ITERM")
          (defun viper-translate-all-ESC-keysequences () nil)
