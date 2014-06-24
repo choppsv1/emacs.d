@@ -103,7 +103,6 @@
      (load custom-file)
    #+END_SRC
 
-
 * Legacy Top
   This is the top of my legacy init.el file.
 
