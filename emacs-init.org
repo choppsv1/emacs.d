@@ -145,16 +145,16 @@
    #+BEGIN_SRC emacs-lisp
      (if (not (getenv "HOSTNAME"))
          (setenv "HOSTNAME" (shell-command-to-string "hostname")))
-     
+
      (if (or (string-match "^\\(rtp\\|sjc\\|bxb\\)-chopps" (getenv "HOSTNAME"))
              (string-match "^dex" (getenv "HOSTNAME")))
          (setq athome t)
       (setq athome nil))
-     
+
      (if (string-match "^Darwin" (shell-command-to-string "uname -s"))
          (setq on-mac t)
        (setq on-mac nil))
-     
+
      (if (and on-mac (string= default-directory "/"))
          (cd "~"))
    #+END_SRC
@@ -163,15 +163,16 @@
    #+BEGIN_SRC emacs-lisp
 
      (setq emacs-dir (concat (getenv "HOME") "/.emacs.d"))
+     (add-to-list 'load-path "~/.emacs.d/local-lisp")
 
-     (let ((default-directory "~/.emacs.d"))
-      (setq load-path
-            (append
-             (let ((load-path (copy-sequence load-path))) ;; ;; Shadow
-               (append
-                (copy-sequence (normal-top-level-add-to-load-path '(".")))
-                (normal-top-level-add-subdirs-to-load-path)))
-             load-path)))
+     ;; (let ((default-directory "~/.emacs.d"))
+     ;;  (setq load-path
+     ;;        (append
+     ;;         (let ((load-path (copy-sequence load-path))) ;; ;; Shadow
+     ;;           (append
+     ;;            (copy-sequence (normal-top-level-add-to-load-path '(".")))
+     ;;            (normal-top-level-add-subdirs-to-load-path)))
+     ;;         load-path)))
 
 
    #+END_SRC
@@ -293,24 +294,24 @@ Locate emacs customization file.
       (progn
         (setq evil-search-wrap nil)
         (setq evil-want-C-i-jump nil)
-    
+
         (evil-mode 1)
-    
+
         ;; (setq evil-esc-delay 0)
         (setq evil-esc-delay 0.001)
         (evil-change-to-initial-state)
-    
+
         (defun evil-undefine ()
           (interactive)
           (let (evil-mode-map-alist)
             (call-interactively (key-binding (this-command-keys)))))
-    
+
         (define-key evil-normal-state-map [escape] 'keyboard-quit)
         (define-key evil-visual-state-map [escape] 'keyboard-quit)
         (define-key evil-normal-state-map (kbd "TAB") 'evil-undefine)
         ;; (define-key evil-normal-state-map (kbd "RET") 'evil-undefine)
         ;; (define-key evil-normal-state-map " " 'evil-undefine)
-    
+
         ;; Undefine vi keys in all modes.
         (let ((undef '("\C-a" "\C-e" "\C-n" "\C-p")))
           (while undef
@@ -318,13 +319,13 @@ Locate emacs customization file.
             (define-key evil-visual-state-map (car undef) 'evil-undefine)
             (define-key evil-insert-state-map (car undef) 'evil-undefine)
             (setq undef (cdr undef))))
-    
+
         ;; Undefine vi keys in insert mode.
         (let ((undef '("\C-k")))
           (while undef
             (define-key evil-insert-state-map (car undef) 'evil-undefine)
             (setq undef (cdr undef))))
-    
+
         ;; Remove RET and SPC from motion map so they can be overridden by various modes
         (defun my-move-key (keymap-from keymap-to key)
           "Moves key binding from one keymap to another, deleting from the old location. "
@@ -332,7 +333,7 @@ Locate emacs customization file.
           (define-key keymap-from key nil))
         (my-move-key evil-motion-state-map evil-normal-state-map (kbd "RET"))
         (my-move-key evil-motion-state-map evil-normal-state-map " ")
-    
+
                                             ;(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
                                             ;(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
                                             ;(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
@@ -377,11 +378,11 @@ Locate emacs customization file.
 
 * Buffer Handling
   #+BEGIN_SRC emacs-lisp
-    (iswitchb-mode 1)
+    ;; (iswitchb-mode 1)
     ;; (setq iswitchb-buffer-ignore '("^ " "^\\*"))
     (setq iswitchb-buffer-ignore '("^ "))
     (setq-default save-place t)
-    
+
     (defun dont-kill-but-bury-scratch ()
       "Don't kill but burry *scratch* buffer."
       (if (equal (buffer-name (current-buffer)) "*scratch*")
@@ -1509,38 +1510,38 @@ Locate emacs customization file.
                   (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
                   (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
                   )
-                
+
                 (setq org-directory "~/org-mode")
                 (setq org-src-fontify-natively t)
                 (setq org-default-notes-file (concat org-directory "/notes.org"))
                 (setq org2blog/wp-use-sourcecode-shortcode t)
-                
+
                 (org-babel-do-load-languages
                  'org-babel-load-languages
                  '((python . t) (dot . t))
                  )
-                
+
                 (add-to-list 'org-modules 'org-mac-message)
                 (setq org-mac-mail-account "Work")
-                
+
                 ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
                 (bind-key "M-h" 'org-metaleft org-mode-map)
                 (bind-key "M-l" 'org-metaright org-mode-map)
                 (bind-key "M-k" 'org-metaup org-mode-map)
                 (bind-key "M-j" 'org-metadown org-mode-map)
-                
+
                 (define-key global-map "\C-cc" 'org-capture)
-                
+
                 (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
-                
+
                 ;; (require 'org-mode)
-                
+
                 (eval-after-load "org"
                   '(progn
                      (message "org-mode after load")
                      (add-hook 'org-mode-hook 'my-org-mode-hook)
                      (require 'ox-taskjuggler)
-                     (require 'org-latex)
+                     ;; (require 'org-latex)
                      ))
   #+END_SRC
 
@@ -1549,7 +1550,7 @@ Locate emacs customization file.
    #+BEGIN_SRC emacs-lisp
      (require 'netrc)
      (setq blog (netrc-machine (netrc-parse "~/.netrc") "hoppsjots.org" t))
-     
+
      (setq org2blog/wp-blog-alist
            '(("wordpress"
               :url "http://chopps.wordpress.com/xmlrpc.php"
@@ -1571,38 +1572,38 @@ Locate emacs customization file.
           (viper-harness-minor-mode "auto-complete")
           ;; XX (viper-harness-minor-mode "auto-complete-extension")
           (viper-harness-minor-mode "auto-complete-config")))
-    
+
     (require 'auto-complete-config)
-    
+
     ; XXX (require 'auto-complete-extension)
     (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
     (ac-config-default)
-    
+
     (defun ac-python-mode-setup ()
       (setq ac-sources (append '(ac-source-yasnippet ac-source-gtags) ac-sources)))
     (add-hook 'python-mode-hook 'ac-python-mode-setup)
-    
-    
+
+
     (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
-    
+
     (setq ac-auto-start nil)        ; don't run ac-complete continuously
     (setq ac-trigger-key "TAB")     ; do start auto-complete when a tab is encountered
     (setq ac-trigger-commands '(chopps-python-tab)) ; when entered enables completion
     (define-key ac-menu-map "\C-n" 'ac-next)
     (define-key ac-menu-map "\C-p" 'ac-previous)
     (define-key ac-menu-map "\e" 'ac-complete)
-    
-    
+
+
     (setq ac-trigger-commands-on-completing
           (cons 'viper-intercept-ESC-key ac-trigger-commands-on-completing))
-    
+
   #+END_SRC
 
 ** File and Buffer Completion (ido)
     ;;----------------------------+
     ;; File and buffer completion
     ;;----------------------------+
-    
+
   #+BEGIN_SRC emacs-lisp
     (require 'ido)
     (ido-mode t)
@@ -1615,20 +1616,20 @@ Locate emacs customization file.
     ;;-----------+
     ;; Yasnippet
     ;;-----------+
-    
+
     ;Don't map TAB to yasnippet
     ;In fact, set it to something we'll never use because
     ;we'll only ever trigger it indirectly.
-    
+
     (require 'yasnippet)
     ;; (yas/initialize)
     ;; (yas/global-mode 1)
     (yas-reload-all)
-    
-    
+
+
     ; default now (setq yas/snippet-dirs '("~/.emacs.d/snippets"))
     ;(setq yas/snippet-dirs '("~/.emacs.d/snippets" "~/.emacs.d/extras/imported"))
-    
+
     (eval-after-load "yasnippet"
       '(progn
          (message "yasnippet loading")
@@ -1651,20 +1652,20 @@ Locate emacs customization file.
   #+BEGIN_SRC emacs-lisp
         (defun user-full-name ()
           "Christian Hopps")
-    
+
         (defun my-get-date ()
           (concat (format-time-string "%B" (current-time))
                   " "
                   (trim-string (format-time-string " %e" (current-time)))
                   (format-time-string " %Y" (current-time))))
-    
+
         (eval-after-load 'autoinsert
           '(progn
-    
+
              ;;-----------+
              ;;      Home
              ;;-----------+
-    
+
              (define-auto-insert
                '("\\.org" . "Home Org mode skeletop")
                '("Short description: "
@@ -1734,11 +1735,11 @@ Locate emacs customization file.
                  > "* All rights reserved." \n
                  > "*/" \n
                  > _ ))
-    
+
              ;;-----------+
              ;;      Work
              ;;-----------+
-    
+
              (define-auto-insert
                '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.org" . "Work org mode skeleton")
                '("Short description: "
@@ -1809,9 +1810,9 @@ Locate emacs customization file.
                  > "* All rights reserved." \n
                  > "*/" \n
                  > _ ))
-    
+
                ))
-    
+
         (auto-insert-mode)
   #+END_SRC
 * Keys
