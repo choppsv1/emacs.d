@@ -27,6 +27,7 @@
     ("E227" . 'pyfixer:space-around-op)
     ("E228" . 'pyfixer:space-around-op)
     ("E231" . 'pyfixer:comma-space)
+    ("E241" . 'pyfixer:comma-space)
     ("E251" . 'pyfixer:remove-space-around-equals)
     ("E301" . 'pyfixer:add-blank-line)
     ("E302" . 'pyfixer:add-blank-line)
@@ -102,7 +103,7 @@
     (save-excursion
       (beginning-of-line)
       (while (re-search-forward " *, *" end t)
-        (setq newtext (concat (match-string 1) " = " (match-string 2)))
+        ;; (setq newtext (concat (match-string 1) ", " (match-string 2)))
         (replace-match ", " t)
         (setq end (line-end-position))))))
 

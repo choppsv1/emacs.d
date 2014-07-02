@@ -164,6 +164,7 @@
 
      (setq emacs-dir (concat (getenv "HOME") "/.emacs.d"))
      (add-to-list 'load-path "~/.emacs.d/local-lisp")
+     (add-to-list 'load-path "~/.emacs.d/flymake-pyfixers")
 
      ;; (let ((default-directory "~/.emacs.d"))
      ;;  (setq load-path
