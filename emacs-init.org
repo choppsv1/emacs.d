@@ -273,10 +273,8 @@ Locate emacs customization file.
   #+END_SRC
 * Themes
 #+BEGIN_SRC emacs-lisp
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
 
-  (if (display-graphic-p)
-       (load-theme 'my-flatui)
-    (load-theme 'my-flatui))
   ;; (load-theme 'noctilux)
 
   ;; (load-theme 'taylor)
@@ -286,19 +284,23 @@ Locate emacs customization file.
   ;; (sml/setup)
 
   ;; <Color theme initialization code>
-  (setq current-theme 'my-flatui)
 
-  (defun synchronize-theme  ()
-    (interactive)
-    (setq hour (string-to-number 
-                (substring (current-time-string) 11 13))) ;;closes (setq hour...
-    (if (member hour (number-sequence 6 21))
-        (setq now 'my-flatui)
-      (setq now 'chopps)) ;; end of (if ...
-    (if (not (eq now current-theme))
-        (load-theme now)))
+  (if (display-graphic-p)
+    (progn
+       (load-theme 'my-flatui)
+       (setq current-theme 'my-flatui)
+       (defun synchronize-theme  ()
+         (interactive)
+         (setq hour (string-to-number 
+                     (substring (current-time-string) 11 13)))
+         (if (member hour (number-sequence 6 21))
+             (setq now 'my-flatui)
+           (setq now 'chopps))
+         (if (not (eq now current-theme))
+             (load-theme now)))
 
-  (run-with-timer 0 3600 'synchronize-theme)
+       (run-with-timer 0 3600 'synchronize-theme))
+    (load-theme 'chopps))
 
 #+END_SRC
 

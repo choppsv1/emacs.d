@@ -1,10 +1,6 @@
 (deftheme chopps
   "Created 2014-02-26.")
 
-(custom-theme-set-variables
- 'my-flatui
- '(sml/theme 'respectful))
-
 (custom-theme-set-faces
  'chopps
  '(bold ((t (:bold t :weight bold))))
