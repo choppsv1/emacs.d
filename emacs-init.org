@@ -273,7 +273,7 @@ Locate emacs customization file.
   #+END_SRC
 * Themes
 #+BEGIN_SRC emacs-lisp
-  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+  ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
 
   ;; (load-theme 'noctilux)
 
@@ -284,25 +284,31 @@ Locate emacs customization file.
   ;; (sml/setup)
 
   ;; <Color theme initialization code>
-(load-theme 'solarized-dark)
+  (load-theme 'solarized-dark)
 
-  (if (display-graphic-p)
-    (progn
-       (load-theme 'my-flatui)
-       (setq current-theme 'my-flatui)
-       (defun synchronize-theme  ()
-         (interactive)
-         (setq hour (string-to-number 
-                     (substring (current-time-string) 11 13)))
-         (if (member hour (number-sequence 6 21))
-             (setq now 'my-flatui)
-           (setq now 'chopps))
-         (if (not (eq now current-theme))
-             (load-theme now)))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┆))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┊))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┋))
+  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
 
-       (run-with-timer 0 3600 'synchronize-theme))
-    (load-theme 'chopps))
-
+  ;; (if (display-graphic-p)
+  ;;    (progn
+  ;;      (load-theme 'my-flatui)
+  ;;      (setq current-theme 'my-flatui)
+  ;;      (defun synchronize-theme  ()
+  ;;         (interactive)
+  ;;         (setq hour (string-to-number 
+  ;;                     (substring (current-time-string) 11 13)))
+  ;;         (if (member hour (number-sequence 6 21))
+  ;;             (setq now 'my-flatui)
+  ;;           (setq now 'chopps))
+  ;;         (if (not (eq now current-theme))
+  ;;             (load-theme now)))
+  ;;
+  ;;      (run-with-timer 0 3600 'synchronize-theme))
+  ;;  (load-theme 'chopps))
 #+END_SRC
 
 * Evil
@@ -712,14 +718,14 @@ Locate emacs customization file.
     ;;           ;; workaround for (eq buffer-file-name nil)
     ;;           (function (lambda () (if buffer-file-name (flymake-mode)))))
 
-    (defun my-list-mode-hook ()
+    (defun my-lisp-mode-hook ()
       (message "my-lisp-mode-hook")
       (set (make-local-variable 'rebox-style-loop) '(83 84 21))
       ;; (set (make-local-variable 'rebox-min-fill-column) 40)
       (rebox-mode 1))
 
-    (add-hook 'lisp-mode-hook 'my-list-mode-hook)
-    (add-hook 'emacs-lisp-mode-hook 'my-list-mode-hook)
+    (add-hook 'lisp-mode-hook 'my-lisp-mode-hook)
+    (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook)
 
     (defun narrow-to-python-string ()
       "Narrow to the multiline string section that contains the point"
@@ -883,7 +889,7 @@ Locate emacs customization file.
       '(progn
          (message "rebox2 loaded")
          (rebox-register-template 71 176 ["? ----------"
-                                          "? box123456 "
+                                          "? box123456  "
                                           "? ----------"])
 
          (rebox-register-template 72 276 ["? ----------+"
@@ -903,15 +909,15 @@ Locate emacs customization file.
                                           "?-----------+"])
 
          (rebox-register-template 76 376 ["?==========="
-                                          "? box123456 "
+                                          "? box123456"
                                           "?==========="])
 
          (rebox-register-template 77 576 ["????????????"
-                                          "? box123456 "
+                                          "? box123456  "
                                           "????????????"])
 
          (rebox-register-template 81 186 ["?? -----------"
-                                          "??  box123456 "
+                                          "??  box123456  "
                                           "?? -----------"])
 
          (rebox-register-template 82 286 ["??-----------+"
@@ -919,13 +925,13 @@ Locate emacs customization file.
                                           "??-----------+"])
 
          (rebox-register-template 83 386 ["??-----------"
-                                          "?? box123456 "
+                                          "?? box123456  "
                                           "??-----------"])
 
          (rebox-register-template 84 486 ["??==========="
-                                          "?? box123456 "
+                                          "?? box123456  "
                                           "??==========="])
-         (setq rebox-style-loop '(72 73 11))
+         (setq rebox-style-loop '(74 75 76 11))
 
          ;; (rebox-set-default-style 093)
          ;; (setq rebox-style-loop '(24 16))
@@ -1406,7 +1412,7 @@ Locate emacs customization file.
                  (setq fill-column 120)
                  (turn-on-auto-fill)
                  ;; Rebox
-                 (set (make-local-variable 'rebox-style-loop) '(72 73 74 11))
+                 (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
                  (rebox-mode 1)
                  (highlight-indentation-mode -1)
                  )

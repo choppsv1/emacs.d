@@ -56,6 +56,18 @@
       (next-line)
       (newline lines))))
 
+(defun pyfixer:remove-blank-lines (errno errinfo)
+  "Remove blank line above current line"
+  (save-excursion
+    (beginning-of-line)
+    (let ((lines 0)
+          (beg (point)))
+      (if (string-match "E[0-9]+ too many blank lines (\\([0-9]+\\))" errinfo)
+          (setq lines (string-to-number (match-string 1 errinfo))))
+      (message "%d" lines)
+      (forward-line (- 1 lines))
+      (delete-region beg (point)))))
+
 (defun pyfixer:fix-block-comment (errno errinfo)
   "Fix space after comment start"
   (let ((end (line-end-position)))
@@ -159,16 +171,6 @@
 ;;     (forward-line 1)
 ;;     (forward-char -1)
 ;;     (delete-region beg (point)))))
-
-(defun pyfixer:remove-blank-lines (errno errinfo)
-  "Remove blank line above current line"
-  (let ((beg (point)))
-    (save-excursion
-      ;; move N-1 lines forward
-      (beginning-of-line 0)
-      (forward-line 1)
-      (forward-char -1)
-      (delete-region beg (point)))))
 
 (defun line-no-commentp ()
   (save-match-data
