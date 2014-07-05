@@ -7,6 +7,7 @@
 (require 'flymake)
 
 ;; See if we can load pymacs fixer functions fail silently if we cannot.
+
 (with-demoted-errors
   (require 'pymacs)
   (message "add-directory: %s" (file-name-directory load-file-name))
@@ -54,6 +55,18 @@
         (previous-line))
       (next-line)
       (newline lines))))
+
+(defun pyfixer:remove-blank-lines (errno errinfo)
+  "Remove blank line above current line"
+  (save-excursion
+    (beginning-of-line)
+    (let ((lines 0)
+          (beg (point)))
+      (if (string-match "E[0-9]+ too many blank lines (\\([0-9]+\\))" errinfo)
+          (setq lines (string-to-number (match-string 1 errinfo))))
+      (message "%d" lines)
+      (forward-line (- 1 lines))
+      (delete-region beg (point)))))
 
 (defun pyfixer:fix-block-comment (errno errinfo)
   "Fix space after comment start"
@@ -159,16 +172,6 @@
 ;;     (forward-char -1)
 ;;     (delete-region beg (point)))))
 
-(defun pyfixer:remove-blank-lines (errno errinfo)
-  "Remove blank line above current line"
-  (let ((beg (point)))
-    (save-excursion
-      ;; move N-1 lines forward
-      (beginning-of-line 0)
-      (forward-line 1)
-      (forward-char -1)
-      (delete-region beg (point)))))
-
 (defun line-no-commentp ()
   (save-match-data
     (let* ((start (line-beginning-position))
@@ -176,20 +179,6 @@
            (line (buffer-substring-no-properties start end)))
       (not (string-match "[:space:]*#.*" line)))))
 
-
-(defun pyfixer:add-blank-line (errno errinfo)
-  "Add blank line above current line"
-  (save-excursion
-    (let ((lines 0))
-      (if (string-match "expected \\([0-9]+\\) blank lines?, found \\([0-9]+\\)" errinfo)
-          (setq lines (- (string-to-number (match-string 1 errinfo))
-                         (string-to-number (match-string 2 errinfo)))))
-      (beginning-of-line)
-      (previous-line)
-      (while (not (line-no-commentp))
-        (previous-line))
-      (next-line)
-      (newline lines))))
 
 (defun pyfixer:fix-error (errdata)
   "Fix the given errdata"
@@ -210,16 +199,16 @@
 
 (defun pyfixer:get-errlist-given-line (line-no)
   "Get a list of error messages from either flymake or flycheck"
-  (progn
-    (let* ((line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-           (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
-           (errlist (caadr menu-data)))
-      (message "Menu-data: %s" (car errlist))
-      errlist)))
+  (let* ((line-err-info-list (or (car (flymake-find-err-info flymake-err-info (line-number-at-pos)))
+                                 (user-error "No errors for current lin")))
+         (errlist (mapcar (lambda (x) (flymake-ler-text x)) line-err-info-list)))
+    (message "Menu-data: %s" errlist)
+    errlist))
 
 (defun pyfixer:get-errlist ()
   "Get a list of error messages from either flymake or flycheck"
-  (pyfixer:get-errlist-given-line (flymake-current-line-no)))
+  (pyfixer:get-errlist-given-line (line-number-at-pos)))
+  ;; (pyfixer:get-errlist-given-line (flymake-current-line-no)))
 
 (defun pyfixer:fix-line-in-list (err-list last-line-no)
   "Recursively fix lines in list"

@@ -7,6 +7,7 @@
 (depends-on "benchmark-init")
 (depends-on "bind-key")
 (depends-on "cask")
+(depends-on "color-theme-solarized")
 (depends-on "concurrent")
 (depends-on "ctable")
 (depends-on "dash")
