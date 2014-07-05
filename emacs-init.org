@@ -54,6 +54,7 @@
 
    #+NAME: Cask
    #+BEGIN_SRC emacs-lisp :tangle no
+
      (source gnu)
      (source melpa)
      (source marmalade)
@@ -109,6 +110,20 @@
   #+BEGIN_SRC emacs-lisp
     (setenv "LC_CTYPE" "UTF-8")
     ;; then we can't run scripts from the shell (setenv "PY_XRUT_DOING_DOC" "1")
+    (set-frame-parameter nil 'tty-color-mode 16777216)
+    (load-library "term/tty-colors")
+    (defun tty-color-values (color &optional frame)
+      (let ((oldbuf (current-buffer))
+            (colorval (tty-color-standard-values color)))
+        (with-current-buffer (get-buffer-create "*dbg*")
+          (insert (format "T Frame: %s Color: %s Colorval: %s\n" frame color colorval)))
+        colorval))
+    (defun xtty-color-standard-values (color &optional frame)
+      (let ((oldbuf (current-buffer))
+            (colorval (xw-color-values color frame)))
+        (with-current-buffer (get-buffer-create "*dbg*")
+          (insert (format "X Frame: %s Color: %s Colorval: %s\n" frame color colorval)))
+        colorval))
   #+END_SRC
 
 ** Start the emacs server
