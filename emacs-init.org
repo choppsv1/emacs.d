@@ -284,6 +284,7 @@ Locate emacs customization file.
   ;; (sml/setup)
 
   ;; <Color theme initialization code>
+(load-theme 'solarized-dark)
 
   (if (display-graphic-p)
     (progn
