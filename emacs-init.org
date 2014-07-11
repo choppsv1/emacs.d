@@ -153,6 +153,7 @@
    #+BEGIN_SRC emacs-lisp
      (define-key local-function-key-map (kbd "ESC # 1") '[S-return])
      (define-key local-function-key-map (kbd "ESC # 2") '[C-return])
+     (define-key isearch-mode-map [remap isearch-delete-char] 'isearch-del-char)
    #+END_SRC
 
 ** Where are we at?
@@ -284,46 +285,48 @@ Locate emacs customization file.
 * Frames
   #+BEGIN_SRC emacs-lisp
     ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
-    (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 98)))
+    (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
   #+END_SRC
 * Themes
 #+BEGIN_SRC emacs-lisp
-  ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+    (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
 
-  ;; (load-theme 'noctilux)
+    ;; (load-theme 'noctilux)
 
-  ;; (load-theme 'taylor)
-  ;; (load-theme 'hober)
+    ;; (load-theme 'taylor)
+    ;; (load-theme 'hober)
 
-  ;; (setq sml/theme 'respectful)
-  ;; (sml/setup)
+    ;; (setq sml/theme 'respectful)
+    ;; (sml/setup)
 
-  ;; <Color theme initialization code>
-  (load-theme 'solarized-dark)
+    ;; <Color theme initialization code>
+  (if athome
+      (load-theme 'chopps)
+    (load-theme 'solarized-dark))
 
-  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
-  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
-  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┆))
-  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┊))
-  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┋))
-  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
+    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
+    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
+    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┆))
+    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┊))
+    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┋))
+    (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
 
-  ;; (if (display-graphic-p)
-  ;;    (progn
-  ;;      (load-theme 'my-flatui)
-  ;;      (setq current-theme 'my-flatui)
-  ;;      (defun synchronize-theme  ()
-  ;;         (interactive)
-  ;;         (setq hour (string-to-number 
-  ;;                     (substring (current-time-string) 11 13)))
-  ;;         (if (member hour (number-sequence 6 21))
-  ;;             (setq now 'my-flatui)
-  ;;           (setq now 'chopps))
-  ;;         (if (not (eq now current-theme))
-  ;;             (load-theme now)))
-  ;;
-  ;;      (run-with-timer 0 3600 'synchronize-theme))
-  ;;  (load-theme 'chopps))
+    ;; (if (display-graphic-p)
+    ;;    (progn
+    ;;      (load-theme 'my-flatui)
+    ;;      (setq current-theme 'my-flatui)
+    ;;      (defun synchronize-theme  ()
+    ;;         (interactive)
+    ;;         (setq hour (string-to-number 
+    ;;                     (substring (current-time-string) 11 13)))
+    ;;         (if (member hour (number-sequence 6 21))
+    ;;             (setq now 'my-flatui)
+    ;;           (setq now 'chopps))
+    ;;         (if (not (eq now current-theme))
+    ;;             (load-theme now)))
+    ;;
+    ;;      (run-with-timer 0 3600 'synchronize-theme))
+    ;;  (load-theme 'chopps))
 #+END_SRC
 
 * Evil
@@ -400,6 +403,7 @@ Locate emacs customization file.
 
   #+BEGIN_SRC emacs-lisp
     (add-hook 'text-mode-hook 'turn-on-auto-fill)
+    (add-hook 'text-mode-hook 'turn-on-flyspell)
     (add-hook 'rst-mode-hook (lambda ()
                                (define-key mode-specific-map "0" 'rst-adjust)
                                (setq fill-column 79)
@@ -514,6 +518,7 @@ Locate emacs customization file.
   #+BEGIN_SRC emacs-lisp
     (add-hook 'shell-mode-hook
               (function (lambda ()
+                          (flyspell-prog-mode)
                           (local-set-key "\M-p" 'comint-previous-input)
                           (local-set-key "\M-n" 'comint-next-input))))
 
@@ -735,6 +740,7 @@ Locate emacs customization file.
 
     (defun my-lisp-mode-hook ()
       (message "my-lisp-mode-hook")
+      (flyspell-prog-mode)
       (set (make-local-variable 'rebox-style-loop) '(83 84 21))
       ;; (set (make-local-variable 'rebox-min-fill-column) 40)
       (rebox-mode 1))
@@ -1241,6 +1247,7 @@ Locate emacs customization file.
                                 (c-toggle-auto-hungry-state 1)
                                 (setq fill-column 80)
                                 (turn-on-auto-fill)
+                                (flyspell-prog-mode)
                                 (setq indent-tabs-mode nil)
                                 )))
 
@@ -1365,115 +1372,124 @@ Locate emacs customization file.
       (setq auto-mode-alist (cons '("\\.pl\\'" . perl-mode) auto-mode-alist))
    #+END_SRC
 ** Python
-   #+BEGIN_SRC emacs-lisp
-          (eval-after-load "python"
-            '(progn
-               (message "Initializing python mode settings")
+#+BEGIN_SRC emacs-lisp
+  (eval-after-load "python"
+    '(progn
+       (message "Initializing python mode settings")
 
-               ;; Consider _ a part of words for python
-               (modify-syntax-entry ?_ "w" python-mode-syntax-table)
+       ;; Consider _ a part of words for python
+       (modify-syntax-entry ?_ "w" python-mode-syntax-table)
 
-               (require 'pylookup)
-               (require 'jedi)
-                                                  ; (setq jedi:setup-keys t)
-                                                  ; (require 'ipython)
-                                                  ; Use the following to enable ipython use with python.el rather than python-mode.el
-               (setq
-                python-shell-interpreter "ipython"
-                python-shell-interpreter-args ""
-                python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-                python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-                python-shell-completion-setup-code
-                "from IPython.core.completerlib import module_completion"
-                python-shell-completion-module-string-code
-                "';'.join(module_completion('''%s'''))\n"
-                python-shell-completion-string-code
-                "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
+       ;; Pylookup
+       (setq pylookup-dir "~/.emacs.d/el-get/pylookup")
+       (eval-when-compile (require'pylookup))
+       (setq pylookup-program (concat pylookup-dir "/pylookup.py"))
+       (setq pylookup-db-file (concat pylookup-dir "/pylookup.db"))
+       (autoload 'pylookup-lookup "pylookup" "Lookup SEARCH-TERM in the Python HTML indexes." t)
+       (autoload 'pylookup-update "pylookup" "Run pylookup-update and create the database in `pylookup-db-file`." t)
 
-               ;; (define-key global-map (kbd "C-c o") 'iedit-mode)
+       (require 'jedi)
+                                          ; (setq jedi:setup-keys t)
+                                          ; (require 'ipython)
+                                          ; Use the following to enable ipython use with python.el rather than python-mode.el
+       (setq
+        python-shell-interpreter "ipython"
+        python-shell-interpreter-args ""
+        python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+        python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+        python-shell-completion-setup-code
+        "from IPython.core.completerlib import module_completion"
+        python-shell-completion-module-string-code
+        "';'.join(module_completion('''%s'''))\n"
+        python-shell-completion-string-code
+        "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
 
-               (when (require 'elpy nil t)
-                 (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
-                 (setq elpy-rpc-backend "jedi")
-                 (elpy-enable)
-                 ;; (when (require 'flycheck nil t)
-                 ;;   (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
-                 ;;   (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
-                 (setq elpy-default-minor-modes (delq 'highlight-indentation-mode elpy-default-minor-modes))
-                 (setq elpy-default-minor-modes (delq 'eldoc-mode elpy-default-minor-modes))
+       ;; (define-key global-map (kbd "C-c o") 'iedit-mode)
 
-                 (elpy-use-ipython)
-                 ;; (elpy-clean-modeline)
-                 (when (not (setq python-check-command (locate-file "pycheckers.sh" load-path)))
-                   (setq python-check-command "flake8")))
+       (when (require 'elpy nil t)
+         (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
+         (setq elpy-rpc-backend "jedi")
+         (elpy-enable)
+         ;; (when (require 'flycheck nil t)
+         ;;   (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
+         ;;   (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
+         (setq elpy-default-minor-modes (delq 'highlight-indentation-mode elpy-default-minor-modes))
+         (setq elpy-default-minor-modes (delq 'eldoc-mode elpy-default-minor-modes))
 
-               (if (file-exists-p "/home/chopps/sw/xrut-cel-5/bin/python")
-                   (setenv "PYMACS_PYTHON" "/home/chopps/sw/xrut-cel-5/bin/python")
-                 (if (file-exists-p "/auto/xrut/sw/xrut-cel-5/bin/python")
-                     (setenv "PYMACS_PYTHON" "/auto/xrut/sw/xrut-cel-5/bin/python")
-                   (if (file-exists-p "/Users/chopps/venv/bin/python"  )
-                       (setenv "PYMACS_PYTHON" "/Users/chopps/venv/bin/python")
-                     (if (file-exists-p "/usr/local/bin/python"  )
-                         (setenv "PYMACS_PYTHON" "/usr/local/bin/python")))))
+         (elpy-use-ipython)
+         ;; (elpy-clean-modeline)
+         (when (not (setq python-check-command (locate-file "pycheckers.sh" load-path)))
+           (setq python-check-command "flake8")))
 
-               ;;-------------
-               ;; Python hook
-               ;;-------------
+       (if (file-exists-p "/home/chopps/sw/xrut-cel-5/bin/python")
+           (setenv "PYMACS_PYTHON" "/home/chopps/sw/xrut-cel-5/bin/python")
+         (if (file-exists-p "/auto/xrut/sw/xrut-cel-5/bin/python")
+             (setenv "PYMACS_PYTHON" "/auto/xrut/sw/xrut-cel-5/bin/python")
+           (if (file-exists-p "/Users/chopps/venv/bin/python"  )
+               (setenv "PYMACS_PYTHON" "/Users/chopps/venv/bin/python")
+             (if (file-exists-p "/usr/local/bin/python"  )
+                 (setenv "PYMACS_PYTHON" "/usr/local/bin/python")))))
 
-               (defun my-python-mode-hook ()
-                 (jedi:setup)
-                 ;; Fill values
-                 (setq comment-column 60)
-                 (setq fill-column 120)
-                 (turn-on-auto-fill)
-                 ;; Rebox
-                 (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
-                 (rebox-mode 1)
-                 (highlight-indentation-mode -1)
-                 )
-               (add-hook 'python-mode-hook 'my-python-mode-hook)
+       ;;-------------
+       ;; Python hook
+       ;;-------------
 
-               ;;------------------------
-               ;; plake8/pylint pyfixers
-               ;;------------------------
+       (defun my-python-mode-hook ()
+         (jedi:setup)
+         ;; Fill values
+         (setq comment-column 60)
+         (setq fill-column 120)
+         (turn-on-auto-fill)
+         (flyspell-prog-mode)
+         ;; Rebox
+         (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
+         (rebox-mode 1)
+         (highlight-indentation-mode -1)
+         (define-key python-mode-map (kbd "C-c M-\\") 'pyfixer:ignore-current-line)
+         (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
+         (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
+         (define-key python-mode-map (kbd "C-c h") 'pylookup-lookup)
+         )
+       (add-hook 'python-mode-hook 'my-python-mode-hook)
 
-               ;; Pyflake version of fixers
-               (require 'flymake-pyfixers)
-               (global-set-key "\C-c\M-\\" 'pyfixer:ignore-current-line)
-               (global-set-key "\C-c\C-\\" 'pyfixer:fix-current-line)
-               (global-set-key "\C-c8" 'pyfixer:fix-all-errors)
+       ;;------------------------
+       ;; plake8/pylint pyfixers
+       ;;------------------------
 
-               (require 's)
-               (defun python-sort-import-list ()
-                 "Split an single import lines with multiple module imports into separate lines sort results"
-                 (interactive)
-                 (if (not (use-region-p))
-                     (error "No region defined"))
-                 (let* ((start (region-beginning))
-                        (end (region-end))
-                        (value 0)
-                        found)
-                   (save-excursion
-                     (let* (modlist impstart impend bigstr)
-                       (setq modlist '())
-                       (goto-char start)
-                       (when (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t)
-                         (setq impstart (match-beginning 0))
-                         (setq impend (match-end 0))
-                         (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1)))))
-                         (while (setq found (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t))
-                           (setq impend (match-end 0))
-                           (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1))))))
-                         (setq modlist (sort modlist 's-less?))
-                         (setq modlist (mapcar (lambda (x) (concat "import " x)) modlist))
-                         (setq bigstr (s-join "\n" modlist))
-                         (save-restriction
-                           (narrow-to-region impstart impend)
-                           (delete-region impstart impend)
-                           (goto-char impstart)
-                           (insert bigstr)))))))
-               ))
-   #+END_SRC
+       ;; Pyflake version of fixers make an autoload
+       (require 'flymake-pyfixers)
+
+       (require 's)
+       (defun python-sort-import-list ()
+         "Split an single import lines with multiple module imports into separate lines sort results"
+         (interactive)
+         (if (not (use-region-p))
+             (error "No region defined"))
+         (let* ((start (region-beginning))
+                (end (region-end))
+                (value 0)
+                found)
+           (save-excursion
+             (let* (modlist impstart impend bigstr)
+               (setq modlist '())
+               (goto-char start)
+               (when (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t)
+                 (setq impstart (match-beginning 0))
+                 (setq impend (match-end 0))
+                 (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1)))))
+                 (while (setq found (re-search-forward "^import \\([[:alnum:]_,\\. ]+\\)$" end t))
+                   (setq impend (match-end 0))
+                   (setq modlist (append modlist (mapcar 's-trim (s-split "," (match-string 1))))))
+                 (setq modlist (sort modlist 's-less?))
+                 (setq modlist (mapcar (lambda (x) (concat "import " x)) modlist))
+                 (setq bigstr (s-join "\n" modlist))
+                 (save-restriction
+                   (narrow-to-region impstart impend)
+                   (delete-region impstart impend)
+                   (goto-char impstart)
+                   (insert bigstr)))))))
+       ))
+#+END_SRC
 ** Pymacs
    #+BEGIN_SRC emacs-lisp
      (autoload 'pymacs-apply "pymacs")
@@ -1543,50 +1559,51 @@ Locate emacs customization file.
 * Org-Mode
 ** Basic Setup
   #+BEGIN_SRC emacs-lisp
-                (defun my-org-mode-hook ()
-                  (message "Org-mode-hook")
-                  (org-set-local 'yas/trigger-key [tab])
-                  (yas-minor-mode)
-                  (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
-                  (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
-                  )
+    (defun my-org-mode-hook ()
+      (message "Org-mode-hook")
+      (org-set-local 'yas/trigger-key [tab])
+      (yas-minor-mode)
+      (turn-on-flyspell)
+      (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
+      (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
+      )
 
-                (setq org-directory "~/org-mode")
-                (setq org-src-fontify-natively t)
-                (setq org-default-notes-file (concat org-directory "/notes.org"))
-                (setq org2blog/wp-use-sourcecode-shortcode t)
+    (setq org-directory "~/org-mode")
+    (setq org-src-fontify-natively t)
+    (setq org-default-notes-file (concat org-directory "/notes.org"))
+    (setq org2blog/wp-use-sourcecode-shortcode t)
 
-                (org-babel-do-load-languages
-                 'org-babel-load-languages
-                 '((python . t) (dot . t))
-                 )
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((python . t) (dot . t))
+     )
 
-                ;; (add-to-list 'org-modules 'org-mac-message)
-                ;; (setq org-mac-mail-account "Work")
+    ;; (add-to-list 'org-modules 'org-mac-message)
+    ;; (setq org-mac-mail-account "Work")
 
-                ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
-                (bind-key "M-h" 'org-metaleft org-mode-map)
-                (bind-key "M-l" 'org-metaright org-mode-map)
-                (bind-key "M-k" 'org-metaup org-mode-map)
-                (bind-key "M-j" 'org-metadown org-mode-map)
-                (bind-key "M-H" 'org-shiftmetaleft org-mode-map)
-                (bind-key "M-L" 'org-shiftmetaright org-mode-map)
-                (bind-key "M-K" 'org-shiftmetaup org-mode-map)
-                (bind-key "M-J" 'org-shiftmetadown org-mode-map)
+    ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
+    (bind-key "M-h" 'org-metaleft org-mode-map)
+    (bind-key "M-l" 'org-metaright org-mode-map)
+    (bind-key "M-k" 'org-metaup org-mode-map)
+    (bind-key "M-j" 'org-metadown org-mode-map)
+    (bind-key "M-H" 'org-shiftmetaleft org-mode-map)
+    (bind-key "M-L" 'org-shiftmetaright org-mode-map)
+    (bind-key "M-K" 'org-shiftmetaup org-mode-map)
+    (bind-key "M-J" 'org-shiftmetadown org-mode-map)
 
-                (define-key global-map "\C-cc" 'org-capture)
+    (define-key global-map "\C-cc" 'org-capture)
 
-                (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
+    (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
 
-                ;; (require 'org-mode)
+    ;; (require 'org-mode)
 
-                (eval-after-load "org"
-                  '(progn
-                     (message "org-mode after load")
-                     (add-hook 'org-mode-hook 'my-org-mode-hook)
-                     (require 'ox-taskjuggler)
-                     ;; (require 'org-latex)
-                     ))
+    (eval-after-load "org"
+      '(progn
+         (message "org-mode after load")
+         (add-hook 'org-mode-hook 'my-org-mode-hook)
+         (require 'ox-taskjuggler)
+         ;; (require 'org-latex)
+         ))
   #+END_SRC
 ** Capture
 #+BEGIN_SRC emacs-lisp
@@ -1623,6 +1640,30 @@ Locate emacs customization file.
               :username (netrc-get blog "login")
               :password (netrc-get blog "password"))))
    #+END_SRC
+* Spelling
+#+BEGIN_SRC emacs-lisp
+  (define-key ctl-x-map (kbd "C-i") 'endless/ispell-word-then-abbrev)
+
+  (defun endless/ispell-word-then-abbrev (p)
+    "Call `ispell-word'. Then create an abbrev for the correction made.
+  With prefix P, create local abbrev. Otherwise it will be global."
+    (interactive "P")
+    (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
+      (call-interactively 'ispell-word)
+      (setq aft (downcase (or (thing-at-point 'word) "")))
+      (unless (string= aft bef)
+        (message "\"%s\" now expands to \"%s\" %sally"
+                 bef aft (if p "loc" "glob"))
+        (define-abbrev
+          (if p global-abbrev-table local-abbrev-table)
+          bef aft))))
+
+  (setq save-abbrevs t)
+  (setq-default abbrev-mode t)
+
+  (setq flyspell-issue-message-flag nil)
+#+END_SRC
+
 * Completion
 ** Auto Complete
   #+BEGIN_SRC emacs-lisp
@@ -1965,23 +2006,23 @@ Taken from: http://tuhdo.github.io/helm-intro.html
     ;;(setq vc-default-back-end 'ACMEC)
     (define-key global-map "\C-xv-" 'ediff-revision)
 
-    ;;; C-x C-k - quit.
+            ;;; C-x C-k - quit.
     (define-key global-map "\C-x\C-k" 'save-buffers-kill-emacs)
 
-    ;;; C-x C-j - goto line
+            ;;; C-x C-j - goto line
     (define-key global-map "\C-x\C-j" 'goto-line)
 
-    ;;; C-x C-m - newline
+            ;;; C-x C-m - newline
     (define-key global-map "\C-x\C-m" 'newline)
 
-    ;;; C-m (RET) newline and indent
+            ;;; C-m (RET) newline and indent
     (define-key global-map "\C-m" 'newline-and-indent)
 
-    ;;; C-x \  what line
+            ;;; C-x \  what line
     (define-key global-map "\C-x\\" 'what-line)
 
-    ;;; make Backspace be a delete key
-    ;(global-set-key "\C-h" 'backward-delete-char-untabify)
+            ;;; make Backspace be a delete key
+                                            ;(global-set-key "\C-h" 'backward-delete-char-untabify)
 
     (global-set-key (kbd "C-/") 'dabbrev-expand)
 
@@ -2006,8 +2047,18 @@ Taken from: http://tuhdo.github.io/helm-intro.html
     (global-set-key (kbd "C-h C-v") 'find-variable)
 
     (if (getenv "ITERM")
-         (defun viper-translate-all-ESC-keysequences () nil)
-       (defun viper-translate-all-ESC-keysequences () t))
+        (defun viper-translate-all-ESC-keysequences () nil)
+      (defun viper-translate-all-ESC-keysequences () t))
+
+    (global-set-key (kbd "C-h C-m") 'discover-my-major)
+
+    ;; Have to remove undo-tree mappings for discover to work
+    (define-key undo-tree-map (kbd "C-x r") nil)
+    (global-discover-mode 1)
+
+    (setq guide-key/guide-key-sequence '("C-x 4" "C-c r" "C-x p"))
+    (guide-key-mode 1)
+
   #+END_SRC
 * Modeline
 

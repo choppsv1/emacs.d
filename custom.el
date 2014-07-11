@@ -109,6 +109,7 @@ export \"MS-Project\" {
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(default ((t (:inherit nil :stipple nil :background "black" :foreground "#c0c0c0" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "nil" :family "Monaco"))))
  '(flymake-warnline ((t (:background "color-236"))))
  '(font-lock-comment-delimiter-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))
  '(font-lock-comment-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))
