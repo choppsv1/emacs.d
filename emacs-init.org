@@ -286,7 +286,7 @@ Locate emacs customization file.
 * Frames
   #+BEGIN_SRC emacs-lisp
     ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
-    (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
+    ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
   #+END_SRC
 * Themes
 #+BEGIN_SRC emacs-lisp
@@ -301,9 +301,11 @@ Locate emacs customization file.
     ;; (sml/setup)
 
     ;; <Color theme initialization code>
-  (if athome
-      (load-theme 'chopps)
-    (load-theme 'solarized-dark))
+  ;; (if athome
+  ;;     (load-theme 'chopps)
+  ;;   (load-theme 'solarized-light))
+
+  (load-theme 'solarized-light)
 
     ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
     ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
