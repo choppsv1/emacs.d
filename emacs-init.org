@@ -110,15 +110,15 @@
   #+BEGIN_SRC emacs-lisp
     (setenv "LC_CTYPE" "UTF-8")
     ;; then we can't run scripts from the shell (setenv "PY_XRUT_DOING_DOC" "1")
-    (set-frame-parameter nil 'tty-color-mode 16777216)
-    (load-library "term/tty-colors")
-    (defun tty-color-values (color &optional frame)
+    ;; (set-frame-parameter nil 'tty-color-mode 16777216)
+    ;; (load-library "term/tty-colors")
+    (defun disabled_tty-color-values (color &optional frame)
       (let ((oldbuf (current-buffer))
             (colorval (tty-color-standard-values color)))
         (with-current-buffer (get-buffer-create "*dbg*")
           (insert (format "T Frame: %s Color: %s Colorval: %s\n" frame color colorval)))
         colorval))
-    (defun xtty-color-standard-values (color &optional frame)
+    (defun disabled_xtty-color-standard-values (color &optional frame)
       (let ((oldbuf (current-buffer))
             (colorval (xw-color-values color frame)))
         (with-current-buffer (get-buffer-create "*dbg*")
@@ -151,8 +151,9 @@
    These require modifications in iterm to map the appropriate keys to the
    sequence
    #+BEGIN_SRC emacs-lisp
-     (define-key local-function-key-map (kbd "ESC # 1") '[S-return])
-     (define-key local-function-key-map (kbd "ESC # 2") '[C-return])
+     (define-key local-function-key-map (kbd "ESC \" 4 A") '[S-return])
+     (define-key local-function-key-map (kbd "ESC \" 5 A") '[C-return])
+     (define-key local-function-key-map (kbd "ESC \" 5 B") '[C-\;])
      (define-key isearch-mode-map [remap isearch-delete-char] 'isearch-del-char)
    #+END_SRC
 
@@ -285,7 +286,7 @@ Locate emacs customization file.
 * Frames
   #+BEGIN_SRC emacs-lisp
     ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
-    (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
+    ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
   #+END_SRC
 * Themes
 #+BEGIN_SRC emacs-lisp
@@ -300,9 +301,11 @@ Locate emacs customization file.
     ;; (sml/setup)
 
     ;; <Color theme initialization code>
-  (if athome
-      (load-theme 'chopps)
-    (load-theme 'solarized-dark))
+  ;; (if athome
+  ;;     (load-theme 'chopps)
+  ;;   (load-theme 'solarized-light))
+     (load-theme 'solarized-light)
+  ;; (load-theme 'solarized-dark)
 
     ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
     ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
