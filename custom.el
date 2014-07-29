@@ -76,8 +76,6 @@ export \"MS-Project\" {
  '(show-trailing-whitespace t)
  '(smartrep-mode-line-active-bg (solarized-color-blend "#859900" "#073642" 0.2))
  '(temporary-file-directory "/tmp")
- ;; '(term-default-bg-color "#002b36")
- ;; '(term-default-fg-color "#839496")
  '(vc-annotate-background nil)
  '(vc-annotate-color-map
    (quote
@@ -109,13 +107,7 @@ export \"MS-Project\" {
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- ;; '(default ((t (:inherit nil :stipple nil :background "black" :foreground
- ;; "#c0c0c0" :inverse-video nil :box nil :strike-through nil :overline nil
- ;; :underline nil :slant normal :weight normal :height 160 :width normal :foundry "nil" :family "Monaco"))))
-
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil
- :underline nil :slant normal :weight normal :height 160 :width normal :foundry "nil" :family "Monaco"))))
-
+ '(default ((t (:inherit nil :stipple nil :background "#fdf6e3" :foreground "#657b83" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "nil" :family "Monaco"))))
  '(flymake-warnline ((t (:background "color-236"))))
  '(font-lock-comment-delimiter-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))
  '(font-lock-comment-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))

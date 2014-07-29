@@ -304,8 +304,8 @@ Locate emacs customization file.
   ;; (if athome
   ;;     (load-theme 'chopps)
   ;;   (load-theme 'solarized-light))
-
-  (load-theme 'solarized-light)
+     (load-theme 'solarized-light)
+  ;; (load-theme 'solarized-dark)
 
     ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
     ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
