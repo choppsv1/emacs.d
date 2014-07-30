@@ -18,6 +18,7 @@
 (defvar pyfixer:flymake-fixers
   '(
     ("W291" . 'pyfixer:fixer-remove-trailing-ws)
+    ("W601" . 'pyfixer:depricated-has-key)              ;; '.has_key() is deprecated, use 'in')
     ("E203" . 'pyfixer:space-before-colon)
     ("E221" . 'pyfixer:space-around-op)
     ("E222" . 'pyfixer:space-around-op)
@@ -41,6 +42,20 @@
       values functions are quoted to allow pre-referencing")
 
 ;; Elisp version of fixers
+
+(defun pyfixer:depricated-has-key (errno errinfo)
+  "Replace .has_key() with 'in' or 'not in'"
+  (let ((end (line-end-position)))
+    (save-excursion
+      (beginning-of-line)
+      (while (re-search-forward "not\s+\\([0-9a-ZA-Z_\.]+\\).has_key(\\([^)]+\\))" end t)
+        (replace-match "\\2 not in \\1")
+        (setq end (line-end-position))))
+    (save-excursion
+      (beginning-of-line)
+      (while (re-search-forward "\\(^|\s+\\)\\([0-9a-ZA-Z_\.]+\\).has_key(\\([^)]+\\))" end t)
+        (replace-match "\\3 in \\2")
+        (setq end (line-end-position))))))
 
 (defun pyfixer:add-blank-line (errno errinfo)
   "Add blank line above current line"
