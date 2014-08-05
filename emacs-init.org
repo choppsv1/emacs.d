@@ -1637,6 +1637,13 @@ Locate emacs customization file.
 
     ;; (require 'org-mode)
 
+    (eval-after-load "org2blog"
+      '(progn
+         (defadvice org-wp-src-block (after ad-org-wp-src-block activate)
+           "Always use space as title if none given"
+           (setq ad-return-value (replace-string "title=\"\"" "title=\" \"")))
+         (ad-activate 'org-wp-src-block)))
+
     (eval-after-load "org"
       '(progn
          (message "org-mode after load")

@@ -65,8 +65,10 @@ export \"MS-Project\" {
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "nil" :family "Menlo"))))
  '(flycheck-error ((t (:inherit error :underline t))))
  '(flymake-warnline ((t (:background "color-236"))))
- '(mode-line ((t (:background "white" :foreground "brightgreen" :inverse-video t :box nil :underline nil :slant normal :weight normal))))
- '(mode-line-inactive ((t (:background "black" :foreground "brightgreen" :inverse-video t :box nil :underline nil :slant normal :weight normal))))
+ ;; '(font-lock-comment-delimiter-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))
+ ;; '(font-lock-comment-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))
+ ;; '(mode-line ((t (:background "white" :foreground "brightgreen" :inverse-video t :box nil :underline nil :slant normal :weight normal))))
+ ;; '(mode-line-inactive ((t (:background "black" :foreground "brightgreen" :inverse-video t :box nil :underline nil :slant normal :weight normal))))
  '(show-paren-match ((t (:foreground "#d33682" :inverse-video t :weight bold)))))
 
  ;; '(default ((t (:inherit nil :stipple nil :foreground "#c0c0c0" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 1 :width normal :foundry "default" :family "default"))))
