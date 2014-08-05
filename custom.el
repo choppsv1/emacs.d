@@ -18,6 +18,7 @@
  '(ediff-diff-options "--minimal")
  '(evil-want-fine-undo t)
  '(fci-rule-color "#073642")
+ '(flycheck-highlighting-mode (quote lines))
  '(flyspell-auto-correct-binding [67108922])
  '(gtags-path-style (quote relative))
  '(highlight-changes-colors (quote ("#d33682" "#6c71c4")))
@@ -62,9 +63,8 @@ export \"MS-Project\" {
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "nil" :family "Menlo"))))
+ '(flycheck-error ((t (:inherit error :underline t))))
  '(flymake-warnline ((t (:background "color-236"))))
- ;; '(font-lock-comment-delimiter-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))
- ;; '(font-lock-comment-face ((t (:foreground "red" :inverse-video nil :underline nil :slant italic :weight normal))))
  '(mode-line ((t (:background "white" :foreground "brightgreen" :inverse-video t :box nil :underline nil :slant normal :weight normal))))
  '(mode-line-inactive ((t (:background "black" :foreground "brightgreen" :inverse-video t :box nil :underline nil :slant normal :weight normal))))
  '(show-paren-match ((t (:foreground "#d33682" :inverse-video t :weight bold)))))

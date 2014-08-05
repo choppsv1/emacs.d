@@ -35,6 +35,7 @@
     ("E302" . 'pyfixer:add-blank-line)
     ("E303" . 'pyfixer:remove-blank-lines)
     ("E401" . 'pyfixer:multiple-imports-one-line)
+    ("E703" . 'pyfixer:ends-with-semicolon)
     ("E711" . 'pyfixer:equals-none)
     ("E712" . 'pyfixer:equals-false)
     )
@@ -159,6 +160,15 @@
         (replace-match "is not False")
         (setq end (line-end-position))))))
 
+(defun pyfixer:ends-with-semicolon (errno errinfo)
+  "Fix space around equals warning"
+  (let ((end (line-end-position)))
+    (save-excursion
+      (beginning-of-line)
+      (while (re-search-forward ";[ \t]*$" end t)
+        (replace-match "")
+        (setq end (line-end-position))))))
+
 (defun pyfixer:multiple-imports-one-line (errno errinfo)
   "transform a single line multiple import statement into single import statements, sorted"
   (let ((begin (line-beginning-position))
@@ -220,10 +230,39 @@
     (message "Menu-data: %s" errlist)
     errlist))
 
-(defun pyfixer:get-errlist ()
+;; (defun pyfixer:get-line-errors ()
+;;   "Get a list of error messages from either flymake or flycheck"
+;;   (pyfixer:get-errlist-given-line (line-number-at-pos)))
+;;     (pyfixer:get-errlist-given-line (flymake-current-line-no)))
+
+(defun pyfixer:is-flycheck-on ()
+  "Return t if flycheck mode is on"
+  (and (member 'flycheck-mode minor-mode-list) flycheck-mode))
+
+(defun pyfixer:get-line-errors ()
   "Get a list of error messages from either flymake or flycheck"
-  (pyfixer:get-errlist-given-line (line-number-at-pos)))
-  ;; (pyfixer:get-errlist-given-line (flymake-current-line-no)))
+  (if (pyfixer:is-flycheck-on)
+      (-keep 'flycheck-error-message
+             (flycheck-overlay-errors-in (line-beginning-position) (line-end-position)))
+    (pyfixer:get-errlist-given-line (line-number-at-pos))))
+
+(defun pyfixer:get-buffer-errors ()
+  "Get a list of all error message in the buffer"
+  (if (pyfixer:is-flycheck-on)
+      flycheck-current-errors
+      ;; (-keep 'flycheck-error-message
+             ;; (flycheck-overlay-errors-in (point-min) (point-max)))
+    flymake-err-info))
+
+(defun pyfixer:print-errlist ()
+  (interactive)
+  (message "%s" (pyfixer:get-line-errors)))
+(bind-key "C-c 7" 'pyfixer:print-errlist)
+
+(defun pyfixer:print-all-errors ()
+  (interactive)
+  (message "%s" (pyfixer:get-buffer-errors)))
+(bind-key "C-c 9" 'pyfixer:print-all-errors)
 
 (defun pyfixer:fix-line-in-list (err-list last-line-no)
   "Recursively fix lines in list"
@@ -241,28 +280,15 @@
   "Get all errors"
   (interactive)
   (save-excursion
-    (pyfixer:fix-line-in-list flymake-err-info -1))
+    (pyfixer:fix-line-in-list (pyfixer:get-buffer-errors) -1))
   (flymake-start-syntax-check))
 
 ;;(bind-key "C-x C-q" 'pyfixer:fix-all-errors)
 
-;; (defun pyfixer:get-errlist ()
-;;   "Get a list of error messages from either flymake or flycheck"
-;;   (if (member 'flycheck-mode minor-mode-list)
-;;       (-keep 'flycheck-error-message (flycheck-overlay-errors-at (point)))
-;;     (let* ((line-no             (flymake-current-line-no))
-;;            (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
-;;            (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
-;;            caadr menu-data))))
-
-(defun pyfixer:print-errlist ()
-  (interactive)
-  (message "%s" (pyfixer:get-errlist)))
-
 (defun pyfixer:fix-current-line ()
   "Display a fix for the current line"
   (interactive)
-  (let* ((errlist (pyfixer:get-errlist)))
+  (let* ((errlist (pyfixer:get-line-errors)))
     (message "Errlist: %s" errlist)
     (mapcar 'pyfixer:fix-error errlist)
     (flymake-start-syntax-check)))
@@ -282,7 +308,7 @@
 (defun pyfixer:ignore-current-line ()
   "Display a fix for the current line"
   (interactive)
-  (let* ((errlist (pyfixer:get-errlist)))
+  (let* ((errlist (pyfixer:get-line-errors)))
     (message "Errlist: %s" errlist)
     (mapcar 'pyfixer:ignore-error errlist)
     (flymake-start-syntax-check)))
