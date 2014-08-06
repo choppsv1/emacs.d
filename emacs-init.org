@@ -302,18 +302,22 @@ Locate emacs customization file.
   #+END_SRC
 * Themes
 #+BEGIN_SRC emacs-lisp
-    (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
-    (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/solarized/"))
 
-    ;; (load-theme 'noctilux)
+  ;; (require 'centered-window-mode)
+  ;; (centered-window-mode t)
 
-    ;; (load-theme 'taylor)
-    ;; (load-theme 'hober)
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+  ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/solarized/"))
 
-    ;; (setq sml/theme 'respectful)
-    ;; (sml/setup)
+  ;; (load-theme 'noctilux)
 
-    ;; <Color theme initialization code>
+  ;; (load-theme 'taylor)
+  ;; (load-theme 'hober)
+
+  ;; (setq sml/theme 'respectful)
+  ;; (sml/setup)
+
+  ;; <Color theme initialization code>
   ;; (if athome
   ;;     (load-theme 'chopps)
   ;;   (load-theme 'solarized-light))
@@ -335,29 +339,29 @@ Locate emacs customization file.
 
   (run-with-timer 0 600 'synchronize-theme)
 
-    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
-    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
-    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┆))
-    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┊))
-    ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┋))
-    (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┆))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┊))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┋))
+  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
 
-    ;; (if (display-graphic-p)
-    ;;    (progn
-    ;;      (load-theme 'my-flatui)
-    ;;      (setq current-theme 'my-flatui)
-    ;;      (defun synchronize-theme  ()
-    ;;         (interactive)
-    ;;         (setq hour (string-to-number 
-    ;;                     (substring (current-time-string) 11 13)))
-    ;;         (if (member hour (number-sequence 6 21))
-    ;;             (setq now 'my-flatui)
-    ;;           (setq now 'chopps))
-    ;;         (if (not (eq now current-theme))
-    ;;             (load-theme now)))
-    ;;
-    ;;      (run-with-timer 0 3600 'synchronize-theme))
-    ;;  (load-theme 'chopps))
+  ;; (if (display-graphic-p)
+  ;;    (progn
+  ;;      (load-theme 'my-flatui)
+  ;;      (setq current-theme 'my-flatui)
+  ;;      (defun synchronize-theme  ()
+  ;;         (interactive)
+  ;;         (setq hour (string-to-number 
+  ;;                     (substring (current-time-string) 11 13)))
+  ;;         (if (member hour (number-sequence 6 21))
+  ;;             (setq now 'my-flatui)
+  ;;           (setq now 'chopps))
+  ;;         (if (not (eq now current-theme))
+  ;;             (load-theme now)))
+  ;;
+  ;;      (run-with-timer 0 3600 'synchronize-theme))
+  ;;  (load-theme 'chopps))
 #+END_SRC
 
 * Evil
@@ -735,7 +739,7 @@ Locate emacs customization file.
     (add-hook 'server-done-hook 'return-to-last-screen-window)
     (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
 
-    (require 'flymake)
+    ;; (require 'flymake)
 
     (defun flymake-elisp-init ()
       (unless (string-match "^ " (buffer-name))
@@ -1233,14 +1237,12 @@ Locate emacs customization file.
   #+END_SRC
 * Flymake
 #+BEGIN_SRC emacs-lisp
-
-          (defvar chopps-flymake-minor-mode-map
-            (let ((map (make-sparse-keymap)))
-              (define-key map (kbd "M-p") 'flymake-goto-prev-error)
-              (define-key map (kbd "M-n") 'flymake-goto-next-error)
-              map)
-            "Keymap for my flymake minor mode")
-
+  ;; (defvar chopps-flymake-minor-mode-map
+  ;;   (let ((map (make-sparse-keymap)))
+  ;;     (define-key map (kbd "M-p") 'flymake-goto-prev-error)
+  ;;     (define-key map (kbd "M-n") 'flymake-goto-next-error)
+  ;;     map)
+  ;;   "Keymap for my flymake minor mode")
 #+END_SRC
 
 * Programming Modes
@@ -1446,9 +1448,9 @@ Locate emacs customization file.
          (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
          (setq elpy-rpc-backend "jedi")
          (elpy-enable)
-         ;; (when (require 'flycheck nil t)
-         ;;   (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
-         ;;   (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
+          (when (require 'flycheck nil t)
+            (setq elpy-default-minor-modes (delete 'flymake-mode elpy-default-minor-modes))
+            (add-to-list 'elpy-default-minor-modes 'flycheck-mode))
          (setq elpy-default-minor-modes (delq 'highlight-indentation-mode elpy-default-minor-modes))
          (setq elpy-default-minor-modes (delq 'eldoc-mode elpy-default-minor-modes))
 
@@ -1471,6 +1473,7 @@ Locate emacs customization file.
        ;;-------------
 
        (defun my-python-mode-hook ()
+         (setq jedi:server-args '("--log-traceback"))
          (jedi:setup)
          ;; Fill values
          (setq comment-column 60)
@@ -1483,6 +1486,7 @@ Locate emacs customization file.
          (highlight-indentation-mode -1)
          (define-key python-mode-map (kbd "C-c M-\\") 'pyfixer:ignore-current-line)
          (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
+         (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
          (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
          (define-key python-mode-map (kbd "C-c h") 'pylookup-lookup)
          )
@@ -1656,13 +1660,23 @@ Locate emacs customization file.
   (setq org-capture-templates
         '(("t" "Todo" entry (file+headline (concat org-directory "/notes.org") "Tasks")
            "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-          ("s" "Status" entry (file+datetree (concat org-directory "/status.org"))
-           "* TODO %?\na:%a\nx:%x\n" :clock-in t :clock-keep t)
+
           ("m" "Mail Todo" entry (file+headline (concat org-directory "/notes.org") "Mail")
            "* TODO %?\n%U\n%(org-mac-message-get-links \"s\")\n")
+
+          ("l" "Link Note" entry (file+headline (concat org-directory "/notes.org") "Notes")
+           "* NOTE %?\n%U\n%(org-mac-safari-get-frontmost-url)\n")
+
+          ("n" "Note" entry (file+datetree (concat org-directory "/notes.org") "Notes")
+           "* NOTE %?\na:%a\nx:%x\n" :clock-in t :clock-keep t)
+
+          ("s" "Status" entry (file+datetree (concat org-directory "/status.org"))
+           "* TODO %?\na:%a\nx:%x\n" :clock-in t :clock-keep t)
+
           ("x" "XRUT related")
           ("xm" "XRUT Todo with Mail" entry (file+headline (concat org-directory "/notes.org") "XRUT")
            "* TODO %?\n%U\n%(org-mac-message-get-links \"s\")\n")
+
           ("xt" "XRUT Todo" entry (file+headline (concat org-directory "/notes.org") "XRUT")
            "* TODO %?\n%U\n%a\n")
           )
