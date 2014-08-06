@@ -257,8 +257,8 @@
    file. This is updated automaticallyby pallet when installing and removing
    using list-packages.
    #+BEGIN_SRC emacs-lisp :tangle no
-     (if (file-exists-p "/usr/local/Cellar/cask/0.5.2/cask.el")
-         (require 'cask "/usr/local/Cellar/cask//usr/local/Cellar/cask/0.5.2/cask.el")
+     (if (file-exists-p "/usr/local/Cellar/cask/0.7.0/cask.el")
+         (require 'cask "/usr/local/Cellar/cask/0.7.0/cask.el")
        (require 'cask "~/.cask/cask.el"))
      (cask-initialize)
      (require 'pallet)
@@ -1602,7 +1602,9 @@ Locate emacs customization file.
       (turn-on-flyspell)
       (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
       (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
-      )
+      (and (buffer-file-name)
+           (string-match "\\.o2b$" (buffer-file-name))
+           (org2blog/wp-mode)))
 
     (setq org-directory "~/org-mode")
     (setq org-src-fontify-natively t)
@@ -1637,8 +1639,9 @@ Locate emacs customization file.
       '(progn
          (defadvice org-wp-src-block (after ad-org-wp-src-block activate)
            "Always use space as title if none given"
-           (setq ad-return-value (replace-string "title=\"\"" "title=\" \"")))
-         (ad-activate 'org-wp-src-block)))
+           (setq ad-return-value (replace-regexp-in-string "title=\"\"" "title=\" \"" ad-return-value)))
+         (ad-activate 'org-wp-src-block)
+         (add-to-list 'org2blog/wp-sourcecode-langs "lisp")))
 
     (eval-after-load "org"
       '(progn
@@ -1878,170 +1881,182 @@ Taken from: http://tuhdo.github.io/helm-intro.html
   #+END_SRC
 * Headers
   #+BEGIN_SRC emacs-lisp
-        (defun user-full-name ()
-          "Christian Hopps")
+    (defun user-full-name ()
+      "Christian Hopps")
 
-        (defun my-get-date ()
-          (concat (format-time-string "%B" (current-time))
-                  " "
-                  (trim-string (format-time-string " %e" (current-time)))
-                  (format-time-string " %Y" (current-time))))
+    (defun my-get-date ()
+      (concat (format-time-string "%B" (current-time))
+              " "
+              (trim-string (format-time-string " %e" (current-time)))
+              (format-time-string " %Y" (current-time))))
 
-        (eval-after-load 'autoinsert
-          '(progn
+    (eval-after-load 'autoinsert
+      '(progn
 
-             ;;-----------+
-             ;;      Home
-             ;;-----------+
+         ;;-----------+
+         ;;      Home
+         ;;-----------+
 
-             (define-auto-insert
-               '("\\.org" . "Home Org mode skeletop")
-               '("Short description: "
-                 "#+TITLE: " _ \n
-                 > "#+AUTHOR: Christian E. Hopps" \n
-                 > "#+EMAIL: chopps@gmail.com" \n
-                 > "#+STARTUP: indent" \n
-                 > "" \n
-                 ))
-             (define-auto-insert
-               '("\\.el" . "Home Lisp comment skeleton")
-               '("Short description: "
-                 ";;" \n
-                 > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-                 > ";;" \n
-                 > ";; Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps" \n
-                 > ";; All rights reserved." \n
-                 > ";;" \n
-                 > _ ))
-             (define-auto-insert
-               '("\\.py" . "# Home python comment skeleton")
-               '("Short description: "
-                 "#" \n
-                 > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-                 > "#" \n
-                 > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-                 > "# All rights reserved." \n
-                 > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
-                 > "import sys, os" \n
-                 > "sys.path[0:0] = [ os.path.dirname(sys.path[0]) + '/modules'," \n
-                 > "                  '/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/PyObjC' ]" \n
-                 > "" \n
-                 > "" \n
-                 > "" \n
-                 > "__author__ = '" (user-full-name) "'" \n
-                 > "__date__ = '" (my-get-date) "'" \n
-                 > "__version__ = '1.0'" \n
-                 > "__docformat__ = \"restructuredtext en\"" \n
-                 > _ ))
-             (define-auto-insert
-               '("\\.\\(pl\\|sh\\|tcl\\)" . "# Home comment skeleton")
-               '("Short description: "
-                 "#" \n
-                 > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-                 > "#" \n
-                 > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-                 > "# All rights reserved." \n
-                 > "#" \n
-                 > _ ))
-             (define-auto-insert
-               '("\\.rst" . "Home ReST skeleton")
-               '("Short description: "
-                 ".." \n
-                 > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-                 > ".." \n
-                 > ".. Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-                 > ".. All rights reserved." \n
-                 > ".." \n
-                 > _ ))
-             (define-auto-insert
-               '("\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\)\\'" . "Home C-style skeleton")
-               '("Short description: "
-                 "/*" \n
-                 > "* " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-                 > "*" \n
-                 > "* Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-                 > "* All rights reserved." \n
-                 > "*/" \n
-                 > _ ))
+         (define-auto-insert
+           '("\\.org" . "Home Org mode skeleton")
+           '("Short description: "
+             "#+TITLE: " _ \n
+             > "#+AUTHOR: Christian E. Hopps" \n
+             > "#+EMAIL: chopps@gmail.com" \n
+             > "#+STARTUP: indent" \n
+             > "" \n
+             ))
+         (define-auto-insert
+           '("\\.o2b" . "Home Blog Org mode skeleton")
+           '("Short description: "
+             "#+TITLE: " _ \n
+             > "#+BLOG: hoppsjots.org" \n
+             > "#+AUTHOR: Christian E. Hopps" \n
+             > "#+EMAIL: chopps@gmail.com" \n
+             > "#+CATEGORY: Development" _ \n
+             > "#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil TeX:nil" \n
+             > "#+STARTUP: indent" \n
+             > "" \n
+             ))
+         (define-auto-insert
+           '("\\.el" . "Home Lisp comment skeleton")
+           '("Short description: "
+             ";;" \n
+             > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+             > ";;" \n
+             > ";; Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps" \n
+             > ";; All rights reserved." \n
+             > ";;" \n
+             > _ ))
+         (define-auto-insert
+           '("\\.py" . "# Home python comment skeleton")
+           '("Short description: "
+             "#" \n
+             > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+             > "#" \n
+             > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+             > "# All rights reserved." \n
+             > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
+             > "import sys, os" \n
+             > "sys.path[0:0] = [ os.path.dirname(sys.path[0]) + '/modules'," \n
+             > "                  '/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/PyObjC' ]" \n
+             > "" \n
+             > "" \n
+             > "" \n
+             > "__author__ = '" (user-full-name) "'" \n
+             > "__date__ = '" (my-get-date) "'" \n
+             > "__version__ = '1.0'" \n
+             > "__docformat__ = \"restructuredtext en\"" \n
+             > _ ))
+         (define-auto-insert
+           '("\\.\\(pl\\|sh\\|tcl\\)" . "# Home comment skeleton")
+           '("Short description: "
+             "#" \n
+             > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+             > "#" \n
+             > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+             > "# All rights reserved." \n
+             > "#" \n
+             > _ ))
+         (define-auto-insert
+           '("\\.rst" . "Home ReST skeleton")
+           '("Short description: "
+             ".." \n
+             > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+             > ".." \n
+             > ".. Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+             > ".. All rights reserved." \n
+             > ".." \n
+             > _ ))
+         (define-auto-insert
+           '("\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\)\\'" . "Home C-style skeleton")
+           '("Short description: "
+             "/*" \n
+             > "* " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+             > "*" \n
+             > "* Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+             > "* All rights reserved." \n
+             > "*/" \n
+             > _ ))
 
-             ;;-----------+
-             ;;      Work
-             ;;-----------+
+         ;;-----------+
+         ;;      Work
+         ;;-----------+
 
-             (define-auto-insert
-               '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.org" . "Work org mode skeleton")
-               '("Short description: "
-                 "#+TITLE: " _ \n
-                 > "#+AUTHOR: Christian E. Hopps" \n
-                 > "#+EMAIL: chopps@cisco.com" \n
-                 > "#+STARTUP: indent" \n
-                 > "" \n
-                 ))
-             (define-auto-insert
-               '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.el" . "Work Lisp comment skeleton")
-               '("Short description: "
-                 ";;" \n
-                 > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-                 > ";;" \n
-                 > ";; Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-                 > ";; All rights reserved." \n
-                 > ";;" \n
-                 > _ )
-               )
-             (define-auto-insert
-               '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.py" . "# Work python comment skeleton")
-               '("Short description: "
-                 "#" \n
-                 > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
-                 > "#" \n
-                 > "# Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
-                 > "# All rights reserved." \n
-                 > "#" \n
-                 > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
-                 > "import sys, os" \n
-                 > "sys.path[0:0] = [ os.path.dirname(sys.path[0]) + '/modules', ]" \n
-                 "" \n
-                 "" \n
-                 "" \n
-                 > "__author__ = '" (user-full-name) "'" \n
-                 > "__date__ = '" (my-get-date) "'" \n
-                 > "__version__ = '1.0'" \n
-                 > "__docformat__ = \"restructuredtext en\"" \n
-                 > _ ))
-             (define-auto-insert
-               '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.\\(pl\\|sh\\|tcl\\)" . "# Work comment skeleton")
-               '("Short description: "
-                 "#" \n
-                 > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
-                 > "#" \n
-                 > "# Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
-                 > "# All rights reserved." \n
-                 > "#" \n
-                 > _ ))
-             (define-auto-insert
-               '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.rst" . "Work ReST skeleton")
-               '("Short description: "
-                 ".." \n
-                 > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
-                 > ".." \n
-                 > ".. Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
-                 > ".. All rights reserved." \n
-                 > ".." \n
-                 > _ ))
-             (define-auto-insert
-               '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\)\\'" . "Work C-style skeleton")
-               '("Short description: "
-                 "/*" \n
-                 > "* " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
-                 > "*" \n
-                 > "* Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
-                 > "* All rights reserved." \n
-                 > "*/" \n
-                 > _ ))
+         (define-auto-insert
+           '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.org" . "Work org mode skeleton")
+           '("Short description: "
+             "#+TITLE: " _ \n
+             > "#+AUTHOR: Christian E. Hopps" \n
+             > "#+EMAIL: chopps@cisco.com" \n
+             > "#+STARTUP: indent" \n
+             > "" \n
+             ))
+         (define-auto-insert
+           '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.el" . "Work Lisp comment skeleton")
+           '("Short description: "
+             ";;" \n
+             > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+             > ";;" \n
+             > ";; Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+             > ";; All rights reserved." \n
+             > ";;" \n
+             > _ )
+           )
+         (define-auto-insert
+           '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.py" . "# Work python comment skeleton")
+           '("Short description: "
+             "#" \n
+             > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
+             > "#" \n
+             > "# Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
+             > "# All rights reserved." \n
+             > "#" \n
+             > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
+             > "import sys, os" \n
+             > "sys.path[0:0] = [ os.path.dirname(sys.path[0]) + '/modules', ]" \n
+             "" \n
+             "" \n
+             "" \n
+             > "__author__ = '" (user-full-name) "'" \n
+             > "__date__ = '" (my-get-date) "'" \n
+             > "__version__ = '1.0'" \n
+             > "__docformat__ = \"restructuredtext en\"" \n
+             > _ ))
+         (define-auto-insert
+           '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.\\(pl\\|sh\\|tcl\\)" . "# Work comment skeleton")
+           '("Short description: "
+             "#" \n
+             > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
+             > "#" \n
+             > "# Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
+             > "# All rights reserved." \n
+             > "#" \n
+             > _ ))
+         (define-auto-insert
+           '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.rst" . "Work ReST skeleton")
+           '("Short description: "
+             ".." \n
+             > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
+             > ".." \n
+             > ".. Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
+             > ".. All rights reserved." \n
+             > ".." \n
+             > _ ))
+         (define-auto-insert
+           '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\)\\'" . "Work C-style skeleton")
+           '("Short description: "
+             "/*" \n
+             > "* " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
+             > "*" \n
+             > "* Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
+             > "* All rights reserved." \n
+             > "*/" \n
+             > _ ))
 
-               ))
+           ))
 
-        (auto-insert-mode)
+    (auto-insert-mode)
   #+END_SRC
 * Keys
 

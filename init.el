@@ -12,7 +12,7 @@
   (require 'cask
            (replace-regexp-in-string "\n$" ""
                                      (shell-command-to-string
-                                      "/usr/local/bin/brew list cask | grep cask.el"))))
+                                      "/usr/local/bin/brew list cask | grep cask.el | head -1"))))
 (cask-initialize)
 (require 'pallet)
 (require 'req-package)
