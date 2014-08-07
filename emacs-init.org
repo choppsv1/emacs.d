@@ -2139,6 +2139,8 @@ Taken from: http://tuhdo.github.io/helm-intro.html
 
     (global-set-key (kbd "C-h C-m") 'discover-my-major)
 
+    (global-set-key (kbd "C-c C-g") 'magit-status)
+
     ;; Have to remove undo-tree mappings for discover to work
     (define-key undo-tree-map (kbd "C-x r") nil)
     (global-discover-mode 1)
