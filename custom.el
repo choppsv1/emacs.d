@@ -31,6 +31,7 @@
  '(max-specpdl-size 5)
  '(ns-alternate-modifier (quote meta))
  '(ns-command-modifier (quote alt))
+ '(org2blog/wp-shortcode-langs-map '(("emacs-lisp" . "lisp") ("sh" . "bash")))
  '(org-agenda-files (quote ("~/org-mode/index.org")))
  '(org-modules (quote (org-bullets org-mac-iCal org-mac-link org-w3m org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail)))
  '(org-protocol-default-template-key "t")

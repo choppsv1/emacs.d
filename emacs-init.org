@@ -11,19 +11,23 @@
   ;;--------------------------------------------
 #+END_SRC
 * Attributions
-  This file was developed by first starting with a copy from https://github.com/jhenahan/emacs.d
-  with help from
-  https://github.com/daschwa/dotfiles/blob/master/emacs.d/emacs-init.org
-  Thanks to those folks
+This file was developed by first starting with a copy from https://github.com/jhenahan/emacs.d
+with help from
+https://github.com/daschwa/dotfiles/blob/master/emacs.d/emacs-init.org
+
+Got some great ideas about evil mode integration from:
+https://github.com/noahfrederick/dots/blob/master/emacs.d/emacs.org
+
+Thanks to those folks.
 
 * Emacs Configuration in an Org file
 
-  I've declared Emacs config bankruptcy for the new year, and it couldn't have
-  come at a better time. All at once there are a bunch of new tools for
-  Emacs configuration: =use-package= (and =req-package=, used here) and
-  =bind-key= simplify a lot of the annoying bits. Dependency management was hard
-  before Emacs 24, but with these new tools we can vastly simplify the process.
-  We even get a simpler keybinding mechanism in the bargain.
+I've declared Emacs config bankruptcy for the new year, and it couldn't have
+come at a better time. All at once there are a bunch of new tools for
+Emacs configuration: =use-package= (and =req-package=, used here) and
+=bind-key= simplify a lot of the annoying bits. Dependency management was hard
+before Emacs 24, but with these new tools we can vastly simplify the process.
+We even get a simpler keybinding mechanism in the bargain.
 
 * Package Management with Pallet
   [[https://github.com/rdallasgray/pallet][Pallet]] is a wonderful little tool built on [[https://github.com/cask/cask][Cask]], a dependency management tool
