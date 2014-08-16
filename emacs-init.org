@@ -11,19 +11,23 @@
   ;;--------------------------------------------
 #+END_SRC
 * Attributions
-  This file was developed by first starting with a copy from https://github.com/jhenahan/emacs.d
-  with help from
-  https://github.com/daschwa/dotfiles/blob/master/emacs.d/emacs-init.org
-  Thanks to those folks
+This file was developed by first starting with a copy from https://github.com/jhenahan/emacs.d
+with help from
+https://github.com/daschwa/dotfiles/blob/master/emacs.d/emacs-init.org
+
+Got some great ideas about evil mode integration from:
+https://github.com/noahfrederick/dots/blob/master/emacs.d/emacs.org
+
+Thanks to those folks.
 
 * Emacs Configuration in an Org file
 
-  I've declared Emacs config bankruptcy for the new year, and it couldn't have
-  come at a better time. All at once there are a bunch of new tools for
-  Emacs configuration: =use-package= (and =req-package=, used here) and
-  =bind-key= simplify a lot of the annoying bits. Dependency management was hard
-  before Emacs 24, but with these new tools we can vastly simplify the process.
-  We even get a simpler keybinding mechanism in the bargain.
+I've declared Emacs config bankruptcy for the new year, and it couldn't have
+come at a better time. All at once there are a bunch of new tools for
+Emacs configuration: =use-package= (and =req-package=, used here) and
+=bind-key= simplify a lot of the annoying bits. Dependency management was hard
+before Emacs 24, but with these new tools we can vastly simplify the process.
+We even get a simpler keybinding mechanism in the bargain.
 
 * Package Management with Pallet
   [[https://github.com/rdallasgray/pallet][Pallet]] is a wonderful little tool built on [[https://github.com/cask/cask][Cask]], a dependency management tool
@@ -37,7 +41,7 @@
     #+NAME: Mac Cask Installation
     #+BEGIN_SRC sh
       $ brew install cask
-     #+END_SRC
+    #+END_SRC
 
 *** Linux, BSD, etc
     Just run this command in your terminal of choice:
@@ -45,7 +49,7 @@
     #+BEGIN_SRC sh
       $ curl -fsSkL https://raw.github.com/cask/cask/master/go | python
     #+END_SRC
-
+    
     then add =~/.cask/bin= to your =PATH= so that you can use =cask=.
 
 ** Creating a Caskfile
@@ -190,18 +194,21 @@
 ** Load-path
    #+BEGIN_SRC emacs-lisp
 
-          (setq emacs-dir (concat (getenv "HOME") "/.emacs.d"))
-          (add-to-list 'load-path "~/.emacs.d/local-lisp")
-          (add-to-list 'load-path "~/.emacs.d/flymake-pyfixers")
+     (setq emacs-dir (concat (getenv "HOME") "/.emacs.d"))
+     (add-to-list 'load-path "~/.emacs.d/local-lisp")
+     (if (file-exists-p "~/Projects-Local/org2blog")
+         (add-to-list 'load-path "~/Projects-Local/org2blog"))
+     (add-to-list 'load-path "~/.emacs.d/local-lisp")
+     (add-to-list 'load-path "~/.emacs.d/flymake-pyfixers")
 
-          ;; (let ((default-directory "~/.emacs.d"))
-          ;;  (setq load-path
-          ;;        (append
-          ;;         (let ((load-path (copy-sequence load-path))) ;; ;; Shadow
-          ;;           (append
-          ;;            (copy-sequence (normal-top-level-add-to-load-path '(".")))
-          ;;            (normal-top-level-add-subdirs-to-load-path)))
-          ;;         load-path)))
+     ;; (let ((default-directory "~/.emacs.d"))
+     ;;  (setq load-path
+     ;;        (append
+     ;;         (let ((load-path (copy-sequence load-path))) ;; ;; Shadow
+     ;;           (append
+     ;;            (copy-sequence (normal-top-level-add-to-load-path '(".")))
+     ;;            (normal-top-level-add-subdirs-to-load-path)))
+     ;;         load-path)))
 
 
    #+END_SRC
@@ -297,6 +304,9 @@ Locate emacs customization file.
 
 * Frames
   #+BEGIN_SRC emacs-lisp
+    (if athome
+        (setq initial-frame-alist '((top . 50) (left . 20) (width . 270) (height . 90)))
+      )
     ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
     ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
   #+END_SRC
@@ -1620,7 +1630,6 @@ Locate emacs customization file.
     (setq org-directory "~/org-mode")
     (setq org-src-fontify-natively t)
     (setq org-default-notes-file (concat org-directory "/notes.org"))
-    (setq org2blog/wp-use-sourcecode-shortcode t)
 
     (org-babel-do-load-languages
      'org-babel-load-languages
@@ -1642,17 +1651,7 @@ Locate emacs customization file.
 
     (define-key global-map "\C-cc" 'org-capture)
 
-    (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
-
     ;; (require 'org-mode)
-
-    (eval-after-load "org2blog"
-      '(progn
-         (defadvice org-wp-src-block (after ad-org-wp-src-block activate)
-           "Always use space as title if none given"
-           (setq ad-return-value (replace-regexp-in-string "title=\"\"" "title=\" \"" ad-return-value)))
-         (ad-activate 'org-wp-src-block)
-         (add-to-list 'org2blog/wp-sourcecode-langs "lisp")))
 
     (eval-after-load "org"
       '(progn
@@ -1693,6 +1692,22 @@ Locate emacs customization file.
    #+BEGIN_SRC emacs-lisp
      (require 'netrc)
      (setq blog (netrc-machine (netrc-parse "~/.netrc") "hoppsjots.org" t))
+
+     ;; Add org2blog extension as org mode file.
+     (setq auto-mode-alist (cons '("\\.o2b\\'" . org-mode) auto-mode-alist))
+     (autoload 'org2blog/wp-mode "org2blog")
+
+     (setq org2blog/wp-use-sourcecode-shortcode t)
+
+     (eval-after-load "org2blog"
+       '(progn
+          (defadvice org-wp-src-block (after ad-org-wp-src-block activate)
+            "Always use space as title if none given"
+            (setq ad-return-value (replace-regexp-in-string "title=\"\"" "title=\" \"" ad-return-value)))
+          (ad-activate 'org-wp-src-block)
+          (add-to-list 'org2blog/wp-sourcecode-langs "lisp")
+          (add-to-list 'org2blog/wp-sourcecode-langs "sh")
+          ))
 
      (setq org2blog/wp-blog-alist
            '(("wordpress"
@@ -2125,6 +2140,10 @@ Taken from: http://tuhdo.github.io/helm-intro.html
     (global-set-key (kbd "C-h C-k") 'find-function-on-key)
     (global-set-key (kbd "C-h C-v") 'find-variable)
 
+    ;; Font size changing
+    (global-set-key (kbd "A-+") 'text-scale-increase)
+    (global-set-key (kbd "A-_") 'text-scale-decrease)
+
     (if (getenv "ITERM")
         (defun viper-translate-all-ESC-keysequences () nil)
       (defun viper-translate-all-ESC-keysequences () t))
@@ -2142,7 +2161,6 @@ Taken from: http://tuhdo.github.io/helm-intro.html
 
   #+END_SRC
 * Modeline
-
   #+BEGIN_SRC emacs-lisp
     (column-number-mode t)
     (setq line-number-mode t)
@@ -2153,9 +2171,7 @@ Taken from: http://tuhdo.github.io/helm-intro.html
     ;;   (sml/setup))
     ;; (add-hook 'after-init-hook 'chopps-after-init)
   #+END_SRC
-
 * Display
-
   #+BEGIN_SRC emacs-lisp
     (setq x-mouse-click-focus-ignore-position t)
     (setq mouse-yank-at-point t)
@@ -2193,7 +2209,6 @@ Taken from: http://tuhdo.github.io/helm-intro.html
                           (font-lock-mode 1))))
   #+END_SRC
 * XRUT
-
   #+BEGIN_SRC emacs-lisp
     ;; XRUT functionality
 
@@ -2261,7 +2276,6 @@ Taken from: http://tuhdo.github.io/helm-intro.html
         ))
   #+END_SRC
 * Projects
-
   #+BEGIN_SRC emacs-lisp
      (require 'projectile nil t)
   #+END_SRC
