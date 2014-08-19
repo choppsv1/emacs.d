@@ -336,12 +336,12 @@ Locate emacs customization file.
   ;; (load-theme 'solarized-light)
   (setq current-theme nil)
 
+  (defun get-detroit-hour ()
+    (string-to-number (shell-command-to-string "TZ=America/Detroit date +%k")))
+
   (defun synchronize-theme  ()
     (interactive)
-    (setq hour (string-to-number
-                (substring (current-time-string) 11 13)))
-    (if (member hour (if athome (number-sequence 7 21)
-                       (number-sequence 4 18)))
+    (if (member (get-detroit-hour) (number-sequence 7 21))
         (setq now 'solarized-light)
       (setq now 'solarized-dark))
     (if (not (eq now current-theme))
