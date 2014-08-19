@@ -14,8 +14,6 @@
                                      (shell-command-to-string
                                       "/usr/local/bin/brew list cask | grep cask.el | head -1"))))
 (cask-initialize)
-(require 'pallet)
-(require 'req-package)
 
 ;; Load the rest of our config from the emacs-init.org file.
 (require 'ob-tangle)
