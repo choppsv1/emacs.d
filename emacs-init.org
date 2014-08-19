@@ -224,6 +224,7 @@ Auto save and backup files go in /tmp.
 ** Recompile Local Lisp
 #+begin_src emacs-lisp
   (byte-recompile-directory (expand-file-name "~/.emacs.d/local-lisp") 0)
+  (byte-recompile-directory (expand-file-name "~/.emacs.d/my-themes/emacs-color-theme-solarized") 0)
 #+end_src
 
 ** Uniquify
@@ -256,6 +257,7 @@ Locate emacs customization file.
   ;; (centered-window-mode t)
 
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
   ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/solarized/"))
 
   ;; (load-theme 'noctilux)
