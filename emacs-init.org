@@ -1017,33 +1017,51 @@ Locate emacs customization file.
   #+begin_src emacs-lisp
     (req-package ggtags
       :require evil
+      :commands ggtags-mode
       :mode "\\.\\(bag\\|bgen\\|cmd\\|m\\|mm\\|sch\\)\\'"
+      :init
+      (progn
+        (defun enable-ggtags-mode () (progn (ggtags-mode 1)))
+        (add-hook 'c-mode-hook      'enable-ggtags-mode)
+        (add-hook 'html-mode-hook   'enable-ggtags-mode)
+        (add-hook 'lisp-mode-hook   'enable-ggtags-mode)
+        (add-hook 'lisp-interaction-mode-hook 'enable-ggtags-mode)
+        (add-hook 'python-mode-hook 'enable-ggtags-mode)
+        (add-hook 'perl-mode-hook   'enable-ggtags-mode)
+
+        (setq ggtags-mode-prefix-key (kbd "C-c C-.")))
       :config
       (progn
-        (setq gtags-suggested-key-mapping t)
-        (setq gtags-use-old-key-map t)
+        ;; (setq gtags-suggested-key-mapping t)
+        ;; (setq gtags-use-old-key-map t)
 
         ;;; ggtags keys
         ;; (define-key ggtags-mode-map "\eh" 'gtags-display-browser)
         ;; (define-key ggtags-mode-map "\ec" 'gtags-make-complete-list)
-        (define-key ggtags-mode-map "\C-]" 'ggtags-find-tag-dwim)
-        (define-key ggtags-mode-map "\C-t" 'pop-tag-mark)
+
+        (define-key ggtags-mode-map (kbd "C-]") 'ggtags-find-tag-dwim)
+        ;;(define-key evil-normal-state-map (kbd "C-]") 'evil-undefine)
+
+        (define-key ggtags-mode-map (kbd "M-]") 'ggtags-find-definition)
+        ;;(define-key evil-normal-state-map (kbd "C-]") 'evil-undefine)
+
+        (define-key ggtags-mode-map (kbd "C-t") 'pop-tag-mark)
+        ;;(define-key evil-normal-state-map (kbd "C-t") 'evil-undefine)
+
+        (define-key ggtags-mode-map (kbd "M-s") 'ggtags-find-other-symbol)
+        ;; (define-key evil-normal-state-map (kbd "M-s") 'evil-undefine)
+
+        (define-key ggtags-mode-map (kbd "M-r") 'ggtags-find-reference)
+        ;;(define-key evil-normal-state-map (kbd "M-r") 'evil-undefine)
+
         ;; (define-key ggtags-mode-map "\el" 'gtags-find-file)
         ;; (define-key ggtags-mode-map "\eg" 'gtags-find-with-grep)
         ;; (define-key ggtags-mode-map "\eI" 'gtags-find-with-idutils)
-        (define-key ggtags-mode-map "\es" 'ggtags-find-other-symbol)
-        (define-key ggtags-mode-map "\er" 'ggtags-find-reference)
         ;; (define-key ggtags-mode-map "\et" 'gtags-find-tag)
 
         ;; need to undefine a couple keys in evil.
         (setq evil-overriding-maps (cons '(gtags-mode-map . nil) evil-overriding-maps))
         (setq evil-overriding-maps (cons '(gtags-select-mode-map . nil) evil-overriding-maps))
-        (define-key evil-normal-state-map (kbd "C-t") 'evil-undefine)
-        (define-key evil-motion-state-map (kbd "C-t") 'evil-undefine)
-        (define-key evil-visual-state-map (kbd "C-t") 'evil-undefine)
-        (define-key evil-normal-state-map (kbd "C-]") 'evil-undefine)
-        (define-key evil-motion-state-map (kbd "C-]") 'evil-undefine)
-        (define-key evil-visual-state-map (kbd "C-]") 'evil-undefine)
 
         ;;
         ;; Gtags custom functionality
@@ -1120,13 +1138,6 @@ Locate emacs customization file.
                                             ;(add-hook 'after-save-hook 'gtags-update)
 
 
-        (defun enable-ggtags-mode () (progn (ggtags-mode 1)))
-        (add-hook 'c-mode-hook 'enabe-ggtags-mode)
-        (add-hook 'html-mode-hook 'enable-ggtags-mode)
-        (add-hook 'lisp-mode-hook 'enable-ggtags-mode)
-        (add-hook 'lisp-interaction-mode-hook 'enable-ggtags-mode)
-        (add-hook 'python-mode-hook 'enable-ggtags-mode)
-        (add-hook 'perl-mode-hook 'enable-ggtags-mode)
     ))
   #+end_src
 ** Mail
@@ -1368,7 +1379,7 @@ Locate emacs customization file.
       ))
 
   (req-package python
-    :require (elpy jedi flymake-pyfixers s)
+    :require (elpy jedi flymake-pyfixers nose s)
     :mode ("\\.py\\'" . python-mode)
     :interpreter ("python" . python-mode)
     :init
@@ -1382,6 +1393,8 @@ Locate emacs customization file.
         (setq fill-column 120)
         (turn-on-auto-fill)
         (flyspell-prog-mode)
+        (ggtags-mode 1)
+        (node-mode)
         ;; Rebox
         (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
         (rebox-mode 1)
@@ -1394,7 +1407,6 @@ Locate emacs customization file.
         (projectile-mode t))
 
       ;; Elpy Init
-      (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
       (setq elpy-rpc-backend "jedi")
 
       (when (not (setq python-check-command (locate-file "pycheckers.sh" (list user-emacs-directory))))
@@ -1402,6 +1414,9 @@ Locate emacs customization file.
     :config
     (progn
       (message "Initializing python mode settings")
+
+
+      (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
 
       ;; Elpy config
       (elpy-enable)
