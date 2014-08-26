@@ -76,6 +76,7 @@
 (depends-on "shut-up")
 (depends-on "smart-mode-line")
 (depends-on "smex")
+(depends-on "solarized-theme")
 (depends-on "switch-window")
 (depends-on "use-package")
 (depends-on "yasnippet")

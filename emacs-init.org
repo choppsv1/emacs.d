@@ -224,7 +224,7 @@ Auto save and backup files go in /tmp.
 ** Recompile Local Lisp
 #+begin_src emacs-lisp
   (byte-recompile-directory (expand-file-name "~/.emacs.d/local-lisp") 0)
-  (byte-recompile-directory (expand-file-name "~/.emacs.d/my-themes/emacs-color-theme-solarized") 0)
+  ;; (byte-recompile-directory (expand-file-name "~/.emacs.d/my-themes/emacs-color-theme-solarized") 0)
 #+end_src
 
 ** Uniquify
@@ -245,19 +245,48 @@ Locate emacs customization file.
 ** Frames
   #+begin_src emacs-lisp
     (if athome
-        (setq initial-frame-alist '((top . 50) (left . 20) (width . 270) (height . 90)))
+        (setq initial-frame-alist '((top . 50) (left . 300) (width . 250) (height . 90)))
       )
     ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
     ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
   #+end_src
 ** Themes
 #+begin_src emacs-lisp
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+
+  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
+
+  (req-package-force solarized-theme)
+  (req-package-force zenburn-theme)
+
+  (if (display-graphic-p)
+      (load-theme 'zenburn t)
+
+    (setq current-theme nil)
+    (defun get-detroit-hour ()
+      (string-to-number (shell-command-to-string "TZ=America/Detroit date +%k")))
+
+    (defun synchronize-theme  ()
+      (interactive)
+      (if (member (get-detroit-hour) (number-sequence 9 20))
+          (setq now 'solarized-light)
+        (setq now 'solarized-dark))
+
+      (if (member (get-detroit-hour) (number-sequence 9 20))
+          (setq now 'solarized-light)
+        (setq now 'solarized-dark))
+      
+      (if (not (eq now current-theme))
+          (progn
+            (load-theme now)
+            (setq current-theme now))))
+
+    (run-with-timer 0 600 'synchronize-theme))
 
   ;; (require 'centered-window-mode)
   ;; (centered-window-mode t)
 
-  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
-  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
+  ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
   ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/solarized/"))
 
   ;; (load-theme 'noctilux)
@@ -275,29 +304,12 @@ Locate emacs customization file.
 
   ;; (load-theme 'solarized-dark)
   ;; (load-theme 'solarized-light)
-  (setq current-theme nil)
-
-  (defun get-detroit-hour ()
-    (string-to-number (shell-command-to-string "TZ=America/Detroit date +%k")))
-
-  (defun synchronize-theme  ()
-    (interactive)
-    (if (member (get-detroit-hour) (number-sequence 9 20))
-        (setq now 'solarized-light)
-      (setq now 'solarized-dark))
-    (if (not (eq now current-theme))
-        (progn
-          (load-theme now)
-          (setq current-theme now))))
-
-  (run-with-timer 0 600 'synchronize-theme)
 
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┆))
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┊))
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┋))
-  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
 
   ;; (if (display-graphic-p)
   ;;    (progn
