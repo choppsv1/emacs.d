@@ -19,6 +19,7 @@
  '(elpy-modules
    (quote
     (elpy-module-company elpy-module-pyvenv elpy-module-yasnippet elpy-module-sane-defaults)))
+ '(elpy-test-runner (quote elpy-test-nose-runner))
  '(evil-want-fine-undo t)
  '(fci-rule-color "#073642")
  '(flycheck-highlighting-mode (quote lines))
@@ -67,11 +68,16 @@ export \"MS-Project\" {
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:foreground "#DCDCCC" :background "#3F3F3F"))))
- '(flycheck-error ((((supports :underline (:style wave))) (:underline (:style wave :color "#BC8383") :inherit unspecified)) (t (:foreground "#BC8383" :weight bold :underline t))))
- '(flymake-warnline ((((supports :underline (:style wave))) (:underline (:style wave :color "#DFAF8F") :inherit unspecified :foreground unspecified :background unspecified)) (t (:foreground "#DFAF8F" :weight bold :underline t))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Menlo"))))
+ ;; '(default ((t (:foreground "#DCDCCC" :background "#3F3F3F"))))
+ ;; '(flycheck-error ((((supports :underline (:style wave))) (:underline (:style wave :color "#BC8383") :inherit unspecified)) (t (:foreground "#BC8383" :weight bold :underline t))))
+ ;; '(flymake-warnline ((((supports :underline (:style wave))) (:underline (:style wave :color "#DFAF8F") :inherit unspecified :foreground unspecified :background unspecified)) (t (:foreground "#DFAF8F" :weight bold :underline t))))
+ '(flycheck-error ((t (:inherit error :underline t))))
+ '(flymake-warnline ((t (:background "color-236"))))
+ ;; from HEAD
  '(mode-line ((t (:background "#2B2B2B" :foreground "#8FB28F" :box nil :overline "dim gray" :underline "dim gray"))))
  '(mode-line-inactive ((t (:background "#383838" :foreground "#5F7F5F" :box nil :overline "dim gray" :underline "dim gray"))))
- '(show-paren-match ((t (:background "#6F6F6F" :weight bold)))))
+ ;; '(show-paren-match ((t (:background "#6F6F6F" :weight bold)))))
+ '(show-paren-match ((t (:foreground "#d33682" :inverse-video t :weight bold)))))
 
  ;; '(default ((t (:inherit nil :stipple nil :foreground "#c0c0c0" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 1 :width normal :foundry "default" :family "default"))))
