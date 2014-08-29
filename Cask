@@ -71,6 +71,7 @@
 (depends-on "pyvenv")
 (depends-on "rebox2")
 (depends-on "req-package")
+(depends-on "rich-minority")
 (depends-on "s")
 (depends-on "shell-switcher")
 (depends-on "shut-up")
@@ -79,3 +80,4 @@
 (depends-on "switch-window")
 (depends-on "use-package")
 (depends-on "yasnippet")
+(depends-on "zenburn-theme")
