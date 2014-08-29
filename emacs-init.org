@@ -173,7 +173,8 @@ Auto save and backup files go in /tmp.
 ** Where are we at?
    #+begin_src emacs-lisp
      (if (or (string-match "^\\(rtp\\|sjc\\|bxb\\)-chopps" (getenv "HOSTNAME"))
-             (string-match "^dex" (getenv "HOSTNAME")))
+             (string-match "^dex" (getenv "HOSTNAME"))
+             (string-match "^CHOPPS" (getenv "HOSTNAME")))
          (setq athome t)
       (setq athome nil))
    #+end_src
@@ -1573,7 +1574,9 @@ Locate emacs customization file.
         ;;      (string-match "\\.o2b$" (buffer-file-name))
         ;;      (org2blog/wp-mode)))
         )
-      (define-key global-map "\C-cc" 'org-capture)
+      (define-key global-map (kbd "C-c a") 'org-agenda)
+      (define-key global-map (kbd "C-c c") 'org-capture)
+      (define-key global-map (kbd "C-c l") 'org-store-link)
       (add-hook 'org-mode-hook 'my-org-mode-hook)
       ;; (require 'org-latex)
 
