@@ -1565,8 +1565,8 @@ Locate emacs customization file.
 
 ** Org-Mode
 #+begin_src emacs-lisp
-  (req-package org-plus-contrib
-    :ensure org
+  (req-package org
+    :ensure org-plus-contrib
     :require (org-mac-link org-magit) ;; ox-taskjuggler
     :interpreter ("org" . org-mode)
     :mode ("\\.org\\'" . org-mode)
