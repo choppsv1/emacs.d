@@ -247,7 +247,7 @@ Locate emacs customization file.
 ** Frames
   #+begin_src emacs-lisp
     (if athome
-        (setq initial-frame-alist '((top . 50) (left . 300) (width . 250) (height . 90)))
+        (setq initial-frame-alist '((top . -420) (left . 4800) (width . 233) (height . 90)))
       )
     ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
     ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
