@@ -256,6 +256,8 @@ Locate emacs customization file.
   ;; (require 'centered-window-mode)
   ;; (centered-window-mode t)
 
+  (req-package zenburn-theme)
+
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
   ;; (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/solarized/"))
@@ -283,8 +285,8 @@ Locate emacs customization file.
   (defun synchronize-theme  ()
     (interactive)
     (if (member (get-detroit-hour) (number-sequence 9 20))
-        (setq now 'solarized-light)
-      (setq now 'solarized-dark))
+                (setq now 'zenburn)
+              (setq now 'solarized-dark))
     (if (not (eq now current-theme))
         (progn
           (load-theme now)
@@ -1385,32 +1387,41 @@ Locate emacs customization file.
     :init
     (progn
       (defun my-python-mode-hook ()
-        (setq jedi:server-args '("--log-traceback"))
+        ;; (setq jedi:server-args '("--log-traceback"))
         (jedi:setup)
-        (flycheck-mode t)
         ;; Fill values
         (setq comment-column 60)
         (setq fill-column 120)
         (turn-on-auto-fill)
-        (flyspell-prog-mode)
-        (ggtags-mode 1)
-        (node-mode)
         ;; Rebox
         (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
-        (rebox-mode 1)
         (highlight-indentation-mode -1)
         (define-key python-mode-map (kbd "C-c M-\\") 'pyfixer:ignore-current-line)
         (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
         (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
         (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
         (define-key python-mode-map (kbd "C-c h") 'pylookup-lookup)
-        (projectile-mode t))
 
-      ;; Elpy Init
-      (setq elpy-rpc-backend "jedi")
+        (flyspell-prog-mode)
+        (projectile-mode t)
+        (flycheck-mode t)
+        (rebox-mode 1)
+        (ggtags-mode 1)
+        ;; What is this?
+        ;; (node-mode)
+        ;; Why is this needed?
+        ;; (elpy-mode t)
+        (jedi-mode 1)
+        )
 
       (when (not (setq python-check-command (locate-file "pycheckers.sh" (list user-emacs-directory))))
-        (setq python-check-command "flake8")))
+        (setq python-check-command "flake8"))
+
+      ;; Elpy Init
+      ;; (setq elpy-rpc-backend "jedi")
+      (message "Doing elpy-enable")
+      (elpy-enable))
+
     :config
     (progn
       (message "Initializing python mode settings")
@@ -1419,7 +1430,6 @@ Locate emacs customization file.
       (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))
 
       ;; Elpy config
-      (elpy-enable)
       (define-key elpy-mode-map (kbd "C-c C-n") 'next-error)
       (define-key elpy-mode-map (kbd "C-c C-p") 'previous-error)
       (elpy-use-ipython)
@@ -1809,41 +1819,30 @@ Taken from: http://tuhdo.github.io/helm-intro.html
 *** Yasnippet
 
   #+begin_src emacs-lisp
+    (req-package yasnippet
+      :init
+      (progn
+        (message "yasnippet loading")
+        ;; (setq yas/trigger-key (kbd "C-c <kp-multiply>"))
+        ;; (setq yas/trigger-key (kbd "C-c C-q"))
+        (setq yas/trigger-key (kbd "C-c C-]"))
+        ;;     ;(setq yas/root-directory "~/.emacs.d/snippets")
+        ;;     (setq yas/snippet-dirs '("~/.emacs.d/snippets"))
+        ;;     ;(yas/initialize)
+        ;;     ;(yas/load-directory yas/root-directory)
 
-    ;;-----------+
-    ;; Yasnippet
-    ;;-----------+
+        ;; Don't map TAB to yasnippet
+        ;; In fact, set it to something we'll never use because
+        ;; we'll only ever trigger it indirectly.
 
-    ;Don't map TAB to yasnippet
-    ;In fact, set it to something we'll never use because
-    ;we'll only ever trigger it indirectly.
-
-    (require 'yasnippet)
-    ;; (yas/initialize)
-    ;; (yas/global-mode 1)
-    (yas-reload-all)
-
-
-    ; default now (setq yas/snippet-dirs '("~/.emacs.d/snippets"))
-    ;(setq yas/snippet-dirs '("~/.emacs.d/snippets" "~/.emacs.d/extras/imported"))
-
-    (eval-after-load "yasnippet"
-      '(progn
-         (message "yasnippet loading")
-    ;     (setq yas/trigger-key (kbd "C-c <kp-multiply>"))
-    ;     (setq yas/trigger-key (kbd "C-c C-q"))
-         (setq yas/trigger-key (kbd "C-c C-]"))
-    ;     ;(setq yas/root-directory "~/.emacs.d/snippets")
-    ;     (setq yas/snippet-dirs '("~/.emacs.d/snippets"))
-    ;     ;(yas/initialize)
-    ;     ;(yas/load-directory yas/root-directory)
-         (add-hook 'yas/after-exit-snippet-hook
-                   (lambda () (setq ac-trigger-key nil)))
-         (add-hook 'yas/before-expand-snippet-hook
-                   (lambda () (setq ac-trigger-key "TAB")))
-         (message "yasnippet loaded")))
-    ;     (yas/global-mode 1)
-    ;     ))
+        (add-hook 'yas/after-exit-snippet-hook
+                  (lambda () (setq ac-trigger-key nil)))
+        (add-hook 'yas/before-expand-snippet-hook
+                  (lambda () (setq ac-trigger-key "TAB")))
+        (message "yasnippet loaded"))
+      :config
+      (yas-reload-all))
+    ;;     (yas/global-mode 1)))
   #+end_src
 
 *** Headers

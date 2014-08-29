@@ -19,6 +19,7 @@
  '(elpy-modules
    (quote
     (elpy-module-company elpy-module-pyvenv elpy-module-yasnippet elpy-module-sane-defaults)))
+ '(elpy-rpc-backend "jedi")
  '(elpy-test-runner (quote elpy-test-nose-runner))
  '(evil-want-fine-undo t)
  '(fci-rule-color "#073642")
@@ -28,6 +29,7 @@
  '(highlight-changes-colors (quote ("#d33682" "#6c71c4")))
  '(ido-mode (quote both) nil (ido))
  '(indent-tabs-mode nil)
+ '(jedi:install-imenu nil)
  '(jedi:server-args (quote ("--sys-path" "/ws/chopps-sjc/ws/xrut-ats/modules")))
  '(mac-command-key-is-meta nil)
  '(mac-command-modifier (quote alt))
