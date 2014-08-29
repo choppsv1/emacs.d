@@ -39,7 +39,7 @@
  '(max-specpdl-size 5)
  '(ns-alternate-modifier (quote meta))
  '(ns-command-modifier (quote alt))
- '(org-agenda-files (quote ("~/org-mode/index.org")))
+ '(org-agenda-files (quote ("~/org-mode/")))
  '(org-modules
    (quote
     (org-bullets org-mac-iCal org-mac-link org-w3m org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail)))
@@ -70,9 +70,11 @@ export \"MS-Project\" {
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Menlo"))))
- '(flycheck-error ((t (:inherit error :underline t))))
- '(flymake-warnline ((t (:background "color-236"))))
- '(show-paren-match ((t (:foreground "#d33682" :inverse-video t :weight bold)))))
+ '(default ((t (:foreground "#DCDCCC" :background "#3F3F3F"))))
+ '(flycheck-error ((((supports :underline (:style wave))) (:underline (:style wave :color "#BC8383") :inherit unspecified)) (t (:foreground "#BC8383" :weight bold :underline t))))
+ '(flymake-warnline ((((supports :underline (:style wave))) (:underline (:style wave :color "#DFAF8F") :inherit unspecified :foreground unspecified :background unspecified)) (t (:foreground "#DFAF8F" :weight bold :underline t))))
+ '(mode-line ((((class color) (min-colors 89)) (:foreground "#8FB28F" :background "#2B2B2B" :box (:line-width -1 :style released-button))) (t :inverse-video t)))
+ '(mode-line-inactive ((t (:foreground "#5F7F5F" :background "#383838" :box (:line-width -1 :style released-button)))))
+ '(show-paren-match ((t (:background "#6F6F6F" :weight bold)))))
 
  ;; '(default ((t (:inherit nil :stipple nil :foreground "#c0c0c0" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 1 :width normal :foundry "default" :family "default"))))
