@@ -24,6 +24,7 @@
  '(evil-want-fine-undo t)
  '(fci-rule-color "#073642")
  '(flycheck-highlighting-mode (quote lines))
+ '(flycheck-idle-change-delay 1)
  '(flyspell-auto-correct-binding [67108922])
  '(gtags-path-style (quote relative))
  '(highlight-changes-colors (quote ("#d33682" "#6c71c4")))
