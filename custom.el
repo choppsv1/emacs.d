@@ -71,6 +71,8 @@ export \"MS-Project\" {
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(fixed-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Menlo"))))
+ '(vairable-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 160 :width normal))))
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Menlo"))))
  '(flycheck-error ((((supports :underline (:style wave))) (:underline (:style wave :color "#BC8383") :inherit unspecified)) (t (:foreground "#BC8383" :weight bold :underline t))))
  '(flymake-warnline ((((supports :underline (:style wave))) (:underline (:style wave :color "#DFAF8F") :inherit unspecified :foreground unspecified :background unspecified)) (t (:foreground "#DFAF8F" :weight bold :underline t))))
