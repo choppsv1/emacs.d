@@ -100,7 +100,8 @@ calls:
 #+begin_src emacs-lisp
   (add-to-list 'load-path (concat user-emacs-directory "local-lisp"))
   (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
-  ;; (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
+  (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
+  (if (file-exists-p "~/p/lisp/org-cdets") (add-to-list 'load-path "~/p/lisp/org-cdets"))
 
   ;; Our custom org2blog, should make this a custom el-get?
   (if (file-exists-p "~/Documents/Projects-Local/org2blog")
@@ -235,6 +236,8 @@ For now this is specific to Mac OS X.
   (byte-recompile-directory (expand-file-name "~/.emacs.d/local-lisp") 0)
   (if (file-exists-p (expand-file-name "~/.emacs.d/my-themes/emacs-color-theme-solarized"))
       (byte-recompile-directory (expand-file-name "~/.emacs.d/my-themes/emacs-color-theme-solarized") 0))
+  ;; (if (file-exists-p (expand-file-name "~/p/lisp/org-cdets"))
+  ;;     (byte-recompile-directory (expand-file-name "~/p/lisp/org-cdets") 0))
 #+end_src
 
 *** Uniquify
@@ -289,7 +292,7 @@ For now this is specific to Mac OS X.
       (evil-change-to-initial-state)
 
       (require 'evil-args)
-      (require 'evil-nerd-commenter)
+      ;; (require 'evil-nerd-commenter)
       (require 'evil-terminal-cursor-changer)
 
       (define-key evil-normal-state-map [escape] 'keyboard-quit)
@@ -341,6 +344,42 @@ without relaunching.
       (server-start)))
 #+end_src
 
+*** Cleanup Minor Modes in Modeline
+#+BEGIN_SRC emacs-lisp
+  (defvar mode-line-cleaner-alist
+    `((abbrev-mode . " Ab")
+      (auto-complete-mode . " AC")
+      (auto-fill-mode . "")
+      (buffer-face-mode . "")
+      (filladapt-mode . "")
+      (flyspell-mode . "")
+      (magit-auto-revert-mode . "")
+      (org-indent-mode "OI")
+      (rebox-mode . " Rbx")
+      (undo-tree-mode . "")
+      ;; (yas/minor-mode . " u")
+      ;; Major modes have no space in front
+      (lisp-interaction-mode . "λ")
+      (org-mode . "O")
+      (python-mode . "Py")
+      (emacs-lisp-mode . "EL")
+      ))
+
+  (defun clean-mode-line ()
+    (interactive)
+    (loop for cleaner in mode-line-cleaner-alist
+          do (let* ((mode (car cleaner))
+                   (mode-str (cdr cleaner))
+                   (old-mode-str (cdr (assq mode minor-mode-alist))))
+               (when old-mode-str
+                   (setcar old-mode-str mode-str))
+                 ;; major mode
+               (when (eq mode major-mode)
+                 (setq mode-name mode-str)))))
+
+  (add-hook 'after-change-major-mode-hook 'clean-mode-line)
+#+END_SRC
+
 *** Themes
 #+begin_src emacs-lisp :tangle yes
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
@@ -350,7 +389,7 @@ without relaunching.
   (setq current-theme nil)
 
   ;; (req-package-force solarized-theme)
-  (req-package-force zenburn-theme)
+  ;; (req-package-force zenburn-theme)
 
   (defun get-detroit-hour ()
     (string-to-number (shell-command-to-string "TZ=America/Detroit date +%k")))
@@ -365,10 +404,10 @@ without relaunching.
           (load-theme now)
           (setq current-theme now))))
 
-  (run-with-timer 0 600 'synchronize-theme)
+  ;; (run-with-timer 0 600 'synchronize-theme)
 
-  (if (display-graphic-p)
-      (load-theme 'zenburn t))
+  ;; (if (display-graphic-p)
+  ;;     (load-theme 'zenburn t))
 
   ;; (require 'centered-window-mode)
   ;; (centered-window-mode t)
@@ -376,8 +415,8 @@ without relaunching.
   ;; (setq sml/theme 'respectful)
   ;; (sml/setup)
 
-  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
-  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
+  ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┇))
+  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┃))
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?╏))
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┆))
   ;; (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?┊))
@@ -508,7 +547,7 @@ without relaunching.
                    (with-selected-window window
                      (split-window-below))))))))
 
-  (setq split-width-threshold 160)
+  (setq split-width-threshold 120)
   (setq window-min-width 80)
   (setq split-window-preferred-function 'split-window-sensibly-prefer-horizontal)
 #+end_src
@@ -1409,6 +1448,7 @@ without relaunching.
       (message "Initializing python mode")
       (defun my-python-mode-hook ()
         ;; Fill values
+        (require 'flymake-pyfixers)
         (setq comment-column 60)
         (setq fill-column 120)
         (turn-on-auto-fill)
