@@ -404,7 +404,7 @@ without relaunching.
           (load-theme now)
           (setq current-theme now))))
 
-  ;; (run-with-timer 0 600 'synchronize-theme)
+  (run-with-timer 0 600 'synchronize-theme)
 
   ;; (if (display-graphic-p)
   ;;     (load-theme 'zenburn t))
@@ -787,6 +787,11 @@ without relaunching.
     (flyspell-prog-mode)
     (set (make-local-variable 'rebox-style-loop) '(83 84 21))
     ;; (set (make-local-variable 'rebox-min-fill-column) 40)
+    (define-key lisp-mode-map (kbd "C-c C-n") 'flycheck-next-error)
+    (define-key lisp-mode-map (kbd "C-c C-p") 'flycheck-previous-error)
+    (define-key emacs-lisp-mode-map (kbd "C-c C-n") 'flycheck-next-error)
+    (define-key emacs-lisp-mode-map (kbd "C-c C-p") 'flycheck-previous-error)
+    (flycheck-mode 1)
     (rebox-mode 1))
 
   (add-hook 'lisp-mode-hook 'my-lisp-mode-hook)
@@ -1465,7 +1470,6 @@ without relaunching.
         (message "Enabling projectile")
         (projectile-mode t)
 
-        (message "Enabling flycheck")
         (flycheck-mode t)
 
         (message "Enabling rebox")

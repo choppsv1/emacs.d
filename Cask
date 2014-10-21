@@ -3,6 +3,7 @@
 (source melpa)
 (source org)
 
+(depends-on "async")
 (depends-on "auto-complete")
 (depends-on "benchmark-init")
 (depends-on "bind-key")
