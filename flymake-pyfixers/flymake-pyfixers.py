@@ -8,6 +8,7 @@ import re
 from Pymacs import lisp
 interactions = {}
 
+lisp.message("Inside pymacs flymake-pyfixers.py")
 
 class foo (object):
 
@@ -176,6 +177,8 @@ def fix_current_line ():
             fixers[key](key, errtxt)
     if did_something:
         lisp.flymake_start_syntax_check()
+
+lisp.message("Post pymacs flymake-pyfixers.py")
 
 __author__ = 'Christian Hopps'
 __date__ = 'February 12 2014'

@@ -13,6 +13,7 @@
   (message "add-directory: %s" (file-name-directory load-file-name))
   (add-to-list 'pymacs-load-path (file-name-directory load-file-name))
   (pymacs-load "flymake-pyfixers" "pyfixer:")
+  (message "Done loading flymake-pyfixers")
   )
 
 (defvar pyfixer:flymake-fixers
@@ -297,11 +298,11 @@
   "Ignore the given errdata pylint error"
   (if errdata
       (let (errno fixer)
-        ;; Handle pylint messages
-        ;; (if (string-match "\\[\\([EW][0-9]+\\)\\(-.*\\)\\?*\\].*" errdata)
-        (if (string-match "\\[\\([CERW][0-9]+\\)\\].*" errdata)
+        (message "Errdata: %s" errdata)
+        (if (string-match "\\(^\\([EWRC][0-9]+\\) \\|\\[\\([EWRC][0-9]+\\)]\\).*" errdata)
             (progn
-              (setq errno (match-string 1 errdata))
+              (if (not (setq errno (match-string 2 errdata)))
+                  (setq errno (match-string 3 errdata)))
               (end-of-line)
               (insert (format "  # pylint: disable=%s" errno)))))))
 

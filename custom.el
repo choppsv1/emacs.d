@@ -34,30 +34,33 @@
  '(jedi:server-args (quote ("--sys-path" "/ws/chopps-sjc/ws/xrut-ats/modules")))
  '(mac-command-key-is-meta nil)
  '(mac-command-modifier (quote alt))
- '(mac-option-modifier (quote (:ordinary meta :mouse alt)))
+ '(mac-option-modifier (quote (:ordinary meta :function meta :mouse alt)))
  '(magit-use-overlays nil)
  '(make-backup-files nil)
  '(max-specpdl-size 5)
  '(ns-alternate-modifier (quote meta))
  '(ns-command-modifier (quote alt))
  '(org-agenda-files (quote ("~/org-mode/")))
+ ;; '(org-modules
+ ;;   (quote
+ ;;     (org-bullets org-mac-iCal org-mac-link org-w3m org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail)))
  '(org-modules
    (quote
-    (org-bullets org-mac-iCal org-mac-link org-w3m org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail)))
+     (org-bullets org-mac-iCal org-w3m org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail)))
  '(org-protocol-default-template-key "t")
- '(org-taskjuggler-default-global-properties
-   "shift s40 \"Part time shift\" {
-  workinghours wed, thu, fri off
-}
-# Export the scheduled project as Microsoft Project XML format.
-export \"MS-Project\" {
-  formats mspxml
-  loadunit quarters
-}
-")
- '(org-taskjuggler-valid-resource-attributes
-   (quote
-    (limits vacation shift booking efficiency journalentry rate workinghours flags supplement)))
+ ;; '(org-taskjuggler-default-global-properties
+ ;;   "shift s40 \"Part time shift\" {
+ ;;  workinghours wed, thu, fri off
+;; }
+;; # Export the scheduled project as Microsoft Project XML format.
+;; export \"MS-Project\" {
+;;   formats mspxml
+;;   loadunit quarters
+;; }
+;; ")
+;;  '(org-taskjuggler-valid-resource-attributes
+;;    (quote
+;;     (limits vacation shift booking efficiency journalentry rate workinghours flags supplement)))
  '(org2blog/wp-shortcode-langs-map (quote (("emacs-lisp" . "lisp") ("sh" . "bash"))))
  '(org2blog/wp-use-sourcecode-shortcode t t)
  '(safe-local-variable-values (quote ((pymacs-auto-reload . t))))
@@ -69,25 +72,7 @@ export \"MS-Project\" {
  '(vc-follow-symlinks t))
 
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Menlo"))))
  '(fixed-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Menlo"))))
  '(flycheck-error ((t (:inherit error :inverse-video t))))
  '(flycheck-warning ((t (:inherit warning :inverse-video t :weight bold)))))
-
-;; (setq foobar2
-;; '(show-paren-match ((t (:background "#6F6F6F" :weight bold))) t))
-
-;; Fixed and variable pitch
-;; (setq foobar
-      ;; '(fixed-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Menlo"))))
-      ;; '(vairable-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 160 :width normal))) t))
-
- ;; '(mode-line ((((class color) (min-colors 89)) (:foreground "#8FB28F" :background "#2B2B2B" :box (:line-width -1 :style released-button))) (t :inverse-video t)))
- ;; '(mode-line-inactive ((t (:foreground "#5F7F5F" :background "#383838" :box (:line-width -1 :style released-button)))))
- ;; '(default ((t (:inherit nil :stipple nil :foreground "#c0c0c0" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 1 :width normal :foundry "default" :family "default"))))
- ;; '(flycheck-error ((((supports :underline (:style wave))) (:underline (:style wave :color "#BC8383") :inherit unspecified)) (t (:foreground "#BC8383" :weight bold :underline t))))
- ;;'(flymake-warnline ((((supports :underline (:style wave))) (:underline (:style wave :color "#DFAF8F") :inherit unspecified :foreground unspecified :background unspecified)) (t (:foreground "#DFAF8F" :weight bold :underline t))))

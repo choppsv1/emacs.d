@@ -39,6 +39,8 @@ packages are properly installed. Additionally we then require pallet so that our
 ** Required Initialization
 *** Use Unicode
 #+begin_src emacs-lisp
+  (setq debug-init-msg nil)
+
   (setenv "LC_CTYPE" "UTF-8")
 #+end_src
 
@@ -101,7 +103,7 @@ calls:
   (add-to-list 'load-path (concat user-emacs-directory "local-lisp"))
   (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
   (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
-  (if (file-exists-p "~/p/lisp/org-cdets") (add-to-list 'load-path "~/p/lisp/org-cdets"))
+  ;; (if (file-exists-p "~/p/lisp/org-cdets") (add-to-list 'load-path "~/p/lisp/org-cdets"))
 
   ;; Our custom org2blog, should make this a custom el-get?
   (if (file-exists-p "~/Documents/Projects-Local/org2blog")
@@ -350,7 +352,8 @@ without relaunching.
     `((abbrev-mode . " Ab")
       (auto-complete-mode . " AC")
       (auto-fill-mode . "")
-      (buffer-face-mode . "")
+      ;; Buffer face mode causes certain modes to use variable width font.
+      ;; (buffer-face-mode . "")
       (filladapt-mode . "")
       (flyspell-mode . "")
       (magit-auto-revert-mode . "")
@@ -394,9 +397,12 @@ without relaunching.
   (defun get-detroit-hour ()
     (string-to-number (shell-command-to-string "TZ=America/Detroit date +%k")))
 
+  (defun get-local-hour ()
+    (string-to-number (shell-command-to-string "date +%k")))
+
   (defun synchronize-theme  ()
     (interactive)
-    (if (member (get-detroit-hour) (number-sequence 4 20))
+    (if (member (get-local-hour) (number-sequence 4 20))
                 (setq now 'zenburn)
               (setq now 'solarized-dark))
     (if (not (eq now current-theme))
@@ -1236,7 +1242,42 @@ without relaunching.
   (req-package projectile
     :interpreter ("projectile" . projectile-mode))
 #+end_src
-
+**** Flycheck
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (req-package flycheck
+    :init
+    (progn
+      (message "flycheck-init"))
+    :config
+    (progn
+      (message "flycheck-config")
+      (flycheck-define-checker python-pycheckers
+        "A python syntax and style checker using flake8 and pylint."
+        :command ("pycheckers.sh"
+                  (config-file "-8" flycheck-flake8rc)
+                  (config-file "-r" flycheck-pylintrc)
+                  source-inplace)
+        :error-patterns
+        ((error line-start
+                (file-name) ":" line ":" (optional column ":") " "
+                (message "E" (one-or-more digit) (zero-or-more not-newline))
+                line-end)
+         (warning line-start
+                  (file-name) ":" line ":" (optional column ":") " "
+                  (message (or "F"            ; Pyflakes in Flake8 >= 2.0
+                               "W"            ; Pyflakes in Flake8 < 2.0
+                               "C")           ; McCabe in Flake >= 2.0
+                           (one-or-more digit) (zero-or-more not-newline))
+                  line-end)
+         (info line-start
+               (file-name) ":" line ":" (optional column ":") " "
+               (message "N"              ; pep8-naming in Flake8 >= 2.0
+                        (one-or-more digit) (zero-or-more not-newline))
+               line-end)
+         )
+        :modes python-mode)
+      (add-hook 'after-init-hook 'global-flycheck-mode)))
+#+END_SRC
 **** CC Mode
 #+begin_src emacs-lisp
   (use-package cc-mode
@@ -1434,6 +1475,13 @@ without relaunching.
     (progn
      (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))))
 
+  (req-package pytest
+    :init
+    (progn
+      (setq pytest-global-name "py.test")
+      (setq pytest-cmd-flags "-x --doctest-module")
+      ))
+
   (req-package flymake-pyfixers)
 
   (req-package pylookup
@@ -1445,6 +1493,9 @@ without relaunching.
       (setq pylookup-db-file (concat pylookup-dir "/pylookup.db"))
       ))
 
+  (if debug-init-msg
+      (message "Mark post pylookup"))
+
   (use-package python
     :mode (("\\.py\\'" . python-mode))
     :interpreter ("python" . python-mode)
@@ -1452,8 +1503,13 @@ without relaunching.
     (progn
       (message "Initializing python mode")
       (defun my-python-mode-hook ()
+        (message "Python mode hook")
         ;; Fill values
+        (if debug-init-msg
+            (message "Mark pre req pyfixers"))
         (require 'flymake-pyfixers)
+        (if debug-init-msg
+            (message "Mark post req pyfixers"))
         (setq comment-column 60)
         (setq fill-column 120)
         (turn-on-auto-fill)
@@ -1463,6 +1519,7 @@ without relaunching.
         (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
         (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
         (define-key python-mode-map (kbd "C-c h") 'pylookup-lookup)
+        (define-key python-mode-map (kbd "C-c d") 'pylookup-lookup)
 
         (message "Enabling flyspell")
         (flyspell-prog-mode)
@@ -1471,13 +1528,16 @@ without relaunching.
         (projectile-mode t)
 
         (flycheck-mode t)
-
+        (flycheck-select-checker 'python-flake8)
+        (flycheck-set-checker-executable 'python-flake8 "~/.emacs.d/pycheckers.sh")
         (message "Enabling rebox")
         (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
         (rebox-mode 1)
 
         (message "Enabling elpy")
         (elpy-enable)
+        (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
+        (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
         ))
     :config
     (progn
@@ -1546,7 +1606,7 @@ without relaunching.
       ))
 #+end_src
 **** Pymacs
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
   (req-package pymacs
     :commands (pymacs-apply pymacs-call pymacs-eval pymacs-exec pymacs-load)
     :config
@@ -1602,10 +1662,14 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   (req-package taskjuggler-mode
     :mode "\\.tjp\\'")
+  (if debug-init-msg
+      (message "Mark post taskjuggler"))
 #+end_src
 
 *** Org-Mode
 #+begin_src emacs-lisp :tangle yes
+  (if debug-init-msg
+      (message "Mark pre org mode"))
   (req-package org
     :ensure org-plus-contrib
     :require (org-mac-link org-magit) ;; ox-taskjuggler
@@ -1697,6 +1761,8 @@ without relaunching.
 
 *** Blogging
 #+begin_src emacs-lisp :tangle yes
+  (if debug-init-msg
+      (message "Mark pre org2blog mode"))
   (req-package org2blog
     :require (metaweblog netrc)
     :interpreter ("org2blog" . org2blog/wp-mode)
@@ -1732,6 +1798,8 @@ without relaunching.
 
 *** Spelling
 #+begin_src emacs-lisp :tangle yes
+  (if debug-init-msg
+      (message "Mark pre spelling"))
   (define-key ctl-x-map (kbd "C-i") 'endless/ispell-word-then-abbrev)
 
   (defun endless/ispell-word-then-abbrev (p)
@@ -1892,6 +1960,9 @@ without relaunching.
                > ";; Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps" \n
                > ";; All rights reserved." \n
                > ";;" \n
+               > ";; REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+               > ";; CONSENT OF THE AUTHOR." \n
+               > ";;" \n
                > _ ))
            (define-auto-insert
              '("\\.py" . "# Home python comment skeleton")
@@ -1901,18 +1972,21 @@ without relaunching.
                > "#" \n
                > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
                > "# All rights reserved." \n
-               > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
-               > "import sys, os" \n
-               > "sys.path[0:0] = [ os.path.dirname(sys.path[0]) + '/modules'," \n
-               > "                  '/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/PyObjC' ]" \n
+               > "#" \n
+               > "# REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+               > "# CONSENT OF THE AUTHOR." \n
                > "" \n
-               > "" \n
+               > _ \n
                > "" \n
                > "__author__ = '" (user-full-name) "'" \n
                > "__date__ = '" (my-get-date) "'" \n
                > "__version__ = '1.0'" \n
                > "__docformat__ = \"restructuredtext en\"" \n
                > _ ))
+               ;; > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
+               ;; > "import sys, os" \n
+               ;; > "sys.path[0:0] = [ os.path.dirname(sys.path[0]) + '/modules'," \n
+               ;; > "                  '/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/PyObjC' ]" \n
            (define-auto-insert
              '("\\.\\(pl\\|sh\\|tcl\\)" . "# Home comment skeleton")
              '("Short description: "
@@ -1921,6 +1995,9 @@ without relaunching.
                > "#" \n
                > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
                > "# All rights reserved." \n
+               > "#" \n
+               > "# REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+               > "# CONSENT OF THE AUTHOR." \n
                > "#" \n
                > _ ))
            (define-auto-insert
@@ -1932,6 +2009,9 @@ without relaunching.
                > ".. Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
                > ".. All rights reserved." \n
                > ".." \n
+               > ".. REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+               > ".. CONSENT OF THE AUTHOR." \n
+               > ".." \n
                > _ ))
            (define-auto-insert
              '("\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\|m\\)\\'" . "Home C-style skeleton")
@@ -1941,6 +2021,9 @@ without relaunching.
                > " *" \n
                > " * Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
                > " * All rights reserved." \n
+               > " *" \n
+               > " * REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+               > " * CONSENT OF THE AUTHOR." \n
                > " */" \n
                > _ ))
 
@@ -2025,6 +2108,8 @@ without relaunching.
     #+end_src
 *** Keys
 #+begin_src emacs-lisp :tangle yes
+  (if debug-init-msg
+      (message "Mark pre keys"))
   ;;(setq vc-default-back-end 'ACMEC)
   (define-key global-map "\C-xv-" 'ediff-revision)
 
@@ -2110,10 +2195,14 @@ without relaunching.
 
 *** Display
 #+begin_src emacs-lisp :tangle yes
+(if debug-init-msg
+    (message "Mark pre display mode"))
 (setq x-mouse-click-focus-ignore-position t)
 (setq mouse-yank-at-point t)
 (display-time-mode)
 
+(if debug-init-msg
+    (message "Mark display mode 1"))
 ;;
 ;; Font-lock
 ;;
@@ -2144,11 +2233,15 @@ without relaunching.
 (add-hook 'python-mode-hook
         (function (lambda ()
                     (font-lock-mode 1))))
+(if debug-init-msg
+    (message "Mark display mode 10"))
 #+end_src
 
 *** XRUT
 #+begin_src emacs-lisp :tangle yes
 ;; XRUT functionality
+(if debug-init-msg
+    (message "Mark pre xrut mode"))
 
 ;; The current launched workspace
 (setq xrut-launched-workspace nil)
@@ -2212,11 +2305,17 @@ without relaunching.
     (shell buffer)
     (process-send-string buffer (format "lboot -mc %s -- exec" router-name))
     ))
+(if debug-init-msg
+    (message "Mark post xrut mode"))
 #+end_src
 
 * End Req-Packages
 #+begin_src emacs-lisp
+  (if debug-init-msg
+      (message "Mark pre req-package-finish"))
   (req-package-finish)
+  (if debug-init-msg
+      (message "Mark post req-package-finish"))
 #+end_src
 
 * Disabled
