@@ -402,7 +402,7 @@ without relaunching.
 
   (defun synchronize-theme  ()
     (interactive)
-    (if (member (get-local-hour) (number-sequence 4 20))
+    (if (member (get-local-hour) (number-sequence 7 17))
                 (setq now 'zenburn)
               (setq now 'solarized-dark))
     (if (not (eq now current-theme))
@@ -1461,7 +1461,8 @@ without relaunching.
     :init
     (progn
       ;; (setq elpy-rpc-backend "jedi")
-      (when (not (setq python-check-command (locate-file "pycheckers.sh" (list user-emacs-directory))))
+
+      (when (not (setq python-check-command (executable-find "pycheckers.sh")))
         (setq python-check-command "flake8"))))
 
   (req-package jedi
@@ -1534,8 +1535,8 @@ without relaunching.
         (projectile-mode t)
 
         (flycheck-mode t)
-        (flycheck-select-checker 'python-flake8)
-        (flycheck-set-checker-executable 'python-flake8 "~/.emacs.d/pycheckers.sh")
+        (flycheck-select-checker 'python-pycheckers)
+        (flycheck-set-checker-executable 'python-flake8 "~/bin/pycheckers.sh")
         (message "Enabling rebox")
         (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
         (rebox-mode 1)
@@ -1544,6 +1545,7 @@ without relaunching.
         (elpy-enable)
         (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
         (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
+        (add-to-list 'compilation-error-regexp-alist '("\\(.*\\):[CEFRW][0-9]+: ?\\([0-9]+\\),[0-9]+: .*" 1 2))
         ))
     :config
     (progn

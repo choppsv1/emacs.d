@@ -47,7 +47,20 @@
  '(org-protocol-default-template-key "t")
  '(org2blog/wp-shortcode-langs-map (quote (("emacs-lisp" . "lisp") ("sh" . "bash"))))
  '(org2blog/wp-use-sourcecode-shortcode t t)
- '(safe-local-variable-values (quote ((pymacs-auto-reload . t))))
+ '(safe-local-variable-values
+   (quote
+    ((flycheck-gcc-include-path . "/usr/include/python3.4")
+     (flycheck-clang-include-path . "/usr/include/python3.4")
+     (flycheck-clang-include-path quote
+                                  ("/usr/include/python3.4" "/usr/include/python2.7"))
+     (flycheck-clang-include-path . "/usr/include/python")
+     (eval progn
+           (require
+            (quote projectile))
+           (puthash
+            (projectile-project-root)
+            "make test" projectile-test-cmd-map))
+     (pymacs-auto-reload . t))))
  '(scroll-step 1)
  '(show-trailing-whitespace t)
  '(ssh-program "ssh-login.sh")
