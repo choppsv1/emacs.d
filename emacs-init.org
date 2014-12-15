@@ -403,8 +403,8 @@ without relaunching.
   (defun synchronize-theme  ()
     (interactive)
     (if (member (get-local-hour) (number-sequence 8 17))
-                (setq now solarized-light)
-              (setq now 'zenburn))
+                (setq now 'zenburn)
+              (setq now 'solarized-dark))
     (if (not (eq now current-theme))
         (progn
           (load-theme now)
@@ -440,6 +440,15 @@ without relaunching.
   (autoload 'svn-update "dsvn" "Run `svn update'." t)
   (require 'vc-svn)
 
+#+end_src
+*** Encryption
+#+begin_src emacs-lisp :tangle yes
+  (req-package epa-file
+    :commands elpy-enable
+    :init
+    (progn
+      ;;(setq epg-gpg-program (executable-find "gpg"))
+            ))
 #+end_src
 *** Text Mode
 #+begin_src emacs-lisp :tangle yes
@@ -1679,7 +1688,7 @@ without relaunching.
       (message "Mark pre org mode"))
   (req-package org
     :ensure org-plus-contrib
-    :require (org-mac-link org-magit) ;; ox-taskjuggler
+    :require (org-crypt org-mac-link org-magit) ;; ox-taskjuggler
     :interpreter ("org" . org-mode)
     :mode ("\\.org\\'" . org-mode)
     :bind ("C-c c" . org-capture)
@@ -1692,6 +1701,11 @@ without relaunching.
         (turn-on-flyspell)
         (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
         (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
+        (define-key org-mode-map (kbd "C-c e e") 'org-encrypt-entry)
+        (define-key org-mode-map (kbd "C-c e d") 'org-decrypt-entry)
+        (setq org-tags-exclude-from-inheritance '("crypt"))
+        (setq org-crypt-disable-auto-save t)
+        (setq org-crypt-key "Christian Hopps <chopps@gmail.com>")
         ;; (and (buffer-file-name)
         ;;      (string-match "\\.o2b$" (buffer-file-name))
         ;;      (org2blog/wp-mode)))
@@ -1713,6 +1727,7 @@ without relaunching.
        'org-babel-load-languages
        '((python . t) (dot . t))
        )
+      (org-crypt-use-before-save-magic)
 
       (eval-after-load "org"
         '(mapc
