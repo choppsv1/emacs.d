@@ -49,7 +49,12 @@
  '(org2blog/wp-use-sourcecode-shortcode t t)
  '(safe-local-variable-values
    (quote
-    ((eval progn
+    ((flycheck-gcc-include-path . "/usr/include/python3.4")
+     (flycheck-clang-include-path . "/usr/include/python3.4")
+     (flycheck-clang-include-path quote
+                                  ("/usr/include/python3.4" "/usr/include/python2.7"))
+     (flycheck-clang-include-path . "/usr/include/python")
+     (eval progn
            (require
             (quote projectile))
            (puthash
