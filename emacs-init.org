@@ -330,6 +330,11 @@ For now this is specific to Mac OS X.
       (define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
       (define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
       (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+
+      (evil-set-initial-state 'gud-minor-mode 'emacs)
+      (evil-set-initial-state 'gud-mode 'emacs)
+      (evil-set-initial-state 'gud 'emacs)
+
       ))
   (evil-mode 1)
 #+end_src
@@ -402,9 +407,9 @@ without relaunching.
 
   (defun synchronize-theme  ()
     (interactive)
-    (if (member (get-local-hour) (number-sequence 8 17))
+    (if (not (member (get-local-hour) (number-sequence 8 17)))
                 (setq now 'zenburn)
-              (setq now 'solarized-dark))
+              (setq now 'cblue))
     (if (not (eq now current-theme))
         (progn
           (load-theme now)
@@ -563,7 +568,7 @@ without relaunching.
                    (with-selected-window window
                      (split-window-below))))))))
 
-  (setq split-width-threshold 120)
+  (setq split-width-threshold 100)
   (setq window-min-width 80)
   (setq split-window-preferred-function 'split-window-sensibly-prefer-horizontal)
 #+end_src
@@ -1039,6 +1044,25 @@ without relaunching.
        (setq browse-url-browser-function 'browse-url-generic
              browse-url-generic-program "openurl.sh")))
 #+end_src
+*** RFCs
+#+begin_src emacs-lisp :tangle yes
+  ;; (req-package rfcview
+  ;;   :commands rfcview-mode
+  ;;   :mode (("/\\(rfc|std\\)[0-9]+\\.txt\\'" . rfcview-mode)
+  ;;          ("/draft-[-_a-zA-Z0-9].+.txt\\'" . rfcview-mode)))
+  (req-package irfc
+    :commands irfc-mode
+    :mode (("/\\(rfc|std\\)[0-9]+\\.txt\\'" . irfc-mode)
+           ("/draft-[-_a-zA-Z0-9].+.txt\\'" . irfc-mode))
+    :init
+    (progn
+      (setq irfc-directory (if (file-directory-p "~/Dropbox/RFCs")
+                                "~/Dropbox/RFCs"
+                              "~/RFCs")))
+    :config
+    (progn
+      (make-directory irfc-directory t)))
+#+end_src
 *** Acme Extension
 #+begin_src emacs-lisp :tangle yes
   (defun is-workspace-root (split-path)
@@ -1281,7 +1305,8 @@ without relaunching.
                   line-end)
          (info line-start
                (file-name) ":" line ":" (optional column ":") " "
-               (message "N"              ; pep8-naming in Flake8 >= 2.0
+               (message (or "N"              ; pep8-naming in Flake8 >= 2.0
+                            "R")             ; re-factor from python.
                         (one-or-more digit) (zero-or-more not-newline))
                line-end)
          )
@@ -1537,6 +1562,12 @@ without relaunching.
         (define-key python-mode-map (kbd "C-c tpa") 'pytest-pdb-all)
         (define-key python-mode-map (kbd "C-c tpm") 'pytest-pdb-module)
         (define-key python-mode-map (kbd "C-c tpo") 'pytest-pdb-one)
+        (define-key python-mode-map (kbd "C-c Ta") 'nosetests-all)
+        (define-key python-mode-map (kbd "C-c Tm") 'nosetests-module)
+        (define-key python-mode-map (kbd "C-c To") 'nosetests-one)
+        (define-key python-mode-map (kbd "C-c Tpa") 'nosetests-pdb-all)
+        (define-key python-mode-map (kbd "C-c Tpm") 'nosetests-pdb-module)
+        (define-key python-mode-map (kbd "C-c Tpo") 'nosetests-pdb-one)
 
         (message "Enabling flyspell")
         (flyspell-prog-mode)
@@ -1769,7 +1800,7 @@ without relaunching.
                "* NOTE %?\n%T\nannotation:%a\nx:%x\n")
 
               ("s" "Status" entry (file+datetree (concat org-directory "/status.org"))
-               "* TODO %?\n%U\nclipboard:%x\n" :clock-in t :clock-keep t)
+               "* NOTE %?\n%T\n")
 
               ("i" "IETF related")
               ("im" "IETF Todo w/ Mail" entry (file+headline (concat org-directory "/notes.org") "IETF")
@@ -1787,7 +1818,7 @@ without relaunching.
               ("Tl" "Terastram Link Note" entry (file+headline (concat org-directory "/notes.org") "Terastream")
                "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
               ("Tt" "Terastream Todo" entry (file+headline (concat org-directory "/notes.org") "Terastream")
-               "* TODO %?\n%T\nannotation:%a\n")
+               "* TODO %?\n%T\n")
               )
             )
       )
@@ -2173,6 +2204,7 @@ without relaunching.
   (global-set-key (kbd "M-Q") 'fill-paragraph)
 
   (define-key global-map (kbd "M-W") 'kill-region-to-ssh)
+  (define-key global-map (kbd "M-Y") 'yank-from-ssh)
 
   (define-key global-map (kbd "C-M-h") 'help-command)
 

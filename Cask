@@ -92,4 +92,3 @@
 (depends-on "switch-window")
 (depends-on "use-package")
 (depends-on "yasnippet")
-(depends-on "zenburn-theme")
