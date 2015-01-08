@@ -461,7 +461,7 @@ without relaunching.
     "Custom text mode hook"
     (turn-on-auto-fill)
     (turn-on-flyspell)
-    (variable-pitch-mode 1)
+    ;; (variable-pitch-mode 1)
     )
   (add-hook 'text-mode-hook 'my-text-mode-hook)
   (add-hook 'rst-mode-hook (lambda ()

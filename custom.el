@@ -49,7 +49,12 @@
  '(org2blog/wp-use-sourcecode-shortcode t t)
  '(safe-local-variable-values
    (quote
-    ((flycheck-gcc-include-path . "/usr/include/python3.4")
+    ((eval when
+           (require
+            (quote rainbow-mode)
+            nil t)
+           (rainbow-mode 1))
+     (flycheck-gcc-include-path . "/usr/include/python3.4")
      (flycheck-clang-include-path . "/usr/include/python3.4")
      (flycheck-clang-include-path quote
                                   ("/usr/include/python3.4" "/usr/include/python2.7"))
@@ -76,4 +81,5 @@
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 150 :width normal :foundry "nil" :family "Menlo"))))
  '(fixed-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 150 :width normal :foundry "nil" :family "Menlo"))))
  '(flycheck-error ((t (:inherit error :inverse-video t))))
- '(flycheck-warning ((t (:inherit warning :inverse-video t :weight bold)))))
+ '(flycheck-warning ((t (:inherit warning :inverse-video t :weight bold))))
+ '(variable-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 150 :width normal :foundry "nil" :family "DejaVu Sans")))))
