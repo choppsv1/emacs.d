@@ -408,8 +408,8 @@ without relaunching.
   (defun synchronize-theme  ()
     (interactive)
     (if (not (member (get-local-hour) (number-sequence 8 17)))
-                (setq now 'zenburn)
-              (setq now 'cblue))
+                (setq now 'solarized-dark)
+              (setq now 'zenburn))
     (if (not (eq now current-theme))
         (progn
           (load-theme now)
@@ -1888,6 +1888,38 @@ without relaunching.
 #+end_src
 
 *** Completion
+**** Helm
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (req-package helm
+    :require helm-config
+    :init
+    (progn
+      (setq helm-c-locate-command
+            (case system-type
+              ('gnu/linux "locate -i -r %s")
+              ('berkeley-unix "locate -i %s")
+              ('windows-nt "es %s")
+              ('darwin "mdfind -name %s %s")
+              (t "locate %s"))
+            )
+      (helm-mode 1)
+      (define-key global-map [remap find-file] 'helm-find-files)
+      (define-key global-map [remap occur] 'helm-occur)
+      (define-key global-map [remap list-buffers] 'helm-buffers-list)
+      (define-key global-map [remap switch-to-buffer] 'helm-buffers-list)
+      (define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
+      (global-set-key (kbd "M-x") 'helm-M-x)
+      (unless (boundp 'completion-in-region-function)
+        (define-key lisp-interaction-mode-map [remap completion-at-point] 'helm-lisp-completion-at-point)
+        (define-key emacs-lisp-mode-map       [remap completion-at-point] 'helm-lisp-completion-at-point))
+      (add-hook 'kill-emacs-hook #'(lambda () (and (file-exists-p "/tmp/helm-cfg.el") (delete-file "/tmp/helm-cfg.el"))))
+      (helm-autoresize-mode 1)
+      (setq helm-split-window-in-side-p t)
+      ;;( setq helm-split-window-default-side)
+      (setq helm-autoresize-max-height 40)
+      ))
+#+END_SRC
+
 **** Auto Complete
 #+begin_src emacs-lisp :tangle yes
   (if (boundp 'viper-harness-minor-mode)
@@ -1926,7 +1958,7 @@ without relaunching.
 ;; File and buffer completion
 ;;----------------------------+
 
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   (req-package ido-ubiquitous
     :init
     (progn
@@ -2230,7 +2262,7 @@ without relaunching.
 
   (global-set-key (kbd "C-h C-m") 'discover-my-major)
 
-  (global-set-key (kbd "C-c C-g") 'magit-status)
+  (global-set-key (kbd "C-c g") 'magit-status)
 
   ;; Have to remove undo-tree mappings for discover to work
   ;; XXX fix (global-discover-mode 1)
