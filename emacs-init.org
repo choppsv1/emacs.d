@@ -1894,7 +1894,7 @@ without relaunching.
 **** Helm
 #+BEGIN_SRC emacs-lisp :tangle yes
   (req-package helm
-    :require helm-config
+    :require helm-config helm-projectile ;; helm-adaptative-mode
     :init
     (progn
       (setq helm-c-locate-command
@@ -1912,6 +1912,9 @@ without relaunching.
       (define-key global-map [remap switch-to-buffer] 'helm-buffers-list)
       (define-key global-map [remap dabbrev-expand] 'helm-dabbrev)
       (global-set-key (kbd "M-x") 'helm-M-x)
+      (global-set-key (kbd "M-y") #'helm-show-kill-ring)
+      (global-set-key (kbd "C-x c!") #'helm-calcul-expression)
+      (global-set-key (kbd "C-x c:") #'helm-eval-expression-with-eldoc)
       (unless (boundp 'completion-in-region-function)
         (define-key lisp-interaction-mode-map [remap completion-at-point] 'helm-lisp-completion-at-point)
         (define-key emacs-lisp-mode-map       [remap completion-at-point] 'helm-lisp-completion-at-point))
@@ -1920,6 +1923,10 @@ without relaunching.
       (setq helm-split-window-in-side-p t)
       ;;( setq helm-split-window-default-side)
       (setq helm-autoresize-max-height 40)
+      ;; (setq helm-projectile-sources-list (cons 'helm-source-projectile-files-list
+      ;;                                         (remove 'helm-source-projectile-files-list
+      ;;                                                  helm-projectile-sources-list)))
+      (helm-projectile-on)
       ))
 #+END_SRC
 
