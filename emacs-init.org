@@ -215,6 +215,7 @@ For now this is specific to Mac OS X.
 
   (setq my-el-get-packages
         (append '(pylookup
+                  pymacs
                   ;; XXx xml-rpc-el
                   )))
 
@@ -1894,7 +1895,7 @@ without relaunching.
 **** Helm
 #+BEGIN_SRC emacs-lisp :tangle yes
   (req-package helm
-    :require helm-config helm-projectile ;; helm-adaptative-mode
+    :require (helm-config helm-projectile projectile)
     :init
     (progn
       (setq helm-c-locate-command
