@@ -577,8 +577,8 @@ without relaunching.
                         (local-set-key "\M-n" 'comint-next-input))))
 
 
-  (require 'shell-switcher)
-  (shell-switcher-mode t)
+  ;; (require 'shell-switcher)
+  ;; (shell-switcher-mode t)
 #+end_src
 *** Mac
 #+begin_src emacs-lisp :tangle yes
@@ -1312,12 +1312,16 @@ without relaunching.
       ;; (modify-syntax-entry ?_ "w" objc-mode-syntax-table)
       (add-hook 'c-mode-hook
                 (function (lambda ()
-                            (c-set-style "Procket")
+                            (if (string= (shell-command-to-string "uname -s") "NetBSD\n")
+                                (progn
+                                  (c-set-style "KNF")
+                                  (setq indent-tabs-mode t))
+                              (c-set-style "Procket")
+                              (setq indent-tabs-mode nil))
                             (c-toggle-auto-hungry-state 1)
                             (setq fill-column 80)
                             (turn-on-auto-fill)
                             (flyspell-prog-mode)
-                            (setq indent-tabs-mode nil)
                             (projectile-mode t)
                             )))
 

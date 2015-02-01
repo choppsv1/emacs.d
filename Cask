@@ -83,7 +83,6 @@
 (depends-on "req-package")
 (depends-on "rich-minority")
 (depends-on "s")
-(depends-on "shell-switcher")
 (depends-on "shut-up")
 (depends-on "smart-mode-line")
 (depends-on "smex")
