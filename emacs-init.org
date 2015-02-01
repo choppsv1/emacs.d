@@ -449,11 +449,12 @@ without relaunching.
 *** Encryption
 #+begin_src emacs-lisp :tangle yes
   (req-package epa-file
-    :commands elpy-enable
     :init
     (progn
-      ;;(setq epg-gpg-program (executable-find "gpg"))
-            ))
+      (setq epg-debug t)
+      (setq epg-gpg-program (executable-find "gpg"))
+      (epa-file-enable)
+      ))
 #+end_src
 *** Text Mode
 #+begin_src emacs-lisp :tangle yes
@@ -1727,6 +1728,7 @@ without relaunching.
     :bind ("C-c c" . org-capture)
     :init
     (progn
+      (org-crypt-use-before-save-magic)
       (defun my-org-mode-hook ()
         (message "Org-mode-hook")
         (org-set-local 'yas/trigger-key [tab])
@@ -1734,11 +1736,13 @@ without relaunching.
         (turn-on-flyspell)
         (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
         (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
-        (define-key org-mode-map (kbd "C-c e e") 'org-encrypt-entry)
-        (define-key org-mode-map (kbd "C-c e d") 'org-decrypt-entry)
+        (define-key org-mode-map (kbd "C-c e e") 'org-encrypt-entries)
+        (define-key org-mode-map (kbd "C-c e E") 'org-encrypt-entry)
+        (define-key org-mode-map (kbd "C-c e d") 'org-decrypt-entries)
+        (define-key org-mode-map (kbd "C-c e D") 'org-decrypt-entry)
         (setq org-tags-exclude-from-inheritance '("crypt"))
         (setq org-crypt-disable-auto-save t)
-        (setq org-crypt-key "Christian Hopps <chopps@gmail.com>")
+        (setq org-crypt-key "D7B83025")
         ;; (and (buffer-file-name)
         ;;      (string-match "\\.o2b$" (buffer-file-name))
         ;;      (org2blog/wp-mode)))
@@ -1760,7 +1764,6 @@ without relaunching.
        'org-babel-load-languages
        '((python . t) (dot . t))
        )
-      (org-crypt-use-before-save-magic)
 
       (eval-after-load "org"
         '(mapc
