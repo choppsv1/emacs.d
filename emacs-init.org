@@ -2035,6 +2035,7 @@ without relaunching.
                 " "
                 (trim-string (format-time-string " %e" (current-time)))
                 (format-time-string " %Y" (current-time))))
+      (setq work-ai-prefix "/\\(home\\|Users\\|users\\)/\\(w\\|Work\\)/")
 
       (eval-after-load 'autoinsert
         '(progn
@@ -2044,7 +2045,7 @@ without relaunching.
            ;;-----------+
 
            (define-auto-insert
-             '("\\.org" . "Home Org mode skeleton")
+             '("\\.org\\'" . "Home Org mode skeleton")
              '("Short description: "
                "#+TITLE: " _ \n
                > "#+AUTHOR: Christian E. Hopps" \n
@@ -2053,7 +2054,7 @@ without relaunching.
                > "" \n
                ))
            (define-auto-insert
-             '("\\.o2b" . "Home Blog Org mode skeleton")
+             '("\\.o2b\\'" . "Home Blog Org mode skeleton")
              '("Short description: "
                "#+TITLE: " _ \n
                > "#+BLOG: hoppsjots.org" \n
@@ -2065,7 +2066,7 @@ without relaunching.
                > "" \n
                ))
            (define-auto-insert
-             '("\\.el" . "Home Lisp comment skeleton")
+             '("\\.el\\'" . "Home Lisp comment skeleton")
              '("Short description: "
                ";;" \n
                > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
@@ -2078,8 +2079,9 @@ without relaunching.
                > ";;" \n
                > _ ))
            (define-auto-insert
-             '("\\.py" . "# Home python comment skeleton")
+             '("\\.py\\'" . "# Home python comment skeleton")
              '("Short description: "
+               "# -*- coding: utf-8 -*-"
                "#" \n
                > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
                > "#" \n
@@ -2088,6 +2090,7 @@ without relaunching.
                > "#" \n
                > "# REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
                > "# CONSENT OF THE AUTHOR." \n
+               > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
                > "" \n
                > _ \n
                > "" \n
@@ -2101,7 +2104,7 @@ without relaunching.
                ;; > "sys.path[0:0] = [ os.path.dirname(sys.path[0]) + '/modules'," \n
                ;; > "                  '/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/PyObjC' ]" \n
            (define-auto-insert
-             '("\\.\\(pl\\|sh\\|tcl\\)" . "# Home comment skeleton")
+             '("\\.\\(pl\\|sh\\|tcl\\)\\'" . "# Home comment skeleton")
              '("Short description: "
                "#" \n
                > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
@@ -2114,7 +2117,7 @@ without relaunching.
                > "#" \n
                > _ ))
            (define-auto-insert
-             '("\\.rst" . "Home ReST skeleton")
+             '("\\.rst\\'" . "Home ReST skeleton")
              '("Short description: "
                ".." \n
                > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
@@ -2131,13 +2134,13 @@ without relaunching.
              '("Short description: "
                "/*" \n
                > " * " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > " *" \n
-               > " * Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-               > " * All rights reserved." \n
-               > " *" \n
-               > " * REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
-               > " * CONSENT OF THE AUTHOR." \n
-               > " */" \n
+               > "*" \n
+               > "* Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+               > "* All rights reserved." \n
+               > "*" \n
+               > "* REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+               > "* CONSENT OF THE AUTHOR." \n
+               > "*/" \n
                > _ ))
 
            ;;-----------+
@@ -2145,7 +2148,7 @@ without relaunching.
            ;;-----------+
 
            (define-auto-insert
-             '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.org" . "Work org mode skeleton")
+             (cons (concat work-ai-prefix ".*\\.org\\'") "Work org mode skeleton")
              '("Short description: "
                "#+TITLE: " _ \n
                > "#+AUTHOR: Christian E. Hopps" \n
@@ -2154,7 +2157,7 @@ without relaunching.
                > "" \n
                ))
            (define-auto-insert
-             '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.el" . "Work Lisp comment skeleton")
+             (cons (concat work-ai-prefix ".*\\.el\\'") "Work Lisp comment skeleton")
              '("Short description: "
                ";;" \n
                > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
@@ -2165,8 +2168,9 @@ without relaunching.
                > _ )
              )
            (define-auto-insert
-             '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.py" . "# Work python comment skeleton")
+             (cons (concat work-ai-prefix ".*\\.py\\'") "# Work python comment skeleton")
              '("Short description: "
+               "# -*- coding: utf-8 -*-"
                "#" \n
                > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
                > "#" \n
@@ -2185,7 +2189,7 @@ without relaunching.
                > "__docformat__ = \"restructuredtext en\"" \n
                > _ ))
            (define-auto-insert
-             '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.\\(pl\\|sh\\|tcl\\)" . "# Work comment skeleton")
+             (cons (concat work-ai-prefix ".*\\.\\(pl\\|sh\\|tcl\\)\\'") "# Work comment skeleton")
              '("Short description: "
                "#" \n
                > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
@@ -2195,7 +2199,7 @@ without relaunching.
                > "#" \n
                > _ ))
            (define-auto-insert
-             '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.rst" . "Work ReST skeleton")
+             (cons (concat work-ai-prefix ".*\\.rst\\'") "Work ReST skeleton")
              '("Short description: "
                ".." \n
                > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
@@ -2205,18 +2209,16 @@ without relaunching.
                > ".." \n
                > _ ))
            (define-auto-insert
-             '("\\(/users/chopps/\\|/nobackup/\\|//ws/chopps-\\|/xrut\\).*\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\|m\\)\\'" . "Work C-style skeleton")
+             (cons (concat work-ai-prefix ".*\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\|m\\)\\'") "Work C-style skeleton")
              '("Short description: "
                "/*" \n
                > " * " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@cisco.com>" \n
-               > " *" \n
-               > " * Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
-               > " * All rights reserved." \n
-               > " */" \n
+               > "*" \n
+               > "* Copyright (c) " (substring (current-time-string) -4) " by cisco Systems, Inc." \n
+               > "* All rights reserved." \n
+               > "*/" \n
                > _ ))
-
              ))
-
       (auto-insert-mode)
     #+end_src
 *** Keys
