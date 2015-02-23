@@ -1278,6 +1278,12 @@ without relaunching.
   (req-package projectile
     :interpreter ("projectile" . projectile-mode))
 #+end_src
+**** Yang
+IETF Yang mode.
+#+begin_src emacs-lisp :tangle yes
+  (req-package yang-mode
+   :mode ("\\.yang$" . yang-mode))
+#+end_src
 **** Flycheck
 #+BEGIN_SRC emacs-lisp :tangle yes
   (req-package flycheck
