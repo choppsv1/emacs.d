@@ -408,16 +408,16 @@ without relaunching.
 
   (defun synchronize-theme  ()
     (interactive)
-    (if (not (member (get-local-hour) (number-sequence 8 17)))
+    (if (not (member (get-local-hour) (number-sequence 7 17)))
                 (setq now 'solarized-dark)
-              (setq now 'zenburn))
+              (setq now 'solarized-dark))
     (if (not (eq now current-theme))
         (progn
           (load-theme now)
           (setq current-theme now))))
 
-  (synchronize-theme)
-  (run-with-timer 0 600 'synchronize-theme)
+  ;; (synchronize-theme)
+  ;; (run-with-timer 0 600 'synchronize-theme)
 
   ;; (if (display-graphic-p)
   ;;     (load-theme 'zenburn t))
