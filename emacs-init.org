@@ -263,6 +263,7 @@ For now this is specific to Mac OS X.
   (req-package-force evil
     ;;:require (evil-args evil-nerd-commenter evil-terminal-cursor-changer)
     ;;:require (evil-args evil-nerd-commenter)
+    :require (evil-matchit)
     :init
     (progn
       (setq evil-search-wrap nil)
@@ -336,8 +337,11 @@ For now this is specific to Mac OS X.
       (evil-set-initial-state 'gud-mode 'emacs)
       (evil-set-initial-state 'gud 'emacs)
 
+
       ))
   (evil-mode 1)
+  (global-evil-matchit-mode)
+
 #+end_src
 
 ** Standard Initialization
@@ -416,11 +420,12 @@ without relaunching.
           (load-theme now)
           (setq current-theme now))))
 
+
   ;; (synchronize-theme)
   ;; (run-with-timer 0 600 'synchronize-theme)
 
-  ;; (if (display-graphic-p)
-  ;;     (load-theme 'zenburn t))
+  (if (display-graphic-p)
+      (load-theme 'zenburn t))
 
   ;; (require 'centered-window-mode)
   ;; (centered-window-mode t)
