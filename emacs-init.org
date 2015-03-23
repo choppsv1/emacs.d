@@ -507,7 +507,6 @@ without relaunching.
 #+END_SRC
 
 
-
 *** VCS
 #+begin_src emacs-lisp :tangle yes
   (req-package magit)
@@ -1909,6 +1908,26 @@ IETF Yang mode.
   (req-package org-mac-link)
   (req-package org-magit)
 
+  ;; (require s)
+  (defvar ietf-doc-directory "~/Dropbox/IETF/doc-cache/")
+  (defvar ietf-draft-url-directory "http://www.ietf.org/id/")
+  (defvar ietf-rfc-url-directory "http://www.ietf.org/rfc/")
+  (defun ietf-doc-fetch-to-cache ()
+    (interactive)
+    (let* ((found (thing-at-point 'filename))
+           (pathname (concat ietf-doc-directory found))
+           (dirname (file-name-directory pathname))
+           (filename (concat (file-name-sans-extension (file-name-base pathname))
+                             ".txt"))
+           (url (concat ietf-draft-url-directory filename)))
+      (setq pathname (concat dirname filename))
+      (if (file-exists-p pathname)
+          (message "Already have %s" pathname)
+        (make-directory dirname t)
+        (url-copy-file url pathname t)
+        (message "Downloaded %s to %s" url pathname)
+      )))
+
   (req-package-force org
     :require (org-plus-contrib org-crypt org-mac-link org-magit) ;; ox-taskjuggler
     :interpreter ("org" . org-mode)
@@ -1946,7 +1965,7 @@ IETF Yang mode.
       (setq org-default-notes-file (concat org-directory "/notes.org"))
       (setq org-agenda-start-on-weekday 5)
       ;; (setq org-agenda-start-day "-8d")
-      )
+
     :config
     (progn
       (message "org-mode after load")
