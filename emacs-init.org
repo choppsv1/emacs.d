@@ -411,7 +411,6 @@ without relaunching.
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
 
-
   (setq current-theme nil)
 
   ;; (req-package-force solarized-theme)
@@ -439,6 +438,15 @@ without relaunching.
 
   (if (display-graphic-p)
       (load-theme 'zenburn t))
+
+  ;;(defun new-frame-pick-theme (frame)
+  ;;  (select-frame frame)
+  ;;  (if (window-system frame)
+  ;;      (load-theme current-tty-theme t)
+  ;;    (load-theme current-graphic-theme t)))
+
+  ;;(if (daemonp)
+  ;;    (add-hook 'after-make-frame-functions 'new-frame-pick-theme))
 
   ;; (require 'centered-window-mode)
   ;; (centered-window-mode t)
@@ -1949,11 +1957,11 @@ IETF Yang mode.
         (define-key org-mode-map (kbd "C-c e D") 'org-decrypt-entry)
         (setq org-tags-exclude-from-inheritance '("crypt"))
         (setq org-crypt-disable-auto-save t)
-        (setq org-crypt-key "D7B83025")
+        (setq org-crypt-key "D7B83025"))
         ;; (and (buffer-file-name)
         ;;      (string-match "\\.o2b$" (buffer-file-name))
         ;;      (org2blog/wp-mode)))
-        )
+        
       (define-key global-map (kbd "C-c a") 'org-agenda)
       (define-key global-map (kbd "C-c c") 'org-capture)
       (define-key global-map (kbd "C-c l") 'org-store-link)
@@ -1965,6 +1973,7 @@ IETF Yang mode.
       (setq org-default-notes-file (concat org-directory "/notes.org"))
       (setq org-agenda-start-on-weekday 5)
       ;; (setq org-agenda-start-day "-8d")
+      )
 
     :config
     (progn
