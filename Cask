@@ -27,6 +27,7 @@
 (depends-on "erlang")
 (depends-on "evil")
 (depends-on "evil-args")
+(depends-on "evil-matchit")
 (depends-on "evil-terminal-cursor-changer")
 (depends-on "exec-path-from-shell")
 (depends-on "f")
