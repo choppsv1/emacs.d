@@ -102,6 +102,7 @@ calls:
 #+begin_src emacs-lisp
   (add-to-list 'load-path (concat user-emacs-directory "local-lisp"))
   (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
+  (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-easter-theme"))
   (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
   ;; (if (file-exists-p "~/p/lisp/org-cdets") (add-to-list 'load-path "~/p/lisp/org-cdets"))
 
@@ -358,7 +359,7 @@ without relaunching.
 
 #+begin_src emacs-lisp :tangle yes
   (use-package server
-    :init
+    :config
     (unless (server-running-p)
       (server-start)))
 #+end_src
@@ -410,6 +411,7 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-easter-theme"))
 
   (setq current-theme nil)
 
@@ -436,17 +438,19 @@ without relaunching.
   ;; (synchronize-theme)
   ;; (run-with-timer 0 600 'synchronize-theme)
 
-  (if (display-graphic-p)
-      (load-theme 'zenburn t))
 
-  ;;(defun new-frame-pick-theme (frame)
-  ;;  (select-frame frame)
-  ;;  (if (window-system frame)
-  ;;      (load-theme current-tty-theme t)
-  ;;    (load-theme current-graphic-theme t)))
+  (setq current-graphic-theme 'easter)
+  (setq current-tty-theme 'easter)
 
-  ;;(if (daemonp)
-  ;;    (add-hook 'after-make-frame-functions 'new-frame-pick-theme))
+  (defun new-frame-pick-theme (frame)
+    (select-frame frame)
+    (if (window-system frame)
+        (load-theme current-graphic-theme t)
+      (load-theme current-tty-theme t)))
+
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
+    (load-theme current-tty-theme))
 
   ;; (require 'centered-window-mode)
   ;; (centered-window-mode t)
@@ -501,19 +505,27 @@ without relaunching.
        user-full-name "Christian Hopps"
 
        smtpmail-default-smtp-server "smtp.chopps.org"
+       smtpmail-local-domain "chopps.org"
+       smtpmail-sendto-domain "chopps.org"
+       smtpmail-debug-info t
        smtpmail-starttls-credentials '(("smtp.chopps.org" 9005 nil nil))
-       smtpmail-auth-credentials '(("smtp.chopps.org" 9005 "chopps@chopps.org" nil))
+       smtpmail-auth-credentials "~/.authinfo.gpg" ;; '(("smtp.chopps.org" 9005 "chopps@chopps.org" nil))
        smtpmail-smtp-service 9005
-       )
-      (setq
+
+       mail-sources nil
+       gnus-fetch-old-headers t
+       gnus-message-archive-group "Sent Messages"
        gnus-select-method '(nnmaildir "Home"
                                       (directory "~/Maildir/chopps.org/")
                                       (directory-files nnheader-directory-files-safe)
-                                      (get-new-mail nil)))))
+                                      (get-new-mail nil))))
+    :config
+    (progn
+      (gnus-demon-add-handler 'gnus-demon-scan-news 2 t)
+      (setq gnus-message-archive-method gnus-select-method)))
 
 
 #+END_SRC
-
 
 *** VCS
 #+begin_src emacs-lisp :tangle yes
@@ -685,6 +697,11 @@ without relaunching.
   (setq split-width-threshold 100)
   (setq window-min-width 80)
   (setq split-window-preferred-function 'split-window-sensibly-prefer-horizontal)
+
+  (req-package transpose-frame
+    :bind ("C-x 4 F" . flop-frame))
+  ;; (define-key global-map (kbd "C-x 4 F") 'flop-frame)
+
 #+end_src
 
 *** Shell Mode
@@ -1778,7 +1795,115 @@ IETF Yang mode.
         (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
         (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
         (add-to-list 'compilation-error-regexp-alist '("\\(.*\\):[CEFRW][0-9]+: ?\\([0-9]+\\),[0-9]+: .*" 1 2))
-        ))
+        )
+      (setq python-font-lock-keywords
+            ;; Keywords
+            `(,(rx symbol-start
+                   (or
+                    "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
+                    "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
+                    "in" "raise" "continue" "finally" "is" "return" "def" "for" "lambda"
+                    "try"
+                    ;; Python 2:
+                    "print" "exec"
+                    ;; Python 3:
+                    ;; False, None, and True are listed as keywords on the Python 3
+                    ;; documentation, but since they also qualify as constants they are
+                    ;; fontified like that in order to keep font-lock consistent between
+                    ;; Python versions.
+                    "nonlocal"
+                    ;; Extra:
+                    ;; XXX chopps "self")
+                    )
+                   symbol-end)
+              (,(rx symbol-start
+                    (or "self")
+                    symbol-end) . font-lock-constant-face)
+              ;; functions
+              (,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
+               (1 font-lock-function-name-face))
+              ;; classes
+              (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
+               (1 font-lock-type-face))
+              ;; Constants
+              (,(rx symbol-start
+                    (or
+                     "Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
+                     ;; copyright, license, credits, quit and exit are added by the site
+                     ;; module and they are not intended to be used in programs
+                     "copyright" "credits" "exit" "license" "quit")
+                    symbol-end) . font-lock-constant-face)
+              ;; Decorators.
+              (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
+                                                      (0+ "." (1+ (or word ?_)))))
+               (1 font-lock-type-face))
+              ;; Builtin Exceptions
+              (,(rx symbol-start
+                    (or
+                     "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
+                     "DeprecationWarning" "EOFError" "EnvironmentError" "Exception"
+                     "FloatingPointError" "FutureWarning" "GeneratorExit" "IOError"
+                     "ImportError" "ImportWarning" "IndexError" "KeyError"
+                     "KeyboardInterrupt" "LookupError" "MemoryError" "NameError"
+                     "NotImplementedError" "OSError" "OverflowError"
+                     "PendingDeprecationWarning" "ReferenceError" "RuntimeError"
+                     "RuntimeWarning" "StopIteration" "SyntaxError" "SyntaxWarning"
+                     "SystemError" "SystemExit" "TypeError" "UnboundLocalError"
+                     "UnicodeDecodeError" "UnicodeEncodeError" "UnicodeError"
+                     "UnicodeTranslateError" "UnicodeWarning" "UserWarning" "VMSError"
+                     "ValueError" "Warning" "WindowsError" "ZeroDivisionError"
+                     ;; Python 2:
+                     "StandardError"
+                     ;; Python 3:
+                     "BufferError" "BytesWarning" "IndentationError" "ResourceWarning"
+                     "TabError")
+                    symbol-end) . font-lock-type-face)
+              ;; Builtins
+              (,(rx symbol-start
+                    (or
+                     "abs" "all" "any" "bin" "bool" "callable" "chr" "classmethod"
+                     "compile" "complex" "delattr" "dict" "dir" "divmod" "enumerate"
+                     "eval" "filter" "float" "format" "frozenset" "getattr" "globals"
+                     "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
+                     "issubclass" "iter" "len" "list" "locals" "map" "max" "memoryview"
+                     "min" "next" "object" "oct" "open" "ord" "pow" "print" "property"
+                     "range" "repr" "reversed" "round" "set" "setattr" "slice" "sorted"
+                     "staticmethod" "str" "sum" "super" "tuple" "type" "vars" "zip"
+                     "__import__"
+                     ;; Python 2:
+                     "basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
+                     "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
+                     "intern"
+                     ;; Python 3:
+                     "ascii" "bytearray" "bytes" "exec"
+                     ;; Extra:
+                     "__all__" "__doc__" "__name__" "__package__")
+                    symbol-end) . font-lock-builtin-face)
+              ;; assignments
+              ;; support for a = b = c = 5
+              (,(lambda (limit)
+                  (let ((re (python-rx (group (+ (any word ?. ?_)))
+                                       (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
+                                       assignment-operator))
+                        (res nil))
+                    (while (and (setq res (re-search-forward re limit t))
+                                (or (python-syntax-context 'paren)
+                                    (equal (char-after (point-marker)) ?=))))
+                    res))
+               (1 font-lock-variable-name-face nil nil))
+              ;; support for a, b, c = (1, 2, 3)
+              (,(lambda (limit)
+                  (let ((re (python-rx (group (+ (any word ?. ?_))) (* space)
+                                       (* ?, (* space) (+ (any word ?. ?_)) (* space))
+                                       ?, (* space) (+ (any word ?. ?_)) (* space)
+                                       assignment-operator))
+                        (res nil))
+                    (while (and (setq res (re-search-forward re limit t))
+                                (goto-char (match-end 1))
+                                (python-syntax-context 'paren)))
+                    res))
+               (1 font-lock-variable-name-face nil nil))))
+      )
     :config
     (progn
       (message "Configuring python mode settings")
