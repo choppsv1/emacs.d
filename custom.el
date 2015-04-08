@@ -85,4 +85,5 @@
  '(irfc-head-name-face ((t (:inherit org-level-1))))
  '(irfc-head-number-face ((t (:inherit org-level-1))))
  '(irfc-rfc-link-face ((t (:inherit org-link))))
+ '(org-hide ((t (:foreground "grey10"))))
  '(variable-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 150 :width normal :foundry "nil" :family "DejaVu Sans")))))
