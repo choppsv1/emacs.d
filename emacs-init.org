@@ -249,7 +249,7 @@ For now this is specific to Mac OS X.
 
   (setq my-el-get-packages
         (append '(pylookup
-                  pymacs
+                  ;; pymacs
                   ;; XXx xml-rpc-el
                   )))
 
@@ -2121,64 +2121,6 @@ IETF Yang mode.
     (progn
       (if debug-init-msg
           (message "Mark pre python init"))
-      (defun my-python-mode-hook ()
-        (if debug-init-msg
-            (message "Python mode hook"))
-        (all-prog-mode-hook)
-        ;; Fill values
-        (if debug-init-msg
-            (message "Mark pre req pyfixers"))
-        (require 'flymake-pyfixers)
-        (if debug-init-msg
-            (message "Mark post req pyfixers"))
-        (setq comment-column 60)
-        (setq fill-column 120)
-        (turn-on-auto-fill)
-        (highlight-indentation-mode -1)
-        (define-key python-mode-map (kbd "C-c M-\\") 'pyfixer:ignore-current-line)
-        (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
-        (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
-        (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
-        (define-key python-mode-map (kbd "C-c h") 'pylookup-lookup)
-        (define-key python-mode-map (kbd "C-c ta") 'pytest-all)
-        (define-key python-mode-map (kbd "C-c tm") 'pytest-module)
-        (define-key python-mode-map (kbd "C-c to") 'pytest-one)
-        (define-key python-mode-map (kbd "C-c td") 'pytest-directory)
-        (define-key python-mode-map (kbd "C-c tpa") 'pytest-pdb-all)
-        (define-key python-mode-map (kbd "C-c tpm") 'pytest-pdb-module)
-        (define-key python-mode-map (kbd "C-c tpo") 'pytest-pdb-one)
-        (define-key python-mode-map (kbd "C-c Ta") 'nosetests-all)
-        (define-key python-mode-map (kbd "C-c Tm") 'nosetests-module)
-        (define-key python-mode-map (kbd "C-c To") 'nosetests-one)
-        (define-key python-mode-map (kbd "C-c Tpa") 'nosetests-pdb-all)
-        (define-key python-mode-map (kbd "C-c Tpm") 'nosetests-pdb-module)
-        (define-key python-mode-map (kbd "C-c Tpo") 'nosetests-pdb-one)
-
-        (if debug-init-msg
-          (message "Enabling python flyspell"))
-        (flyspell-prog-mode)
-
-        (if debug-init-msg
-            (message "Enabling projectile"))
-        (projectile-mode t)
-
-        (flycheck-mode t)
-        (flycheck-select-checker 'python-pycheckers)
-        (flycheck-set-checker-executable 'python-flake8 "~/bin/pycheckers.sh")
-        (if debug-init-msg
-            (message "Enabling rebox"))
-        (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
-        (rebox-mode 1)
-
-        (if debug-init-msg
-            (message "Enabling elpy"))
-        (elpy-enable)
-        (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
-        (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
-        (add-to-list 'compilation-error-regexp-alist '("\\(.*\\):[CEFRW][0-9]+: ?\\([0-9]+\\),[0-9]+: .*" 1 2))
-        (if debug-init-msg
-            (message "Python mode hook done"))
-        )
       (setq python-font-lock-keywords
             ;; Keywords
             `(,(rx symbol-start
@@ -2293,6 +2235,64 @@ IETF Yang mode.
     (progn
       (if debug-init-msg
           (message "Mark pre python config"))
+      (defun my-python-mode-hook ()
+        (if debug-init-msg
+            (message "Python mode hook"))
+        (all-prog-mode-hook)
+        ;; Fill values
+        (if debug-init-msg
+            (message "Mark pre req pyfixers"))
+        (require 'flymake-pyfixers)
+        (if debug-init-msg
+            (message "Mark post req pyfixers"))
+        (setq comment-column 60)
+        (setq fill-column 120)
+        (turn-on-auto-fill)
+        (highlight-indentation-mode -1)
+        (define-key python-mode-map (kbd "C-c M-\\") 'pyfixer:ignore-current-line)
+        (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
+        (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
+        (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
+        (define-key python-mode-map (kbd "C-c h") 'pylookup-lookup)
+        (define-key python-mode-map (kbd "C-c ta") 'pytest-all)
+        (define-key python-mode-map (kbd "C-c tm") 'pytest-module)
+        (define-key python-mode-map (kbd "C-c to") 'pytest-one)
+        (define-key python-mode-map (kbd "C-c td") 'pytest-directory)
+        (define-key python-mode-map (kbd "C-c tpa") 'pytest-pdb-all)
+        (define-key python-mode-map (kbd "C-c tpm") 'pytest-pdb-module)
+        (define-key python-mode-map (kbd "C-c tpo") 'pytest-pdb-one)
+        (define-key python-mode-map (kbd "C-c Ta") 'nosetests-all)
+        (define-key python-mode-map (kbd "C-c Tm") 'nosetests-module)
+        (define-key python-mode-map (kbd "C-c To") 'nosetests-one)
+        (define-key python-mode-map (kbd "C-c Tpa") 'nosetests-pdb-all)
+        (define-key python-mode-map (kbd "C-c Tpm") 'nosetests-pdb-module)
+        (define-key python-mode-map (kbd "C-c Tpo") 'nosetests-pdb-one)
+
+        (if debug-init-msg
+          (message "Enabling python flyspell"))
+        (flyspell-prog-mode)
+
+        (if debug-init-msg
+            (message "Enabling projectile"))
+        (projectile-mode t)
+
+        (flycheck-mode t)
+        (flycheck-select-checker 'python-pycheckers)
+        (flycheck-set-checker-executable 'python-flake8 "~/bin/pycheckers.sh")
+        (if debug-init-msg
+            (message "Enabling rebox"))
+        (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
+        (rebox-mode 1)
+
+        (if debug-init-msg
+            (message "Enabling elpy"))
+        (elpy-enable)
+        (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
+        (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
+        (add-to-list 'compilation-error-regexp-alist '("\\(.*\\):[CEFRW][0-9]+: ?\\([0-9]+\\),[0-9]+: .*" 1 2))
+        (if debug-init-msg
+            (message "Python mode hook done"))
+        )
 
       ;; Elpy config
       ;; (define-key elpy-mode-map (kbd "C-c C-n") 'next-error)
