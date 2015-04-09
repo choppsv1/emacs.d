@@ -18,6 +18,12 @@
 ;;   :type filename
 ;;   :group ietf-doc)
 
+(defun ietf-doc-starts-with (string prefix)
+  "Return t if STRING starts with prefix."
+  (let* ((l (length prefix)))
+    (string= (substring string 0 l) prefix)))
+
+
 (defvar ietf-doc-cache-directory "~/Dropbox/IETF/doc-cache/")
 
 (defvar ietf-doc-draft-url-directory "http://www.ietf.org/id/")
@@ -34,12 +40,11 @@
 (defun ietf-doc-fetch-to-cache (filename &optional reload)
   (let* ((pathname (concat ietf-doc-cache-directory filename))
          url)
-    (downcase filename)
     (if (and (file-exists-p pathname) (not reload))
         (message "Cached path %s" pathname)
       (setq filename (downcase filename))
       (make-directory ietf-doc-cache-directory t)
-      (if (string/starts-with filename "rfc")
+      (if (ietf-doc-starts-with filename "rfc")
           (setq url (concat ietf-doc-rfc-url-directory filename))
         (setq url (concat ietf-doc-draft-url-directory filename)))
       (message url)
