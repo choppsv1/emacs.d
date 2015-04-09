@@ -101,6 +101,7 @@ static char *gnus-pointer[] = {
  '(org2blog/wp-shortcode-langs-map (quote (("emacs-lisp" . "lisp") ("sh" . "bash"))))
  '(org2blog/wp-use-sourcecode-shortcode t t)
  '(red "#ffffff")
+ '(req-package-log-level (quote debug))
  '(safe-local-variable-values
    (quote
     ((evil-shift-width . 2)

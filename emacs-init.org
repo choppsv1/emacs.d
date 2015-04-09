@@ -29,6 +29,8 @@ packages are properly installed. Additionally we then require pallet so that our
   ;;--------------------------------------------
 
   ;; Main package that loads (and installs) everything
+  ;; (setq req-package-log-level 'trace)
+  ;; use req-package--log-open-... to view the log
   (require 'req-package)
 
   ;; Pallet must be first so other auto-installed dependencies update Cask file.
@@ -361,10 +363,17 @@ The emacs server allows for using =emacsclient= to access the running emacs
 without relaunching.
 
 #+begin_src emacs-lisp :tangle yes
-  (use-package server
+  (req-package-force server
     :config
-    (unless (server-running-p)
-      (server-start)))
+    (progn
+      (if debug-init-msg
+          (message "Mark pre server config"))
+      (unless (server-running-p)
+        (server-start))
+      (if debug-init-msg
+          (message "Mark post server config"))
+      )
+    )
 #+end_src
 
 *** Cleanup Minor Modes in Modeline
@@ -408,7 +417,7 @@ without relaunching.
 **** Rainbow Modes (highlight using colors)
 #+begin_src emacs-lisp :tangle yes
   (req-package rainbow-mode)
-  (use-package rainbow-delimiters)
+  (req-package-force rainbow-delimiters)
 #+end_src
 **** Themes
 #+begin_src emacs-lisp :tangle yes
@@ -475,9 +484,14 @@ without relaunching.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (req-package bbdb
     :init
-    (setq bbdb-file "~/.emacs.d/bbdb")
+    (progn 
+      (if debug-init-msg
+          (message "Mark pre bbdb init"))
+      (setq bbdb-file "~/.emacs.d/bbdb"))
     :config
     (progn
+      (if debug-init-msg
+          (message "Mark pre bbdb config"))
       (setq
        bbdb-offer-save 1                        ;; 1 means save-without-asking
 
@@ -512,6 +526,8 @@ without relaunching.
 
        '(( "From" . "no.?reply\\|DAEMON\\|daemon\\|facebookmail\\|twitter"))
        )
+      (if debug-init-msg
+          (message "Mark post bbdb config"))
       )
     )
 #+END_SRC
@@ -531,6 +547,8 @@ without relaunching.
     :require bbdbV3-wl
     :init
     (progn
+      (if debug-init-msg
+          (message "Mark pre wl init"))
       (setq
        elmo-maildir-folder-path  "~/Maildir/chopps.org"
        wl-maildir-folder-path  "~/Maildir/chopps.org"
@@ -610,9 +628,13 @@ without relaunching.
             'wl-draft-send
             'wl-draft-kill
             'mail-send-hook))
+        (if debug-init-msg
+            (message "Mark post wl init"))
         )
     :config
     (progn
+        (if debug-init-msg
+            (message "Mark pre wl config"))
       ;; (bbdb-wl-setup)
       ;; (setq bbdb-wl-folder-regexp "INBOX\\|Sent")
       (evil-set-initial-state 'wl-folder-mode 'emacs)
@@ -620,6 +642,8 @@ without relaunching.
       (evil-set-initial-state 'mime-view-mode 'emacs)
 
       (define-key wl-draft-mode-map (kbd "<C-tab>") 'bbdb-complete-name)
+      (if debug-init-msg
+          (message "Mark post wl config"))
       )
     )
 
@@ -642,7 +666,7 @@ without relaunching.
    user-full-name     "Christian Hopps"
    )
 #+END_SRC
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
   (req-package mu4e-maildirs-extension
     :init
     (progn
@@ -745,6 +769,8 @@ without relaunching.
     :require bbdb
     :init
     (progn
+      (if debug-init-msg
+          (message "Mark pre gnus init"))
       (setq
        mail-sources nil
        gnus-fetch-old-headers t
@@ -753,12 +779,19 @@ without relaunching.
                                       (directory "~/Maildir/chopps.org/")
                                       (directory-files nnheader-directory-files-safe)
                                       (get-new-mail nil)))
+      (if debug-init-msg
+          (message "Mark post gnus init"))
       )
     :config
     (progn
+      (if debug-init-msg
+          (message "Mark pre gnus config"))
       (bbdb-initialize 'gnus)
       (gnus-demon-add-handler 'gnus-demon-scan-news 2 t)
-      (setq gnus-message-archive-method gnus-select-method)))
+      (setq gnus-message-archive-method gnus-select-method)
+      (if debug-init-msg
+          (message "Mark post gnus config"))
+      ))
 
 
 #+END_SRC
@@ -769,6 +802,7 @@ without relaunching.
     :init
     (progn
       (setq magit-last-seen-setup-instructions "1.4.0")))
+
   (req-package gist
     :commands gist-list)
   (autoload 'svn-status "dsvn" "Run `svn status'." t)
@@ -1179,7 +1213,8 @@ without relaunching.
   ;;           (function (lambda () (if buffer-file-name (flymake-mode)))))
 
   (defun my-lisp-mode-hook ()
-    (message "my-lisp-mode-hook")
+    (if debug-init-msg
+        (message "my-lisp-mode-hook"))
     (flyspell-prog-mode)
     (set (make-local-variable 'rebox-style-loop) '(83 84 21))
     ;; (set (make-local-variable 'rebox-min-fill-column) 40)
@@ -1470,7 +1505,8 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   (eval-after-load "browse-url"
     '(progn
-       (message "browse-url loaded")
+       (if debug-init-msg
+           (message "browse-url loaded"))
        (setq browse-url-browser-function 'browse-url-generic
              browse-url-generic-program "openurl.sh")))
 #+end_src
@@ -1546,6 +1582,8 @@ without relaunching.
       (setq ggtags-mode-prefix-key (kbd "C-c C-.")))
     :config
     (progn
+      (if debug-init-msg
+          (message "Mark pre gtags mode config"))
       ;; (setq gtags-suggested-key-mapping t)
       ;; (setq gtags-use-old-key-map t)
 
@@ -1644,15 +1682,17 @@ without relaunching.
                         (subseq file-path (1+ (length gpath)) (length file-path)))
                   (cd gpath)
                   ;; (shell-command-to-string (concat
-                  (shell-command-to-string (concat "gtags --single-update=" file-path)))))))
+                  (shell-command-to-string (concat "gtags --single-update=" file-path))))
+              )))
 
       ;;
       ;; Run gtags update on save -- XXX this can take a long time actually
       ;;
                                           ;(add-hook 'after-save-hook 'gtags-update)
-
-
-  ))
+      (if debug-init-msg
+          (message "Mark post gtags mode config"))
+      )
+    )
 #+end_src
 *** Mail
 #+begin_src emacs-lisp :tangle yes
@@ -1676,7 +1716,8 @@ without relaunching.
 
   (let ((tmux (getenv "TMUX"))
         (sty (getenv "STY")))
-    (message "Got sty of %s" sty)
+    (if debug-init-msg
+        (message "Got sty of %s" sty))
     (if sty
         (progn
           (message "Enabling gnu-screen signal handling")
@@ -1720,12 +1761,10 @@ IETF Yang mode.
 **** Flycheck
 #+BEGIN_SRC emacs-lisp :tangle yes
   (req-package flycheck
-    :init
-    (progn
-      (message "flycheck-init"))
     :config
     (progn
-      (message "flycheck-config")
+      (if debug-init-msg
+          (message "Mark pre flycheck config"))
       (flycheck-define-checker python-pycheckers
         "A python syntax and style checker using flake8 and pylint."
         :command ("pycheckers.sh"
@@ -1752,11 +1791,14 @@ IETF Yang mode.
                line-end)
          )
         :modes python-mode)
-      (add-hook 'after-init-hook 'global-flycheck-mode)))
+      (add-hook 'after-init-hook 'global-flycheck-mode)
+      (if debug-init-msg
+          (message "Mark post flycheck config"))
+      ))
 #+END_SRC
 **** CC Mode
 #+begin_src emacs-lisp
-  (use-package cc-mode
+  (req-package-force cc-mode
     ;; :require projectile
     :commands (awk-mode c-mode c++-mode java-mode objc-mode)
     ;; :mode (("\\.c\\'"  . c-mode)
@@ -1769,7 +1811,8 @@ IETF Yang mode.
     ;;        ("\\.hh'"   . c++-mode))
     :config
     (progn
-      (message "Configuring CC Mode")
+      (if debug-init-msg
+        (message "Mark pre CC mode config"))
       ;; (modify-syntax-entry ?_ "w" awk-mode-syntax-table)
       (modify-syntax-entry ?_ "w" c-mode-syntax-table)
       (modify-syntax-entry ?_ "w" objc-mode-syntax-table)
@@ -1926,6 +1969,9 @@ IETF Yang mode.
       ;;                             :file (concat wsroot "Jamfile")
       ;;                             :system-include-path (list (concat wsroot "/nobackup/chopps/s/inc/x86l32/global/iosxr-os/os/"))
       ;;                             :include-path (list (concat wsroot "/nobackup/chopps/s/inc/x86l32/global/iosxr-os/"))))))
+
+      (if debug-init-msg
+        (message "Mark post CC mode config"))
       ))
 #+end_src
 **** Emacs-lisp
@@ -1947,15 +1993,26 @@ IETF Yang mode.
     :init
     (progn
       ;; (setq elpy-rpc-backend "jedi")
+      (if debug-init-msg
+        (message "Mark pre elpy mode init"))
 
       (when (not (setq python-check-command (executable-find "pycheckers.sh")))
-        (setq python-check-command "flake8"))))
+        (setq python-check-command "flake8"))
+      (if debug-init-msg
+        (message "Mark post elpy mode init"))
+      ))
 
   (req-package jedi
     :init
    (progn
+      (if debug-init-msg
+        (message "Mark pre jedi mode init"))
      ;; (setq jedi:server-args '("--log-traceback"))
-     (add-hook 'python-mode-hook 'jedi:setup)))
+     (add-hook 'python-mode-hook 'jedi:setup)
+      (if debug-init-msg
+        (message "Mark post jedi mode init"))
+    )
+   )
 
   (req-package nose
     :init
@@ -1969,7 +2026,18 @@ IETF Yang mode.
       (setq pytest-cmd-flags "-x --doctest-module")
       ))
 
-  (req-package flymake-pyfixers)
+  (req-package flymake-pyfixers
+    :init
+    (progn
+      (if debug-init-msg
+          (message "Mark post flymake-pyfixers init"))
+      )
+    :config
+    (progn
+      (if debug-init-msg
+          (message "Mark post flymake-pyfixers config"))
+      )
+    )
 
   (req-package pylookup
     :commands (pylookup-lookup pylookup-update)
@@ -1983,14 +2051,16 @@ IETF Yang mode.
   (if debug-init-msg
       (message "Mark post pylookup"))
 
-  (use-package python
+  (req-package python
     :mode (("\\.py\\'" . python-mode))
     :interpreter ("python" . python-mode)
     :init
     (progn
-      (message "Initializing python mode")
+      (if debug-init-msg
+          (message "Mark pre python init"))
       (defun my-python-mode-hook ()
-        (message "Python mode hook")
+        (if debug-init-msg
+            (message "Python mode hook"))
         (all-prog-mode-hook)
         ;; Fill values
         (if debug-init-msg
@@ -2021,24 +2091,30 @@ IETF Yang mode.
         (define-key python-mode-map (kbd "C-c Tpm") 'nosetests-pdb-module)
         (define-key python-mode-map (kbd "C-c Tpo") 'nosetests-pdb-one)
 
-        (message "Enabling flyspell")
+        (if debug-init-msg
+          (message "Enabling python flyspell"))
         (flyspell-prog-mode)
 
-        (message "Enabling projectile")
+        (if debug-init-msg
+            (message "Enabling projectile"))
         (projectile-mode t)
 
         (flycheck-mode t)
         (flycheck-select-checker 'python-pycheckers)
         (flycheck-set-checker-executable 'python-flake8 "~/bin/pycheckers.sh")
-        (message "Enabling rebox")
+        (if debug-init-msg
+            (message "Enabling rebox"))
         (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
         (rebox-mode 1)
 
-        (message "Enabling elpy")
+        (if debug-init-msg
+            (message "Enabling elpy"))
         (elpy-enable)
         (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
         (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
         (add-to-list 'compilation-error-regexp-alist '("\\(.*\\):[CEFRW][0-9]+: ?\\([0-9]+\\),[0-9]+: .*" 1 2))
+        (if debug-init-msg
+            (message "Python mode hook done"))
         )
       (setq python-font-lock-keywords
             ;; Keywords
@@ -2147,10 +2223,13 @@ IETF Yang mode.
                                 (python-syntax-context 'paren)))
                     res))
                (1 font-lock-variable-name-face nil nil))))
+      (if debug-init-msg
+          (message "Mark post python init"))
       )
     :config
     (progn
-      (message "Configuring python mode settings")
+      (if debug-init-msg
+          (message "Mark pre python config"))
 
       ;; Elpy config
       ;; (define-key elpy-mode-map (kbd "C-c C-n") 'next-error)
@@ -2212,6 +2291,8 @@ IETF Yang mode.
                   (delete-region impstart impend)
                   (goto-char impstart)
                   (insert bigstr)))))))
+      (if debug-init-msg
+          (message "Mark python config"))
       ))
 #+end_src
 **** Pymacs
@@ -2220,7 +2301,8 @@ IETF Yang mode.
     :commands (pymacs-apply pymacs-call pymacs-eval pymacs-exec pymacs-load)
     :config
     (progn
-      (message "pymacs loaded")
+      (if debug-init-msg
+          (message "Mark pre pymacs config"))
       (add-to-list 'pymacs-load-path (concat user-emacs-directory "pymacs-dir"))
 
       (defun fp-maybe-pymacs-reload ()
@@ -2264,7 +2346,10 @@ IETF Yang mode.
        ;;                                          (current-time-string))))))
        ;;   ;;(pymacs-load "ropemacs" "rope-")
        ;;  )
-       ))
+      (if debug-init-msg
+          (message "Mark post pymacs config"))
+      )
+    )
 #+end_src
 
 *** Task Juggler
@@ -2282,7 +2367,16 @@ IETF Yang mode.
 
   (req-package-force org-crypt
     :require org-plus-contrib)
-  (req-package org-mac-link)
+  (req-package org-mac-link
+    :init
+    (progn
+      (if debug-init-msg
+          (message "Mark post org-mac-link init")))
+    :config
+    (progn
+      (if debug-init-msg
+          (message "Mark post org-mac-link config")))
+   )
   (req-package org-magit)
 
   ;; (require s)
@@ -2314,7 +2408,8 @@ IETF Yang mode.
     (progn
       (org-crypt-use-before-save-magic)
       (defun my-org-mode-hook ()
-        (message "Org-mode-hook")
+        (if debug-init-msg
+            (message "Org-mode-hook"))
         (org-set-local 'yas/trigger-key [tab])
         (yas-minor-mode)
         (turn-on-flyspell)
@@ -2346,7 +2441,8 @@ IETF Yang mode.
 
     :config
     (progn
-      (message "org-mode after load")
+      (if debug-init-msg
+          (message "org-mode after load"))
       (org-babel-do-load-languages
        'org-babel-load-languages
        '((python . t) (dot . t))
@@ -2484,6 +2580,8 @@ IETF Yang mode.
     :require (helm-config helm-projectile projectile)
     :init
     (progn
+      (if debug-init-msg
+          (message "Mark pre helm mode"))
       (setq helm-c-locate-command
             (case system-type
               ('gnu/linux "locate -i -r %s")
@@ -2553,6 +2651,8 @@ IETF Yang mode.
       ;;                                         (remove 'helm-source-projectile-files-list
       ;;                                                  helm-projectile-sources-list)))
       (helm-projectile-on)
+      (if debug-init-msg
+          (message "Mark post helm mode"))
       ))
 #+END_SRC
 
@@ -2623,7 +2723,8 @@ IETF Yang mode.
   (req-package yasnippet
     :init
     (progn
-      (message "yasnippet loading")
+      (if debug-init-msg
+        (message "yasnippet loading"))
       ;; (setq yas/trigger-key (kbd "C-c <kp-multiply>"))
       ;; (setq yas/trigger-key (kbd "C-c C-q"))
       (setq yas/trigger-key (kbd "C-c C-]"))
@@ -2640,7 +2741,8 @@ IETF Yang mode.
                 (lambda () (setq ac-trigger-key nil)))
       (add-hook 'yas/before-expand-snippet-hook
                 (lambda () (setq ac-trigger-key "TAB")))
-      (message "yasnippet loaded"))
+      (if debug-init-msg
+        (message "yasnippet loaded")))
     :config
     (yas-reload-all))
   ;;     (yas/global-mode 1)))
