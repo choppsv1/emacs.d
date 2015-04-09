@@ -28,12 +28,16 @@ packages are properly installed. Additionally we then require pallet so that our
   ;; an org file.
   ;;--------------------------------------------
 
-  (defun current-time-microseconds ()
-    (let* ((nowtime (current-time))
-           (now-ms (nth 2 nowtime)))
-      (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
+  ;; (defadvice message (before who-said-that activate)
+  ;;  "Find out who said that thing. and say so."
+  ;;  (let ((trace nil) (n 1) (frame nil))
+  ;;    (while (setq frame (backtrace-frame n))
+  ;;        (setq n     (1+ n)
+  ;;              trace (cons (cadr frame) trace)) )
+  ;;    (ad-set-arg 0 (concat "<<%S>>:\n" (ad-get-arg 0)))
+  ;;    (ad-set-args 1 (cons trace (ad-get-args 1))) ))
 
-  (defadvice message (before test-symbol activate)
+  (defadvice _message (before test-symbol activate)
     (if (not (string-equal (ad-get-arg 0) "%s%s"))
         (let ((deactivate-mark nil)
               (inhibit-read-only t))
@@ -1601,21 +1605,21 @@ without relaunching.
 
 *** Tagging
 #+begin_src emacs-lisp :tangle yes
-  (req-package ggtags
-    :require evil
     ;; ggtags-mode is a minor mode, this kills proper major mode init
     ;; :mode ( "\\.\\(bag\\|bgen\\|cmd\\|m\\|mm\\|sch\\)\\'" . ggtags-mode )
     ;; bind is what we want and then enable ggtags mode if not enabled
+  (req-package ggtags
+    :require evil
     :commands enable-ggtags-mode
     :init
     (progn
       (add-hook 'c-mode-hook      'enable-ggtags-mode)
       (add-hook 'c++-mode-hook    'enable-ggtags-mode)
-      (add-hook 'emacs-lisp-mode-hook 'enable-ggtags-mode)
       (add-hook 'html-mode-hook   'enable-ggtags-mode)
       (add-hook 'java-mode-hook   'enable-ggtags-mode)
-      (add-hook 'lisp-mode-hook   'enable-ggtags-mode)
       ;; this causes us to autoload ggtags, hardly needed most of the time in *scratch*
+      ;; (add-hook 'emacs-lisp-mode-hook 'enable-ggtags-mode)
+      ;; (add-hook 'lisp-mode-hook   'enable-ggtags-mode)
       ;; (add-hook 'lisp-interaction-mode-hook 'enable-ggtags-mode)
       (add-hook 'objc-mode-hook   'enable-ggtags-mode)
       (add-hook 'python-mode-hook 'enable-ggtags-mode)

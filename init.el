@@ -7,6 +7,16 @@
 ;; Requiremens prior to first-load: cask intall
 ;; See emacs-init.org on how to install cask.
 ;;
+  (defun current-time-microseconds ()
+    (let* ((nowtime (current-time))
+           (now-ms (nth 2 nowtime)))
+      (concat (format-time-string "[%Y-%m-%dT%T" nowtime) (format ".%d] " now-ms))))
+
+  (defadvice message (before when-was-that activate)
+    "Add timestamps to `message' output."
+    (ad-set-arg 0 (concat (current-time-microseconds)
+                          (ad-get-arg 0)) ))
+
 (if (not (file-exists-p "/usr/local/Cellar/cask"))
     (require 'cask "~/.cask/cask.el")
   (require 'cask
