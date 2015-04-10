@@ -55,25 +55,25 @@ packages are properly installed. Additionally we then require pallet so that our
   ;;       (new-string (el-get-replace-string "http:" "https:" init-string)))
   ;;    (message "%s %s" init-string new-string)))
 
-  (setq my-el-get-packages
-        (append '(req-package
-                  ;; pylookup
-                  ;; pymacs
-                  ;; XXx xml-rpc-el
-                  )))
+;;  (setq my-el-get-packages
+;;        (append '(req-package
+;;                  ;; pylookup
+;;                  ;; pymacs
+;;                  ;; XXx xml-rpc-el
+;;                  )))
 
-  (el-get 'sync my-el-get-packages)
+;;  (el-get 'sync my-el-get-packages)
 
-  (defun el-get-sync-recipes (overlay)
-    (let* ((recipe-glob (locate-user-emacs-file (concat overlay "/recipes/*.rcp")))
-           (recipe-files (file-expand-wildcards recipe-glob))
-           (recipes (mapcar 'el-get-read-recipe-file recipe-files)))
-      (mapcar (lambda (r) (add-to-list 'el-get-sources r)) recipes)
-      (el-get 'sync (mapcar 'el-get-source-name recipes))))
+;;  (defun el-get-sync-recipes (overlay)
+;;    (let* ((recipe-glob (locate-user-emacs-file (concat overlay "/recipes/*.rcp")))
+;;           (recipe-files (file-expand-wildcards recipe-glob))
+;;           (recipes (mapcar 'el-get-read-recipe-file recipe-files)))
+;;      (mapcar (lambda (r) (add-to-list 'el-get-sources r)) recipes)
+;;      (el-get 'sync (mapcar 'el-get-source-name recipes))))
 
     ;; EL-GET SYNC OVERLAYS
-  (el-get-sync-recipes "el-get-haskell")
-  (el-get-sync-recipes "el-get-user")
+ ;; (el-get-sync-recipes "el-get-haskell")
+ ;; (el-get-sync-recipes "el-get-user")
 
 #+end_src
 
