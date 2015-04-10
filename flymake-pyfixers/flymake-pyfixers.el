@@ -8,13 +8,13 @@
 
 ;; See if we can load pymacs fixer functions fail silently if we cannot.
 
-(with-demoted-errors
-  (require 'pymacs)
+;(with-demoted-errors
+;  (require 'pymacs)
   ;; (message "add-directory: %s" (file-name-directory load-file-name))
-  (add-to-list 'pymacs-load-path (file-name-directory load-file-name))
-  (pymacs-load "flymake-pyfixers" "pyfixer:")
+;  (add-to-list 'pymacs-load-path (file-name-directory load-file-name))
+;  (pymacs-load "flymake-pyfixers" "pyfixer:")
   ;; (message "Done loading flymake-pyfixers")
-  )
+;  )
 
 (defvar pyfixer:flymake-fixers
   '(

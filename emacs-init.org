@@ -21,6 +21,61 @@ Thanks to those folks.
 The very first thing we do is require =req-package= as it will make sure that
 packages are properly installed. Additionally we then require pallet so that our
 =Cask= file is kept up to date with any installed packages.
+* Package
+#+begin_src emacs-lisp :tangle yes
+(setq package-archives '(
+                         ("marmalade" . "https://marmalade-repo.org/packages/")
+                         ("gnu" . "http://elpa.gnu.org/packages/")
+                         ("melpa" . "http://melpa.org/packages/")
+                         ("org" . "http://orgmode.org/elpa/")))
+(require 'package)
+(package-initialize)
+#+end_src
+
+* El-Get
+#+begin_src emacs-lisp :tangle yes
+
+  (setq el-get-verbose t)
+  (add-to-list 'load-path (locate-user-emacs-file "el-get/el-get"))
+
+  (unless (require 'el-get nil 'noerror)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+
+  (setq el-get-github-default-url-type "https")
+  ;(setq el-get-user-package-directory (concat user-emacs-directory "el-get-init-files/"))
+  ;(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
+
+  ;; (setq old-get-private 'el-get-github-url-private)
+  ;; (defun el-get-github-url-private (url-type username reponame)
+  ;;  (let* ((init-string (funcall old-get-private url-type username reponame))
+  ;;       (new-string (el-get-replace-string "http:" "https:" init-string)))
+  ;;    (message "%s %s" init-string new-string)))
+
+  (setq my-el-get-packages
+        (append '(req-package
+                  ;; pylookup
+                  ;; pymacs
+                  ;; XXx xml-rpc-el
+                  )))
+
+  (el-get 'sync my-el-get-packages)
+
+  (defun el-get-sync-recipes (overlay)
+    (let* ((recipe-glob (locate-user-emacs-file (concat overlay "/recipes/*.rcp")))
+           (recipe-files (file-expand-wildcards recipe-glob))
+           (recipes (mapcar 'el-get-read-recipe-file recipe-files)))
+      (mapcar (lambda (r) (add-to-list 'el-get-sources r)) recipes)
+      (el-get 'sync (mapcar 'el-get-source-name recipes))))
+
+    ;; EL-GET SYNC OVERLAYS
+  (el-get-sync-recipes "el-get-haskell")
+  (el-get-sync-recipes "el-get-user")
+
+#+end_src
 
 #+begin_src emacs-lisp
   ;;--------------------------------------------
@@ -53,12 +108,14 @@ packages are properly installed. Additionally we then require pallet so that our
   ;; Main package that loads (and installs) everything
   (setq req-package-log-level 'trace)
   ;; use req-package--log-open-... to view the log
+
+
   (require 'req-package)
 
   ;; Pallet must be first so other auto-installed dependencies update Cask file.
-  (req-package pallet
-    :commands pallet-mode)
-  (pallet-mode t)
+  ;; (req-package pallet
+  ;;   :commands pallet-mode)
+  ;; (pallet-mode t)
 #+end_src
 
 * Initialization
@@ -87,8 +144,9 @@ Benchmark-init.el can give us a breakdown of time spent on require and load
 calls:
 
 #+begin_src emacs-lisp
-  (require 'benchmark-init)
-  (add-hook 'after-init-hook 'benchmark-init/deactivate)
+  (req-package-force benchmark-init
+    :config
+     (add-hook 'after-init-hook 'benchmark-init/deactivate))
 #+end_src
 
 *** No Frills
@@ -130,11 +188,12 @@ calls:
   (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
   (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-easter-theme"))
   (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
+  (add-to-list 'load-path (concat user-emacs-directory "local-lisp/org2blog"))
   ;; (if (file-exists-p "~/p/lisp/org-cdets") (add-to-list 'load-path "~/p/lisp/org-cdets"))
 
   ;; Our custom org2blog, should make this a custom el-get?
-  (if (file-exists-p "~/Documents/Projects-Local/org2blog")
-      (add-to-list 'load-path "~/Documents/Projects-Local/org2blog"))
+  (if (concat user-emacs-directory "local-lisp/org2blog")
+      (add-to-list 'load-path (concat user-emacs-directory "local-lisp/org2blog")))
 #+end_src
 
 **** Search path
@@ -225,49 +284,6 @@ For now this is specific to Mac OS X.
                  '(("LibreOffice" "/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to %f%x --outdir %d %i"))))))
 #+end_src
 ** Very Important Initialization
-*** El-Get
-#+begin_src emacs-lisp :tangle yes
-  (setq el-get-verbose t)
-  (add-to-list 'load-path (locate-user-emacs-file "el-get/el-get"))
-
-  (unless (require 'el-get nil 'noerror)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.github.com/dimitri/el-get/master/el-get-install.el")
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-
-  (setq el-get-github-default-url-type "https")
-  ;(setq el-get-user-package-directory (concat user-emacs-directory "el-get-init-files/"))
-  ;(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
-
-  ;; (setq old-get-private 'el-get-github-url-private)
-  ;; (defun el-get-github-url-private (url-type username reponame)
-  ;;  (let* ((init-string (funcall old-get-private url-type username reponame))
-  ;;       (new-string (el-get-replace-string "http:" "https:" init-string)))
-  ;;    (message "%s %s" init-string new-string)))
-
-  (setq my-el-get-packages
-        (append '(pylookup
-                  ;; pymacs
-                  ;; XXx xml-rpc-el
-                  )))
-
-  (el-get 'sync my-el-get-packages)
-
-  (defun el-get-sync-recipes (overlay)
-    (let* ((recipe-glob (locate-user-emacs-file (concat overlay "/recipes/*.rcp")))
-           (recipe-files (file-expand-wildcards recipe-glob))
-           (recipes (mapcar 'el-get-read-recipe-file recipe-files)))
-      (mapcar (lambda (r) (add-to-list 'el-get-sources r)) recipes)
-      (el-get 'sync (mapcar 'el-get-source-name recipes))))
-
-    ;; EL-GET SYNC OVERLAYS
-  (el-get-sync-recipes "el-get-haskell")
-  (el-get-sync-recipes "el-get-user")
-
-#+end_src
-
 *** Recompile Local Lisp
 #+begin_src emacs-lisp :tangle yes
   (byte-recompile-directory (expand-file-name "~/.emacs.d/local-lisp") 0)
@@ -297,7 +313,7 @@ For now this is specific to Mac OS X.
   (req-package-force evil
     ;;:require (evil-args evil-nerd-commenter evil-terminal-cursor-changer)
     ;;:require (evil-args evil-nerd-commenter)
-    :require (evil-matchit)
+    ;; :require (evil-matchit)
     :init
     (progn
       (setq evil-search-wrap nil)
@@ -331,9 +347,9 @@ For now this is specific to Mac OS X.
       (add-to-list 'evil-emacs-state-modes
                    'artist-mode)
 
-      (require 'evil-args)
+      ;; XXX (require 'evil-args)
       ;; (require 'evil-nerd-commenter)
-      (require 'evil-terminal-cursor-changer)
+      ;; XXX (require 'evil-terminal-cursor-changer)
 
       (define-key evil-normal-state-map [escape] 'keyboard-quit)
       (define-key evil-visual-state-map [escape] 'keyboard-quit)
@@ -377,7 +393,7 @@ For now this is specific to Mac OS X.
 
       ))
   (evil-mode 1)
-  (global-evil-matchit-mode)
+  ;; (global-evil-matchit-mode)
 
 #+end_src
 
@@ -401,7 +417,7 @@ without relaunching.
 #+end_src
 
 *** Cleanup Minor Modes in Modeline
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (defvar mode-line-cleaner-alist
     `((abbrev-mode . " Ab")
       (auto-complete-mode . " AC")
@@ -507,7 +523,8 @@ without relaunching.
 #+end_src
 
 *** Mail
-#+BEGIN_SRC emacs-lisp :tangle yes
+;; XXXnew
+#+BEGIN_SRC emacs-lisp :tangle no 
   (req-package bbdb
     :commands (bbdb-initialize bbdb-complete-mail)
     :init
@@ -558,7 +575,7 @@ without relaunching.
       )
     )
 #+END_SRC
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
   ;; (req-package wl-user-agent-compose)
   ;; (req-package wl-other-frame)
   ;; (req-package wl-draft)
@@ -801,8 +818,8 @@ without relaunching.
 
 #+END_SRC
 #+BEGIN_SRC emacs-lisp :tangle yes
+    ;; :require bbdb
   (req-package gnus
-    :require bbdb
     :commands gnus
     :init
     (progn
@@ -823,7 +840,7 @@ without relaunching.
     (progn
       (if debug-init-msg
           (message "Mark pre gnus config"))
-      (bbdb-initialize 'gnus)
+      ;; XXXnew (bbdb-initialize 'gnus)
       (gnus-demon-add-handler 'gnus-demon-scan-news 2 t)
       (setq gnus-message-archive-method gnus-select-method)
       (if debug-init-msg
@@ -1068,7 +1085,7 @@ without relaunching.
 #+end_src
 *** Generic Lisp
 #+begin_src emacs-lisp :tangle yes
-  (require 's)
+  (req-package s)
 
   (defun my-adjoin-to-list-or-symbol (element list-or-symbol)
     (let ((list (if (not (listp list-or-symbol))
@@ -1220,53 +1237,37 @@ without relaunching.
 
   ;; (require 'flymake)
 
-  (defun flymake-elisp-init ()
-    (unless (string-match "^ " (buffer-name))
-      (let* ((temp-file   (flymake-init-create-temp-buffer-copy
-                           'flymake-create-temp-inplace))
-             (local-file  (file-relative-name
-                           temp-file
-                           (file-name-directory buffer-file-name))))
-        (list
-         (expand-file-name invocation-name invocation-directory)
-         (list
-          "-Q" "--batch" "--eval"
-          (prin1-to-string
-           (quote
-            (dolist (file command-line-args-left)
-              (with-temp-buffer
-                (insert-file-contents file)
-                (condition-case data
-                    (scan-sexps (point-min) (point-max))
-                  (scan-error
-                   (goto-char(nth 2 data))
-                   (princ (format "%s:%s: error: Unmatched bracket or quote\n"
-                                  file (line-number-at-pos)))))))
-            )
-           )
-          local-file)))))
+  ;; (defun flymake-elisp-init ()
+  ;;   (unless (string-match "^ " (buffer-name))
+  ;;     (let* ((temp-file   (flymake-init-create-temp-buffer-copy
+  ;;                          'flymake-create-temp-inplace))
+  ;;            (local-file  (file-relative-name
+  ;;                          temp-file
+  ;;                          (file-name-directory buffer-file-name))))
+  ;;       (list
+  ;;        (expand-file-name invocation-name invocation-directory)
+  ;;        (list
+  ;;         "-Q" "--batch" "--eval"
+  ;;         (prin1-to-string
+  ;;          (quote
+  ;;           (dolist (file command-line-args-left)
+  ;;             (with-temp-buffer
+  ;;               (insert-file-contents file)
+  ;;               (condition-case data
+  ;;                   (scan-sexps (point-min) (point-max))
+  ;;                 (scan-error
+  ;;                  (goto-char(nth 2 data))
+  ;;                  (princ (format "%s:%s: error: Unmatched bracket or quote\n"
+  ;;                                 file (line-number-at-pos)))))))
+  ;;           )
+  ;;          )
+  ;;         local-file)))))
 
   ;; (push '("\\.el$" flymake-elisp-init) flymake-allowed-file-name-masks)
 
   ;; (add-hook 'emacs-lisp-mode-hook
   ;;           ;; workaround for (eq buffer-file-name nil)
   ;;           (function (lambda () (if buffer-file-name (flymake-mode)))))
-
-  (defun my-lisp-mode-hook ()
-    (if debug-init-msg
-        (message "my-lisp-mode-hook"))
-    (flyspell-prog-mode)
-    (set (make-local-variable 'rebox-style-loop) '(83 84 21))
-    ;; (set (make-local-variable 'rebox-min-fill-column) 40)
-    (define-key lisp-mode-map (kbd "C-c C-n") 'flycheck-next-error)
-    (define-key lisp-mode-map (kbd "C-c C-p") 'flycheck-previous-error)
-    (define-key emacs-lisp-mode-map (kbd "C-c C-n") 'flycheck-next-error)
-    (define-key emacs-lisp-mode-map (kbd "C-c C-p") 'flycheck-previous-error)
-    (flycheck-mode 1)
-    (rebox-mode 1))
-
-  (add-hook 'lisp-mode-hook 'my-lisp-mode-hook)
-  (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook)
 
   (defun narrow-to-python-string ()
     "Narrow to the multiline string section that contains the point"
@@ -1810,6 +1811,8 @@ IETF Yang mode.
 #+end_src
 **** Flycheck
 #+BEGIN_SRC emacs-lisp :tangle yes
+  (req-package flyspell)
+
   (req-package flycheck
     :commands flycheck-mode
     :config
@@ -2028,6 +2031,25 @@ IETF Yang mode.
 **** Emacs-lisp
 #+begin_src emacs-lisp :tangle yes
   (add-hook 'emacs-lisp-mode-hook 'all-prog-mode-hook)
+
+  (defun my-lisp-mode-hook ()
+    (if debug-init-msg
+        (message "my-lisp-mode-hook"))
+    (flyspell-prog-mode)
+    (set (make-local-variable 'rebox-style-loop) '(83 84 21))
+    ;; (set (make-local-variable 'rebox-min-fill-column) 40)
+    (define-key lisp-mode-map (kbd "C-c C-n") 'flycheck-next-error)
+    (define-key lisp-mode-map (kbd "C-c C-p") 'flycheck-previous-error)
+    (define-key emacs-lisp-mode-map (kbd "C-c C-n") 'flycheck-next-error)
+    (define-key emacs-lisp-mode-map (kbd "C-c C-p") 'flycheck-previous-error)
+    ;;XXXnew (require 'flycheck)
+    ;;XXXnew (flycheck-mode 1)
+    ;;XXXnew (rebox-mode 1)
+    )
+
+  (add-hook 'lisp-mode-hook 'my-lisp-mode-hook)
+  (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook)
+
 #+end_src
 **** Perl
 #+begin_src emacs-lisp :tangle yes
@@ -2461,7 +2483,7 @@ IETF Yang mode.
         (message "Downloaded %s to %s" url pathname)
       )))
 
-  (load-library "org-plus-contrib-autoloads")
+  ;;(load-library "org-plus-contrib-autoloads")
 
   (req-package org-magit
     :commands (org-magit-open org-magit-export org-magit-store-link))
@@ -2731,35 +2753,28 @@ IETF Yang mode.
 
 **** Auto Complete
 #+begin_src emacs-lisp :tangle yes
-  (if (boundp 'viper-harness-minor-mode)
-      (progn
-        (viper-harness-minor-mode "auto-complete")
-        ;; XX (viper-harness-minor-mode "auto-complete-extension")
-        (viper-harness-minor-mode "auto-complete-config")))
+  (req-package-force auto-complete
+    :require auto-complete-config
+    :config
+    (progn ; XXX (require 'auto-complete-extension)
+      (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
+      (ac-config-default)
+      (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
-  (require 'auto-complete-config)
+      ;; XXXnew python required? we are adding yasnippet and gtags, why python?
+      ;; (defun ac-python-mode-setup ()
+      ;;   (setq ac-sources (append '(ac-source-yasnippet ac-source-gtags) ac-sources)))
+      ;; (add-hook 'python-mode-hook 'ac-python-mode-setup)
 
-  ; XXX (require 'auto-complete-extension)
-  (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
-  (ac-config-default)
+      (setq ac-auto-start nil)        ; don't run ac-complete continuously
+      (setq ac-trigger-key "TAB")     ; do start auto-complete when a tab is encountered
+      (setq ac-trigger-commands '(chopps-python-tab)) ; when entered enables completion
+      (define-key ac-menu-map "\C-n" 'ac-next)
+      (define-key ac-menu-map "\C-p" 'ac-previous)
+      (define-key ac-menu-map "\e" 'ac-complete)
 
-  (defun ac-python-mode-setup ()
-    (setq ac-sources (append '(ac-source-yasnippet ac-source-gtags) ac-sources)))
-  (add-hook 'python-mode-hook 'ac-python-mode-setup)
-
-
-  (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
-
-  (setq ac-auto-start nil)        ; don't run ac-complete continuously
-  (setq ac-trigger-key "TAB")     ; do start auto-complete when a tab is encountered
-  (setq ac-trigger-commands '(chopps-python-tab)) ; when entered enables completion
-  (define-key ac-menu-map "\C-n" 'ac-next)
-  (define-key ac-menu-map "\C-p" 'ac-previous)
-  (define-key ac-menu-map "\e" 'ac-complete)
-
-
-  (setq ac-trigger-commands-on-completing
-        (cons 'viper-intercept-ESC-key ac-trigger-commands-on-completing))
+      (setq ac-trigger-commands-on-completing
+            (cons 'viper-intercept-ESC-key ac-trigger-commands-on-completing))))
 
 #+end_src
 **** File and Buffer Completion (ido)
@@ -3214,6 +3229,8 @@ IETF Yang mode.
   (req-package-finish)
   (if debug-init-msg
       (message "Mark post req-package-finish"))
+
+(message "Done with emacs-init.org")
 #+end_src
 
 * Disabled
