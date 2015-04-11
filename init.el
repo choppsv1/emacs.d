@@ -40,13 +40,14 @@
 (message "Requiring ob-tangle")
 
 ;; Load the rest of our config from the emacs-init.org file.
-(require 'ob-tangle)
+;; (require 'ob-tangle)
 
-(message "Loading emacs-init.org")
-(setq debug-on-error t)
-(org-babel-load-file
-  (expand-file-name "emacs-init.org"
-                     user-emacs-directory))
-
+;;(message "Loading emacs-init.org")
+;;(setq debug-on-error t)
+;; (org-babel-load-file
+;;  (expand-file-name "emacs-init.org"
+;;                     user-emacs-directory))
+;;                     (
+(load-file "emacs-init.el")
 (ad-disable-advice 'message 'before 'when-was-that)
 (ad-update 'message)
