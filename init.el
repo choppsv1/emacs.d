@@ -19,8 +19,8 @@
 (setq use-package-verbose t)
 ;; (setq use-package-debug nil)
 
- (ad-disable-advice 'message 'before 'when-was-that)
- (ad-update 'message)
+;; (ad-disable-advice 'message 'before 'when-was-that)
+;; (ad-update 'message)
 
 ;; (message "Starting cask")
 

@@ -21,10 +21,10 @@ For the package repositories we pick in the following order:
   ;;--------------------------------------------------------
   (setq package-user-dir (concat user-emacs-directory "packages/" emacs-version "/elpa"))
   (setq package-archives '(
+                           ("org" . "http://orgmode.org/elpa/")
                            ("gnu" . "http://elpa.gnu.org/packages/")
                            ("melpa" . "http://melpa.org/packages/")
-                           ("marmalade" . "https://marmalade-repo.org/packages/")
-                           ("org" . "http://orgmode.org/elpa/")))
+                           ("marmalade" . "https://marmalade-repo.org/packages/")))
   (require 'package)
   (package-initialize)
 #+end_src
@@ -36,8 +36,8 @@ and then fall back to using el-get recipes.
 
 We use the default order as el-get is less refined.
 
-#+begin_src emacs-lisp
-  ;; (setq req-package-log-level 'trace)
+#+begin_src emacs-lisp :tangle yes
+  (setq req-package-log-level 'trace)
   ;; use req-package--log-open-... to view the log
 
   (unless (require 'req-package nil 'noerror)
@@ -45,8 +45,12 @@ We use the default order as el-get is less refined.
       (package-refresh-contents))
     (package-install 'req-package)
     (require 'req-package))
-#+end_src
 
+  ;; For debugging
+  (require 'use-package)
+  (setq use-package-verbose t)
+  ;(setq use-package-debug t)
+#+end_src
 ** El-Get
 Finally we initialize =el-get= using =req-package= itself. If we haven't yet
 setup =el-get= do so now.
@@ -61,14 +65,11 @@ setup =el-get= do so now.
 #+end_src
 * Initialization
 ** Required Initialization
-*** Use Unicode
+*** Startup Debug
 #+begin_src emacs-lisp
-  (setq debug-init-msg t)
-
-  (setenv "LC_CTYPE" "UTF-8")
+(setq debug-init-msg nil)
 #+end_src
-
-*** Benchmarking
+*** Benchmarking Startup
 It’s useful to measure how long it takes Emacs to start up, so let’s show the
 total time in a message:
 
@@ -90,57 +91,24 @@ calls:
      (add-hook 'after-init-hook 'benchmark-init/deactivate))
 #+end_src
 
+*** Use Unicode
+#+begin_src emacs-lisp
+  (setenv "LC_CTYPE" "UTF-8")
+#+end_src
 *** Load Customizations
 #+begin_src emacs-lisp
   (setq custom-file "~/.emacs.d/custom.el")
   (load custom-file 'noerror)
 #+end_src
-
-*** No Frills
-#+begin_src emacs-lisp
-  (dolist (mode '(global-linum-mode highlight-indentation-mode menu-bar-mode tool-bar-mode scroll-bar-mode))
-    (when (fboundp mode) (funcall mode -1)))
-  (setq inhibit-startup-screen t)
-  (setq inhibit-startup-message t)
-  (defalias 'yes-or-no-p 'y-or-n-p)
-#+end_src
-
-*** Enable Basic Features
-**** Default Mode
-#+begin_src emacs-lisp
-  (setq default-major-mode 'text-mode)
-#+end_src
-
-**** Enable Basic Functionality
-***** Enable setting a goal column with C-x C-n
-#+begin_src emacs-lisp
-  (put 'set-goal-column 'disabled nil)
-#+end_src
-
-***** Enable evaluating an expression in the minibuffer
-#+begin_src emacs-lisp
-  ;; Enable evaulation of expressions
-  (put 'eval-expression 'disabled nil)
-#+end_src
-
-***** Enable leftwise scrolling
-#+begin_src emacs-lisp
-  ;; Enable leftward scrolling.
-  (put 'scroll-left 'disabled nil)
-#+end_src
 *** Paths
-**** Load path
+Elisp load and theme paths
 #+begin_src emacs-lisp
   (add-to-list 'load-path (concat user-emacs-directory "local-lisp"))
-  (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
-  (add-to-list 'load-path (concat user-emacs-directory "my-themes/emacs-easter-theme"))
   (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
+  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-easter-theme"))
 #+end_src
-
-**** Fixup environment (for mac where ENV may not be set properly)
-#+begin_src emacs-lisp
-#+end_src
-
 *** Temporary Files
 Auto save and backup files go in /tmp.
 
@@ -222,28 +190,9 @@ For now this is specific to Mac OS X.
           (setq org-export-odt-convert-processes
                 '(("LibreOffice" "/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to %f%x --outdir %d %i"))))))
 #+end_src
-** Very Important Initialization
 *** Recompile Local Lisp
 #+begin_src emacs-lisp :tangle yes
   (byte-recompile-directory (expand-file-name "~/.emacs.d/local-lisp") 0)
-  (if (file-exists-p (expand-file-name "~/.emacs.d/my-themes/emacs-color-theme-solarized"))
-      (byte-recompile-directory (expand-file-name "~/.emacs.d/my-themes/emacs-color-theme-solarized") 0))
-#+end_src
-
-*** Uniquify
-#+begin_src emacs-lisp :tangle yes
-  (req-package uniquify
-    :init
-    (progn
-      (setq uniquify-buffer-name-style 'forward)))
-#+end_src
-*** Frames
-#+begin_src emacs-lisp :tangle yes
-  (if (not (window-system))
-      (setq initial-frame-alist '((top . -420) (left . 4800) (width . 233) (height . 90)))
-    )
-  ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
-  ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
 #+end_src
 *** Evil
 #+begin_src emacs-lisp :tangle yes
@@ -336,7 +285,7 @@ For now this is specific to Mac OS X.
 
 #+end_src
 
-** Standard Initialization
+** Very Important Initialization
 *** Start Emacs Server
 The emacs server allows for using =emacsclient= to access the running emacs
 without relaunching.
@@ -344,17 +293,49 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   (req-package-force server
     :config
-    (progn
-      (if debug-init-msg
-          (message "Mark pre server config"))
-      (unless (server-running-p)
-        (server-start))
-      (if debug-init-msg
-          (message "Mark post server config"))
-      )
-    )
+    (unless (server-running-p)
+      (server-start)))
 #+end_src
 
+*** Uniquify
+#+begin_src emacs-lisp :tangle yes
+  (req-package uniquify
+    :init
+    (progn
+      (setq uniquify-buffer-name-style 'forward)))
+#+end_src
+** Standard Initialization
+*** No Frills
+#+begin_src emacs-lisp
+  (dolist (mode '(global-linum-mode highlight-indentation-mode menu-bar-mode tool-bar-mode scroll-bar-mode))
+    (when (fboundp mode) (funcall mode -1)))
+  (setq inhibit-startup-screen t)
+  (setq inhibit-startup-message t)
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+end_src
+*** Enable Basic Features
+**** Default Mode
+#+begin_src emacs-lisp
+  (setq default-major-mode 'text-mode)
+#+end_src
+
+**** Enable Basic Functionality
+***** Enable setting a goal column with C-x C-n
+#+begin_src emacs-lisp
+  (put 'set-goal-column 'disabled nil)
+#+end_src
+
+***** Enable evaluating an expression in the minibuffer
+#+begin_src emacs-lisp
+  ;; Enable evaulation of expressions
+  (put 'eval-expression 'disabled nil)
+#+end_src
+
+***** Enable leftwise scrolling
+#+begin_src emacs-lisp
+  ;; Enable leftward scrolling.
+  (put 'scroll-left 'disabled nil)
+#+end_src
 *** Cleanup Minor Modes in Modeline
 #+BEGIN_SRC emacs-lisp :tangle no
   (defvar mode-line-cleaner-alist
@@ -393,6 +374,14 @@ without relaunching.
 #+END_SRC
 
 *** Visuals
+**** Frames
+#+begin_src emacs-lisp :tangle yes
+  (if (not (window-system))
+      (setq initial-frame-alist '((top . -420) (left . 4800) (width . 233) (height . 90)))
+    )
+  ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
+  ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
+#+end_src
 **** Rainbow Modes (highlight using colors)
 #+begin_src emacs-lisp :tangle yes
   (req-package rainbow-mode
@@ -402,10 +391,6 @@ without relaunching.
 #+end_src
 **** Themes
 #+begin_src emacs-lisp :tangle yes
-  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
-  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
-  (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-easter-theme"))
-
   (setq current-theme nil)
 
   ;; (req-package-force solarized-theme)
@@ -462,19 +447,14 @@ without relaunching.
 #+end_src
 
 *** Mail
-;; XXXnew
 #+BEGIN_SRC emacs-lisp :tangle no
+  ;; XXXnew
   (req-package bbdb
     :commands (bbdb-initialize bbdb-complete-mail)
     :init
-    (progn
-      (if debug-init-msg
-          (message "Mark pre bbdb init"))
-      (setq bbdb-file "~/.emacs.d/bbdb"))
+    (setq bbdb-file "~/.emacs.d/bbdb")
     :config
     (progn
-      (if debug-init-msg
-          (message "Mark pre bbdb config"))
       (setq
        bbdb-offer-save 1                        ;; 1 means save-without-asking
 
@@ -508,11 +488,7 @@ without relaunching.
        ;; http://flex.ee.uec.ac.jp/texi/bbdb/bbdb_11.html
 
        '(( "From" . "no.?reply\\|DAEMON\\|daemon\\|facebookmail\\|twitter"))
-       )
-      (if debug-init-msg
-          (message "Mark post bbdb config"))
-      )
-    )
+       )))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp :tangle no
   ;; (req-package wl-user-agent-compose)
@@ -536,8 +512,6 @@ without relaunching.
     :commands (wl wl-other-frame wl-draft wl-user-agent-compose)
     :init
     (progn
-      (if debug-init-msg
-          (message "Mark pre wl init"))
       (setq
        elmo-maildir-folder-path  "~/Maildir/chopps.org"
        wl-maildir-folder-path  "~/Maildir/chopps.org"
@@ -618,13 +592,9 @@ without relaunching.
             'wl-draft-send
             'wl-draft-kill
             'mail-send-hook))
-        (if debug-init-msg
-            (message "Mark post wl init"))
         )
     :config
     (progn
-        (if debug-init-msg
-            (message "Mark pre wl config"))
       (require 'wl-draft)
       ;; (bbdb-wl-setup)
       ;; (setq bbdb-wl-folder-regexp "INBOX\\|Sent")
@@ -634,8 +604,6 @@ without relaunching.
 
       ;; do we need this to get the map?
       (define-key wl-draft-mode-map (kbd "<C-tab>") 'bbdb-complete-name)
-      (if debug-init-msg
-          (message "Mark post wl config"))
       )
     )
 
@@ -655,8 +623,7 @@ without relaunching.
    smtpmail-smtp-service 9005
 
    user-mail-address  "chopps@chopps.org"
-   user-full-name     "Christian Hopps"
-   )
+   user-full-name     "Christian Hopps")
 #+END_SRC
 #+BEGIN_SRC emacs-lisp :tangle no
   (req-package mu4e-maildirs-extension
@@ -757,13 +724,11 @@ without relaunching.
 
 #+END_SRC
 #+BEGIN_SRC emacs-lisp :tangle yes
-    ;; :require bbdb
+  ;; :require bbdb
   (req-package gnus
     :commands gnus
     :init
     (progn
-      (if debug-init-msg
-          (message "Mark pre gnus init"))
       (setq
        mail-sources nil
        gnus-fetch-old-headers t
@@ -772,21 +737,13 @@ without relaunching.
                                       (directory "~/Maildir/chopps.org/")
                                       (directory-files nnheader-directory-files-safe)
                                       (get-new-mail nil)))
-      (if debug-init-msg
-          (message "Mark post gnus init"))
       )
     :config
     (progn
-      (if debug-init-msg
-          (message "Mark pre gnus config"))
       ;; XXXnew (bbdb-initialize 'gnus)
       (gnus-demon-add-handler 'gnus-demon-scan-news 2 t)
       (setq gnus-message-archive-method gnus-select-method)
-      (if debug-init-msg
-          (message "Mark post gnus config"))
       ))
-
-
 #+END_SRC
 
 *** VCS
@@ -823,7 +780,7 @@ without relaunching.
       ))
 #+end_src
 *** Text Mode
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   (defun my-text-mode-hook ()
     "Custom text mode hook"
     (turn-on-auto-fill)
@@ -1025,7 +982,7 @@ without relaunching.
 #+end_src
 *** Generic Lisp
 #+begin_src emacs-lisp :tangle yes
-  (req-package s)
+  ;; (req-package s)
 
   (defun my-adjoin-to-list-or-symbol (element list-or-symbol)
     (let ((list (if (not (listp list-or-symbol))
@@ -1488,12 +1445,8 @@ without relaunching.
     :commands browse-url-generic
     :init
     (progn
-      (if debug-init-msg
-          (message "Mark post browse-url init")))
     :config
     (progn
-      (if debug-init-msg
-          (message "Mark post browse-url config"))
       (setq browse-url-browser-function 'browse-url-generic
             browse-url-generic-program "openurl.sh")))
 #+end_src
@@ -1568,8 +1521,6 @@ without relaunching.
       (setq ggtags-mode-prefix-key (kbd "C-c C-.")))
     :config
     (progn
-      (if debug-init-msg
-          (message "Mark pre gtags mode config"))
       (defun enable-ggtags-mode ()
         (ggtags-mode 1))
       ;; (setq gtags-suggested-key-mapping t)
@@ -1677,8 +1628,6 @@ without relaunching.
       ;; Run gtags update on save -- XXX this can take a long time actually
       ;;
                                           ;(add-hook 'after-save-hook 'gtags-update)
-      (if debug-init-msg
-          (message "Mark post gtags mode config"))
       )
     )
 #+end_src
@@ -1704,8 +1653,6 @@ without relaunching.
 
   (let ((tmux (getenv "TMUX"))
         (sty (getenv "STY")))
-    (if debug-init-msg
-        (message "Got sty of %s" sty))
     (if sty
         (progn
           (message "Enabling gnu-screen signal handling")
@@ -1737,7 +1684,7 @@ without relaunching.
      ;; rainbow-delimiters-mode t)
 #+end_src
 **** Projects
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   (req-package projectile
     :commands projectile-mode
     :interpreter ("projectile" . projectile-mode))
@@ -1750,15 +1697,13 @@ IETF Yang mode.
    :mode ("\\.yang$" . yang-mode))
 #+end_src
 **** Flycheck
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (req-package flyspell)
+#+BEGIN_SRC emacs-lisp :tangle no
+  ;; (req-package flyspell)
 
   (req-package flycheck
     :commands flycheck-mode
     :config
     (progn
-      (if debug-init-msg
-          (message "Mark pre flycheck config"))
       (flycheck-define-checker python-pycheckers
         "A python syntax and style checker using flake8 and pylint."
         :command ("pycheckers.sh"
@@ -1786,8 +1731,6 @@ IETF Yang mode.
          )
         :modes python-mode)
       (add-hook 'after-init-hook 'global-flycheck-mode)
-      (if debug-init-msg
-          (message "Mark post flycheck config"))
       ))
 #+END_SRC
 **** CC Mode
@@ -1805,8 +1748,6 @@ IETF Yang mode.
     ;;        ("\\.hh'"   . c++-mode))
     :config
     (progn
-      (if debug-init-msg
-        (message "Mark pre CC mode config"))
       ;; (modify-syntax-entry ?_ "w" awk-mode-syntax-table)
       (modify-syntax-entry ?_ "w" c-mode-syntax-table)
       (modify-syntax-entry ?_ "w" objc-mode-syntax-table)
@@ -1826,7 +1767,8 @@ IETF Yang mode.
                             (setq fill-column 80)
                             (turn-on-auto-fill)
                             (flyspell-prog-mode)
-                            (projectile-mode t)
+                            ;;; XXXnew
+                            ;;; (projectile-mode t)
                             )))
 
       (c-add-style
@@ -1964,8 +1906,6 @@ IETF Yang mode.
       ;;                             :system-include-path (list (concat wsroot "/nobackup/chopps/s/inc/x86l32/global/iosxr-os/os/"))
       ;;                             :include-path (list (concat wsroot "/nobackup/chopps/s/inc/x86l32/global/iosxr-os/"))))))
 
-      (if debug-init-msg
-        (message "Mark post CC mode config"))
       ))
 #+end_src
 **** Emacs-lisp
@@ -1973,8 +1913,6 @@ IETF Yang mode.
   (add-hook 'emacs-lisp-mode-hook 'all-prog-mode-hook)
 
   (defun my-lisp-mode-hook ()
-    (if debug-init-msg
-        (message "my-lisp-mode-hook"))
     (flyspell-prog-mode)
     (set (make-local-variable 'rebox-style-loop) '(83 84 21))
     ;; (set (make-local-variable 'rebox-min-fill-column) 40)
@@ -2007,25 +1945,16 @@ IETF Yang mode.
     :init
     (progn
       ;; (setq elpy-rpc-backend "jedi")
-      (if debug-init-msg
-        (message "Mark pre elpy mode init"))
-
       (when (not (setq python-check-command (executable-find "pycheckers.sh")))
         (setq python-check-command "flake8"))
-      (if debug-init-msg
-        (message "Mark post elpy mode init"))
       ))
 
   (req-package jedi
     :commands jedi:setup
     :init
    (progn
-      (if debug-init-msg
-        (message "Mark pre jedi mode init"))
      ;; (setq jedi:server-args '("--log-traceback"))
      (add-hook 'python-mode-hook 'jedi:setup)
-      (if debug-init-msg
-        (message "Mark post jedi mode init"))
     )
    )
 
@@ -2050,18 +1979,7 @@ IETF Yang mode.
       (setq pytest-cmd-flags "-x --doctest-module")
       ))
 
-  (req-package flymake-pyfixers
-    :init
-    (progn
-      (if debug-init-msg
-          (message "Mark post flymake-pyfixers init"))
-      )
-    :config
-    (progn
-      (if debug-init-msg
-          (message "Mark post flymake-pyfixers config"))
-      )
-    )
+  ;; (req-package flymake-pyfixers)
 
   (req-package pylookup
     :commands (pylookup-lookup pylookup-update)
@@ -2072,17 +1990,12 @@ IETF Yang mode.
       (setq pylookup-db-file (concat pylookup-dir "/pylookup.db"))
       ))
 
-  (if debug-init-msg
-      (message "Mark post pylookup"))
-
   (req-package python
     :commands python-mode
     :mode (("\\.py\\'" . python-mode))
     :interpreter ("python" . python-mode)
     :init
     (progn
-      (if debug-init-msg
-          (message "Mark pre python init"))
       (setq python-font-lock-keywords
             ;; Keywords
             `(,(rx symbol-start
@@ -2190,13 +2103,9 @@ IETF Yang mode.
                                 (python-syntax-context 'paren)))
                     res))
                (1 font-lock-variable-name-face nil nil))))
-      (if debug-init-msg
-          (message "Mark post python init"))
       )
     :config
     (progn
-      (if debug-init-msg
-          (message "Mark pre python config"))
       (defun my-python-mode-hook ()
         (if debug-init-msg
             (message "Python mode hook"))
@@ -2204,7 +2113,7 @@ IETF Yang mode.
         ;; Fill values
         (if debug-init-msg
             (message "Mark pre req pyfixers"))
-        (require 'flymake-pyfixers)
+        ;; (require 'flymake-pyfixers)
         (if debug-init-msg
             (message "Mark post req pyfixers"))
         (setq comment-column 60)
@@ -2236,7 +2145,8 @@ IETF Yang mode.
 
         (if debug-init-msg
             (message "Enabling projectile"))
-        (projectile-mode t)
+        ;; XXXnew 
+        ;; (projectile-mode t)
 
         (flycheck-mode t)
         (flycheck-select-checker 'python-pycheckers)
@@ -2316,8 +2226,6 @@ IETF Yang mode.
                   (delete-region impstart impend)
                   (goto-char impstart)
                   (insert bigstr)))))))
-      (if debug-init-msg
-          (message "Mark python config"))
       ))
 #+end_src
 **** Pymacs
@@ -2326,8 +2234,6 @@ IETF Yang mode.
     :commands (pymacs-apply pymacs-call pymacs-eval pymacs-exec pymacs-load)
     :config
     (progn
-      (if debug-init-msg
-          (message "Mark pre pymacs config"))
       (add-to-list 'pymacs-load-path (concat user-emacs-directory "pymacs-dir"))
 
       (defun fp-maybe-pymacs-reload ()
@@ -2371,8 +2277,6 @@ IETF Yang mode.
        ;;                                          (current-time-string))))))
        ;;   ;;(pymacs-load "ropemacs" "rope-")
        ;;  )
-      (if debug-init-msg
-          (message "Mark post pymacs config"))
       )
     )
 #+end_src
@@ -2382,211 +2286,185 @@ IETF Yang mode.
   (req-package taskjuggler-mode
     :commands taskjuggler-mode
     :mode "\\.tjp\\'")
-  (if debug-init-msg
-      (message "Mark post taskjuggler"))
 #+end_src
 
 *** Org-Mode
-#+begin_src emacs-lisp :tangle yes
-  (if debug-init-msg
-      (message "Mark pre org mode"))
+#+begin_src emacs-lisp :tangle no
+    (req-package org-mac-link
+      :commands org-mac-grab-link)
 
-  (req-package org-mac-link
-    :commands org-mac-grab-link
-    :init
-    (progn
-      (if debug-init-msg
-          (message "Mark post org-mac-link init")))
-    :config
-    (progn
-      (if debug-init-msg
-          (message "Mark post org-mac-link config")))
-   )
+    ;; (require s)
+    (defvar ietf-doc-directory "~/Dropbox/IETF/doc-cache/")
+    (defvar ietf-draft-url-directory "http://www.ietf.org/id/")
+    (defvar ietf-rfc-url-directory "http://www.ietf.org/rfc/")
+    (defun ietf-doc-fetch-to-cache ()
+      (interactive)
+      (let* ((found (thing-at-point 'filename))
+             (pathname (concat ietf-doc-directory found))
+             (dirname (file-name-directory pathname))
+             (filename (concat (file-name-sans-extension (file-name-base pathname))
+                               ".txt"))
+             (url (concat ietf-draft-url-directory filename)))
+        (setq pathname (concat dirname filename))
+        (if (file-exists-p pathname)
+            (message "Already have %s" pathname)
+          (make-directory dirname t)
+          (url-copy-file url pathname t)
+          (message "Downloaded %s to %s" url pathname)
+        )))
 
-  ;; (require s)
-  (defvar ietf-doc-directory "~/Dropbox/IETF/doc-cache/")
-  (defvar ietf-draft-url-directory "http://www.ietf.org/id/")
-  (defvar ietf-rfc-url-directory "http://www.ietf.org/rfc/")
-  (defun ietf-doc-fetch-to-cache ()
-    (interactive)
-    (let* ((found (thing-at-point 'filename))
-           (pathname (concat ietf-doc-directory found))
-           (dirname (file-name-directory pathname))
-           (filename (concat (file-name-sans-extension (file-name-base pathname))
-                             ".txt"))
-           (url (concat ietf-draft-url-directory filename)))
-      (setq pathname (concat dirname filename))
-      (if (file-exists-p pathname)
-          (message "Already have %s" pathname)
-        (make-directory dirname t)
-        (url-copy-file url pathname t)
-        (message "Downloaded %s to %s" url pathname)
-      )))
+    ;;(load-library "org-plus-contrib-autoloads")
 
-  ;;(load-library "org-plus-contrib-autoloads")
+    (req-package org-magit
+      :commands (org-magit-open org-magit-export org-magit-store-link))
 
-  (req-package org-magit
-    :commands (org-magit-open org-magit-export org-magit-store-link))
+    (req-package org-crypt
+      :commands (org-encrypt-entries org-decrypt-entries
+                 org-encrypt-entry org-decrypt-entry
+                 org-crypt-use-before-save-magic))
 
-  (req-package org-crypt
-    :commands (org-encrypt-entries org-decrypt-entries
-               org-encrypt-entry org-decrypt-entry
-               org-crypt-use-before-save-magic))
-
-  (req-package org
-    :commands (org-mode org-capture)
-    :interpreter ("org" . org-mode)
-    :mode ("\\.org\\'" . org-mode)
-    :bind ("C-c c" . org-capture)
-    :init
-    (progn
-      (defun my-org-mode-hook ()
-        (if debug-init-msg
-            (message "Org-mode-hook"))
-        (org-set-local 'yas/trigger-key [tab])
-        (yas-minor-mode)
-        (turn-on-flyspell)
-        (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
-        (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
-        (define-key org-mode-map (kbd "C-c e e") 'org-encrypt-entries)
-        (define-key org-mode-map (kbd "C-c e E") 'org-encrypt-entry)
-        (define-key org-mode-map (kbd "C-c e d") 'org-decrypt-entries)
-        (define-key org-mode-map (kbd "C-c e D") 'org-decrypt-entry)
-        (setq org-tags-exclude-from-inheritance '("crypt"))
-        (setq org-crypt-disable-auto-save t)
-        (setq org-crypt-key "D7B83025"))
+    (req-package org
+      :commands (org-mode org-agenda org-capture org-store-link)
+      :interpreter ("org" . org-mode)
+      :mode ("\\.org\\'" . org-mode)
+      :bind (("C-c c" . org-capture)
+             ("C-c a" . org-agenda)
+             ("C-c l" . org-store-link))
+      :init
+      (progn
+        (setq org-directory "~/org-mode")
+        (setq org-src-fontify-natively t)
+        (setq org-default-notes-file (concat org-directory "/notes.org"))
+        (setq org-agenda-start-on-weekday 5)
+        ;; (setq org-agenda-start-day "-8d")
+        ;; (require 'org-latex)
         ;; (and (buffer-file-name)
         ;;      (string-match "\\.o2b$" (buffer-file-name))
         ;;      (org2blog/wp-mode)))
+        )
+      :config
+      (progn
+        (if debug-init-msg
+            (message "org-mode after load"))
+        (defun my-org-mode-hook ()
+          (if debug-init-msg
+              (message "Org-mode-hook"))
+          (org-set-local 'yas/trigger-key [tab])
+          (yas-minor-mode)
+          (turn-on-flyspell)
+          (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
+          (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
+          (define-key org-mode-map (kbd "C-c e e") 'org-encrypt-entries)
+          (define-key org-mode-map (kbd "C-c e E") 'org-encrypt-entry)
+          (define-key org-mode-map (kbd "C-c e d") 'org-decrypt-entries)
+          (define-key org-mode-map (kbd "C-c e D") 'org-decrypt-entry)
+          (setq org-tags-exclude-from-inheritance '("crypt"))
+          (setq org-crypt-disable-auto-save t)
+          (setq org-crypt-key "D7B83025"))
+        (add-hook 'org-mode-hook 'my-org-mode-hook)
+        (org-crypt-use-before-save-magic)
+        (org-babel-do-load-languages
+         'org-babel-load-languages
+         '((python . t) (dot . t))
+         )
 
-      (define-key global-map (kbd "C-c a") 'org-agenda)
-      (define-key global-map (kbd "C-c c") 'org-capture)
-      (define-key global-map (kbd "C-c l") 'org-store-link)
-      (add-hook 'org-mode-hook 'my-org-mode-hook)
-      ;; (require 'org-latex)
+        (eval-after-load "org"
+          '(mapc
+            (lambda (face)
+              (set-face-attribute
+               face nil
+               :inherit
+               (my-adjoin-to-list-or-symbol
+                'fixed-pitch
+                (face-attribute face :inherit))))
+            (list 'org-code 'org-block 'org-table 'org-block-background)))
 
-      (setq org-directory "~/org-mode")
-      (setq org-src-fontify-natively t)
-      (setq org-default-notes-file (concat org-directory "/notes.org"))
-      (setq org-agenda-start-on-weekday 5)
-      ;; (setq org-agenda-start-day "-8d")
-      )
+        ;; (add-to-list 'org-modules 'org-mac-message)
+        ;; (setq org-mac-mail-account "Work")
 
-    :config
-    (progn
-      (if debug-init-msg
-          (message "org-mode after load"))
-      (org-crypt-use-before-save-magic)
-      (org-babel-do-load-languages
-       'org-babel-load-languages
-       '((python . t) (dot . t))
-       )
+        ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
+        (bind-key "M-h" 'org-metaleft org-mode-map)
+        (bind-key "M-l" 'org-metaright org-mode-map)
+        (bind-key "M-k" 'org-metaup org-mode-map)
+        (bind-key "M-j" 'org-metadown org-mode-map)
+        (bind-key "M-H" 'org-shiftmetaleft org-mode-map)
+        (bind-key "M-L" 'org-shiftmetaright org-mode-map)
+        (bind-key "M-K" 'org-shiftmetaup org-mode-map)
+        (bind-key "M-J" 'org-shiftmetadown org-mode-map)
 
-      (eval-after-load "org"
-        '(mapc
-          (lambda (face)
-            (set-face-attribute
-             face nil
-             :inherit
-             (my-adjoin-to-list-or-symbol
-              'fixed-pitch
-              (face-attribute face :inherit))))
-          (list 'org-code 'org-block 'org-table 'org-block-background)))
+        (setq org-capture-templates
+              '(("t" "Todo" entry (file+headline (concat org-directory "/notes.org") "Tasks")
+                 "* TODO %?\n%T\n%a\n")
 
-      ;; (add-to-list 'org-modules 'org-mac-message)
-      ;; (setq org-mac-mail-account "Work")
+                ("m" "Mail Todo" entry (file+headline (concat org-directory "/notes.org") "Mail")
+                 "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
 
-      ;; - Vi friendly bindings replacing cursor movement with meta-{hjkl}
-      (bind-key "M-h" 'org-metaleft org-mode-map)
-      (bind-key "M-l" 'org-metaright org-mode-map)
-      (bind-key "M-k" 'org-metaup org-mode-map)
-      (bind-key "M-j" 'org-metadown org-mode-map)
-      (bind-key "M-H" 'org-shiftmetaleft org-mode-map)
-      (bind-key "M-L" 'org-shiftmetaright org-mode-map)
-      (bind-key "M-K" 'org-shiftmetaup org-mode-map)
-      (bind-key "M-J" 'org-shiftmetadown org-mode-map)
+                ("l" "Link Note" entry (file+headline (concat org-directory "/notes.org") "Notes")
+                 "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
 
-      (setq org-capture-templates
-            '(("t" "Todo" entry (file+headline (concat org-directory "/notes.org") "Tasks")
-               "* TODO %?\n%T\n%a\n")
+                ("n" "Generic Note" entry (file+datetree (concat org-directory "/notes.org") "Notes")
+                 "* NOTE %?\n%T\nannotation:%a\nx:%x\n")
 
-              ("m" "Mail Todo" entry (file+headline (concat org-directory "/notes.org") "Mail")
-               "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
+                ("s" "Status" entry (file+datetree (concat org-directory "/status.org"))
+                 "* NOTE %?\n%T\n")
 
-              ("l" "Link Note" entry (file+headline (concat org-directory "/notes.org") "Notes")
-               "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
+                ("i" "IETF related")
+                ("im" "IETF Todo w/ Mail" entry (file+headline (concat org-directory "/notes.org") "IETF")
+                 "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
+                ("il" "IETF Note w/ Link " entry (file+headline (concat org-directory "/notes.org") "IETF")
+                 "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
+                ("in" "IETF Note" entry (file+datetree (concat org-directory "/notes.org") "IETF")
+                 "* NOTE %?\n%T\nannotation:%a\nx:%x\n")
+                ("it" "IETF Todo" entry (file+headline (concat org-directory "/notes.org") "IETF")
+                 "* TODO %?\n%T\nannotation:%a\n")
 
-              ("n" "Generic Note" entry (file+datetree (concat org-directory "/notes.org") "Notes")
-               "* NOTE %?\n%T\nannotation:%a\nx:%x\n")
-
-              ("s" "Status" entry (file+datetree (concat org-directory "/status.org"))
-               "* NOTE %?\n%T\n")
-
-              ("i" "IETF related")
-              ("im" "IETF Todo w/ Mail" entry (file+headline (concat org-directory "/notes.org") "IETF")
-               "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
-              ("il" "IETF Note w/ Link " entry (file+headline (concat org-directory "/notes.org") "IETF")
-               "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
-              ("in" "IETF Note" entry (file+datetree (concat org-directory "/notes.org") "IETF")
-               "* NOTE %?\n%T\nannotation:%a\nx:%x\n")
-              ("it" "IETF Todo" entry (file+headline (concat org-directory "/notes.org") "IETF")
-               "* TODO %?\n%T\nannotation:%a\n")
-
-              ("T" "Terastream related")
-              ("Tm" "Terastram Todo with Mail" entry (file+headline (concat org-directory "/notes.org") "Terastream")
-               "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
-              ("Tl" "Terastram Link Note" entry (file+headline (concat org-directory "/notes.org") "Terastream")
-               "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
-              ("Tt" "Terastream Todo" entry (file+headline (concat org-directory "/notes.org") "Terastream")
-               "* TODO %?\n%T\n")
+                ("T" "Terastream related")
+                ("Tm" "Terastram Todo with Mail" entry (file+headline (concat org-directory "/notes.org") "Terastream")
+                 "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
+                ("Tl" "Terastram Link Note" entry (file+headline (concat org-directory "/notes.org") "Terastream")
+                 "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
+                ("Tt" "Terastream Todo" entry (file+headline (concat org-directory "/notes.org") "Terastream")
+                 "* TODO %?\n%T\n")
+                )
               )
-            )
+        )
       )
-    )
 #+end_src
 
 *** Blogging
-#+begin_src emacs-lisp :tangle yes
-  (if debug-init-msg
-      (message "Mark pre org2blog mode"))
-  (req-package org2blog
-    :require (metaweblog netrc)
-    :interpreter ("org2blog" . org2blog/wp-mode)
-    :mode ("\\.o2b\\'" . org2blog/wp-mode)
-    :commands org2blog/wp-mode
-    :init
-    (progn
-      (setq blog (netrc-machine (netrc-parse "~/.netrc") "hoppsjots.org" t))
-      (setq org2blog/wp-use-sourcecode-shortcode t)
-      (setq org2blog/wp-blog-alist
-            '(("wordpress"
-               :url "http://chopps.wordpress.com/xmlrpc.php"
-               :username "chopps"
-               :default-title "Hello World"
-               :default-categories ("org2blog" "emacs")
-               :tags-as-categories nil)
-              ("hoppsjots.org"
-               :url "http://hoppsjots.org/xmlrpc.php"
-               :default-categories ("Development" "Emacs")
-               :username (netrc-get blog "login")
-               :password (netrc-get blog "password"))))
-      )
-    :config
-    (progn
-      (defadvice org-wp-src-block (after ad-org-wp-src-block activate)
-        "Always use space as title if none given"
-        (setq ad-return-value (replace-regexp-in-string "title=\"\"" "title=\" \"" ad-return-value)))
-      (ad-activate 'org-wp-src-block)
-      (add-to-list 'org2blog/wp-sourcecode-langs "lisp")
-      (add-to-list 'org2blog/wp-sourcecode-langs "sh")
-      (add-hook 'org2blog/wp-mode-hook 'org-mode)
-      ))
+#+begin_src emacs-lisp :tangle no
+    (req-package netrc)
+    (req-package metaweblog)
+    (req-package org2blog
+      :interpreter ("org2blog" . org2blog/wp-mode)
+      :mode ("\\.o2b\\'" . org2blog/wp-mode)
+      :commands org2blog/wp-mode
+      :config
+      (progn
+        (defadvice org-wp-src-block (after ad-org-wp-src-block activate)
+          "Always use space as title if none given"
+          (setq ad-return-value (replace-regexp-in-string "title=\"\"" "title=\" \"" ad-return-value)))
+        (setq blog (netrc-machine (netrc-parse "~/.netrc") "hoppsjots.org" t)
+              org2blog/wp-use-sourcecode-shortcode t
+              org2blog/wp-blog-alist '(("wordpress"
+                                        :url "http://chopps.wordpress.com/xmlrpc.php"
+                                        :username "chopps"
+                                        :default-title "Hello World"
+                                        :default-categories ("org2blog" "emacs")
+                                        :tags-as-categories nil)
+                                       ("hoppsjots.org"
+                                        :url "http://hoppsjots.org/xmlrpc.php"
+                                        :default-categories ("Development" "Emacs")
+                                        :username (netrc-get blog "login")
+                                        :password (netrc-get blog "password"))))
+        (ad-activate 'org-wp-src-block)
+        (add-to-list 'org2blog/wp-sourcecode-langs "lisp")
+        (add-to-list 'org2blog/wp-sourcecode-langs "sh")
+        (add-hook 'org2blog/wp-mode-hook 'org-mode)))
 #+end_src
 
 *** Spelling
 #+begin_src emacs-lisp :tangle yes
-  (if debug-init-msg
-      (message "Mark pre spelling"))
   (define-key ctl-x-map (kbd "C-i") 'endless/ispell-word-then-abbrev)
 
   (defun endless/ispell-word-then-abbrev (p)
@@ -2610,13 +2488,11 @@ IETF Yang mode.
 
 *** Completion
 **** Helm
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
   (req-package helm
     :require (helm-config helm-projectile projectile)
     :init
     (progn
-      (if debug-init-msg
-          (message "Mark pre helm mode"))
       (setq helm-c-locate-command
             (case system-type
               ('gnu/linux "locate -i -r %s")
@@ -2685,14 +2561,12 @@ IETF Yang mode.
       ;; (setq helm-projectile-sources-list (cons 'helm-source-projectile-files-list
       ;;                                         (remove 'helm-source-projectile-files-list
       ;;                                                  helm-projectile-sources-list)))
-      (helm-projectile-on)
-      (if debug-init-msg
-          (message "Mark post helm mode"))
+      ;; (helm-projectile-on)
       ))
 #+END_SRC
 
 **** Auto Complete
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   (req-package-force auto-complete
     :require auto-complete-config
     :config
@@ -2747,12 +2621,10 @@ IETF Yang mode.
 #+end_src
 
 **** Yasnippet
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   (req-package yasnippet
     :init
     (progn
-      (if debug-init-msg
-        (message "yasnippet loading"))
       ;; (setq yas/trigger-key (kbd "C-c <kp-multiply>"))
       ;; (setq yas/trigger-key (kbd "C-c C-q"))
       (setq yas/trigger-key (kbd "C-c C-]"))
@@ -2768,9 +2640,7 @@ IETF Yang mode.
       (add-hook 'yas/after-exit-snippet-hook
                 (lambda () (setq ac-trigger-key nil)))
       (add-hook 'yas/before-expand-snippet-hook
-                (lambda () (setq ac-trigger-key "TAB")))
-      (if debug-init-msg
-        (message "yasnippet loaded")))
+                (lambda () (setq ac-trigger-key "TAB"))))
     :config
     (yas-reload-all))
   ;;     (yas/global-mode 1)))
@@ -3048,50 +2918,48 @@ IETF Yang mode.
 
 *** Display
 #+begin_src emacs-lisp :tangle yes
-(if debug-init-msg
-    (message "Mark pre display mode"))
-(setq x-mouse-click-focus-ignore-position t)
-(setq mouse-yank-at-point t)
-(display-time-mode)
+  (if debug-init-msg
+      (message "Mark pre display mode"))
+  (setq x-mouse-click-focus-ignore-position t)
+  (setq mouse-yank-at-point t)
+  (display-time-mode)
 
-(if debug-init-msg
-    (message "Mark display mode 1"))
-;;
-;; Font-lock
-;;
-(setq c-font-lock-extra-types
-    (quote
-     ("FILE" "\\sw+_st" "\\sw+_t" "Lisp_Object" "\\sw+type" "uint" "ushort" "uchar" "boolean" "active_timer")))
+  (if debug-init-msg
+      (message "Mark display mode"))
+  ;;
+  ;; Font-lock
+  ;;
+  (setq c-font-lock-extra-types
+      (quote
+       ("FILE" "\\sw+_st" "\\sw+_t" "Lisp_Object" "\\sw+type" "uint" "ushort" "uchar" "boolean" "active_timer")))
 
-(add-hook 'c-mode-hook
-        (function (lambda ()
-                    (font-lock-mode 1))))
+  (add-hook 'c-mode-hook
+            (function (lambda ()
+                        (font-lock-mode 1))))
 
-(add-hook 'html-mode-hook
-        (function (lambda ()
-                    (font-lock-mode 1))))
+  (add-hook 'html-mode-hook
+            (function (lambda ()
+                        (font-lock-mode 1))))
 
-(add-hook 'lisp-mode-hook
-        (function (lambda ()
-                    (font-lock-mode 1))))
+  (add-hook 'lisp-mode-hook
+            (function (lambda ()
+                        (font-lock-mode 1))))
 
-(add-hook 'lisp-interaction-mode-hook
-        (function (lambda ()
-                    (font-lock-mode 1))))
+  (add-hook 'lisp-interaction-mode-hook
+            (function (lambda ()
+                        (font-lock-mode 1))))
 
-(add-hook 'perl-mode-hook
-        (function (lambda ()
-                    (font-lock-mode 1))))
+  (add-hook 'perl-mode-hook
+            (function (lambda ()
+                        (font-lock-mode 1))))
 
-(add-hook 'python-mode-hook
-        (function (lambda ()
-                    (font-lock-mode 1))))
-(if debug-init-msg
-    (message "Mark display mode 10"))
+  (add-hook 'python-mode-hook
+            (function (lambda ()
+                        (font-lock-mode 1))))
 #+end_src
 
 *** XRUT
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
 ;; XRUT functionality
 (if debug-init-msg
     (message "Mark pre xrut mode"))
@@ -3165,12 +3033,13 @@ IETF Yang mode.
 * End Req-Packages
 #+begin_src emacs-lisp
   (if debug-init-msg
-      (message "Mark pre req-package-finish"))
+      (message "Pre req-package-finish"))
   (req-package-finish)
   (if debug-init-msg
-      (message "Mark post req-package-finish"))
+      (message "Post req-package-finish"))
 
-(message "Done with emacs-init.org")
+  (if debug-init-msg
+      (message "Done with emacs-init.org"))
 #+end_src
 
 * Disabled
