@@ -19,8 +19,8 @@
 (setq use-package-verbose t)
 ;; (setq use-package-debug nil)
 
-(ad-disable-advice 'message 'before 'when-was-that)
-(ad-update 'message)
+;; (ad-disable-advice 'message 'before 'when-was-that)
+;; (ad-update 'message)
 
 ;; (message "Starting cask")
 
@@ -47,8 +47,6 @@
 (org-babel-load-file
   (expand-file-name "emacs-init.org"
                      user-emacs-directory))
-
-;; (load-file (concat user-emacs-directory "emacs-init.el"))
 
 (ad-disable-advice 'message 'before 'when-was-that)
 (ad-update 'message)
