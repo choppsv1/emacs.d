@@ -10,12 +10,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default default default italic underline success warning error])
- '(ansi-color-names-vector
-   ["#2f2f2f" "#F0B4BF" "#25e380" "#F8FBA3" "#b9d8ec" "#DDA0DD" "#93E0E3" "#DCDCCC"])
- '(background-color "#002b36")
- '(background-mode dark)
+ ;;'(ansi-color-faces-vector
+ ;;  [default default default italic underline success warning error])
+ ;; '(ansi-color-names-vector
+ ;;  ["#2f2f2f" "#F0B4BF" "#25e380" "#F8FBA3" "#b9d8ec" "#DDA0DD" "#93E0E3" "#DCDCCC"])
  '(blink-matching-paren (quote jump))
  '(compilation-message-face (quote default))
  '(cursor-color "#839496")
@@ -155,7 +153,7 @@ static char *gnus-pointer[] = {
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#282828" :foreground "#DCDCDC" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 160 :width normal :foundry "nil" :family "SimSunShort"))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 160 :width normal :foundry "nil" :family "SimSunShort"))))
  '(fixed-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 160 :width normal :foundry "nil" :family "SimSunShort"))))
  '(flycheck-error ((t (:inherit error :inverse-video t))))
  '(flycheck-warning ((t (:inherit warning :inverse-video t :weight bold))))

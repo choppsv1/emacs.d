@@ -37,19 +37,19 @@
 ;; (message "Enabling pallet mode")
 ;; (pallet-mode t)
 
-(message "Requiring ob-tangle")
 
 ;; Load the rest of our config from the emacs-init.org file.
 
 
 ;; (setq debug-on-error t)
-(message "Loading emacs-init.org")
 (if (file-newer-than-file-p "emacs-init.org" "emacs-init.el")
     (progn
+      (message "Loading emacs-init.org")
       (require 'ob-tangle)
       (org-babel-load-file
        (expand-file-name "emacs-init.org"
 			 user-emacs-directory)))
+  (message "Loading up-to-date emacs-init.el")
   (load-file "emacs-init.el"))
 (ad-disable-advice 'message 'before 'when-was-that)
 (ad-update 'message)

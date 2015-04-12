@@ -62,7 +62,5 @@
   (let ((pathname (ietf-doc-at-point-fetch-to-cache reload)))
     (find-file pathname)))
 
-(define-key global-map (kbd "C-c i o") 'ietf-doc-open-at-point)
-
 (provide 'ietf-doc)
 ;;; ietf-lisp.el ends here
