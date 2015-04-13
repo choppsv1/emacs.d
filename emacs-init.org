@@ -707,7 +707,7 @@ without relaunching.
       ))
 #+END_SRC
 
-**** VCS
+**** GIT (Magit)
 #+begin_src emacs-lisp :tangle yes
     (req-package magit
       :commands magit-status
@@ -752,6 +752,128 @@ without relaunching.
       (add-hook 'c-mode-common-hook (lambda () (when (featurep 'filladapt)
                                                  (c-setup-filladapt))))))
 #+end_src
+**** Spell and Lint Checkers
+***** Flyspell
+#+begin_src emacs-lisp :tangle yes
+  (req-package flyspell
+    :commands (turn-on-flyspell flyspell-prog-mode)
+    :init
+    (progn
+      (add-hook 'all-prog-mode-hook 'flyspell-prog-mode)
+      ;; Magit mode 
+      (dolist (x (list 'org-mode-hook 'text-mode-hook))
+        (add-hook x 'turn-on-flyspell))))
+          
+#+end_src
+***** Flycheck
+#+begin_src emacs-lisp :tangle yes
+  (req-package flycheck
+    :commands flycheck-mode
+    :config
+    (progn
+      (flycheck-define-checker python-pycheckers
+        "A python syntax and style checker using flake8 and pylint."
+        :command ("pycheckers.sh"
+                  (config-file "-8" flycheck-flake8rc)
+                  (config-file "-r" flycheck-pylintrc)
+                  source-inplace)
+        :error-patterns
+        ((error line-start
+                (file-name) ":" line ":" (optional column ":") " "
+                (message "E" (one-or-more digit) (zero-or-more not-newline))
+                line-end)
+         (warning line-start
+                  (file-name) ":" line ":" (optional column ":") " "
+                  (message (or "F"            ; Pyflakes in Flake8 >= 2.0
+                               "W"            ; Pyflakes in Flake8 < 2.0
+                               "C")           ; McCabe in Flake >= 2.0
+                           (one-or-more digit) (zero-or-more not-newline))
+                  line-end)
+         (info line-start
+               (file-name) ":" line ":" (optional column ":") " "
+               (message (or "N"              ; pep8-naming in Flake8 >= 2.0
+                            "R")             ; re-factor from python.
+                        (one-or-more digit) (zero-or-more not-newline))
+               line-end)
+         )
+        :modes python-mode)
+      ;; (add-hook 'after-init-hook 'global-flycheck-mode)
+      ))
+#+end_src
+**** Generic Editing
+#+begin_src emacs-lisp :tangle yes
+  (req-package rebox2
+    :commands rebox-mode
+    :bind (("M-q" . rebox-dwim)
+           ("S-M-q" . rebox-fill))
+    :init (setq max-comment-fill-column 77)
+    ;; (setq rebox-style-loop '(24 16))
+    :config
+    (progn
+       (defadvice rebox-get-fill-column (after ad-max-comment-fill-column activate)
+         "Set a maximum fill-column for comments"
+         (setq ad-return-value (min ad-return-value max-comment-fill-column)))
+       (ad-activate 'rebox-get-fill-column)
+       (rebox-register-template 71 176 ["? ----------"
+                                        "? box123456  "
+                                        "? ----------"])
+
+       (rebox-register-template 72 276 ["? ----------+"
+                                        "? box123456  "
+                                        "? ----------+"])
+
+       (rebox-register-template 73 376 ["? =========="
+                                        "? box123456  "
+                                        "? =========="])
+
+       (rebox-register-template 74 176 ["?-----------"
+                                        "? box123456 "
+                                        "?-----------"])
+
+       (rebox-register-template 75 276 ["?-----------+"
+                                        "? box123456  "
+                                        "?-----------+"])
+
+       (rebox-register-template 76 376 ["?==========="
+                                        "? box123456"
+                                        "?==========="])
+
+       (rebox-register-template 77 576 ["????????????"
+                                        "? box123456  "
+                                        "????????????"])
+
+       (rebox-register-template 81 186 ["?? -----------"
+                                        "??  box123456  "
+                                        "?? -----------"])
+
+       (rebox-register-template 82 286 ["??-----------+"
+                                        "?? box123456  "
+                                        "??-----------+"])
+
+       (rebox-register-template 83 386 ["??-----------"
+                                        "?? box123456  "
+                                        "??-----------"])
+
+       (rebox-register-template 84 486 ["??==========="
+                                        "?? box123456  "
+                                        "??==========="])
+       ;; (rebox-set-default-style 093)
+       ;; Leave the defaults
+       ;; (global-set-key [(meta q)] 'rebox-dwim)
+       ;; (global-set-key [(shift meta q)] 'rebox-fill)
+       (setq rebox-style-loop '(74 75 76 11))))
+
+
+  ;;(global-linum-mode nil)
+  ;;(setq linum-format 'dynamic)
+  ;;(set-face-attribute 'linum nil :background "Black"))
+
+  ;;        (add-hook 'emacs-lisp-mode-hook (lambda ()
+  ;;                                          (set (make-local-variable 'rebox-style-loop) '(25 17 21))
+  ;;                                          (set (make-local-variable 'rebox-min-fill-column) 40)
+  ;;                                          (rebox-mode 1)))
+  ;
+#+end_src
 **** Text Mode
 #+begin_src emacs-lisp :tangle yes
   (req-package text-mode
@@ -760,7 +882,6 @@ without relaunching.
     (progn
       (setq default-fill-column 80)
       (add-hook 'text-mode-hook 'turn-on-auto-fill)
-      (add-hook 'text-mode-hook 'turn-on-flyspell)
       (add-hook 'rst-mode-hook (lambda ()
                                  (define-key mode-specific-map "0" 'rst-adjust)
                                  (setq fill-column 79))))
@@ -906,18 +1027,6 @@ without relaunching.
 
 #+end_src
 
-**** Shell Mode
-#+begin_src emacs-lisp :tangle yes
-  (add-hook 'shell-mode-hook
-            (function (lambda ()
-                        (flyspell-prog-mode)
-                        (local-set-key "\M-p" 'comint-previous-input)
-                        (local-set-key "\M-n" 'comint-next-input))))
-
-
-  ;; (require 'shell-switcher)
-  ;; (shell-switcher-mode t)
-#+end_src
 **** Mac
 #+begin_src emacs-lisp :tangle yes
   (unwind-protect
@@ -1275,79 +1384,6 @@ without relaunching.
        (modify-syntax-entry ?- "w" lisp-mode-syntax-table)
        ))
 #+end_src
-**** Generic Editing
-#+begin_src emacs-lisp :tangle yes
-  (req-package rebox2
-    :bind (("M-q" . rebox-dwim)
-           ("S-M-q" . rebox-fill))
-    :init (setq max-comment-fill-column 77)
-    ;; (setq rebox-style-loop '(24 16))
-    :config
-    (progn
-       (defadvice rebox-get-fill-column (after ad-max-comment-fill-column activate)
-         "Set a maximum fill-column for comments"
-         (setq ad-return-value (min ad-return-value max-comment-fill-column)))
-       (ad-activate 'rebox-get-fill-column)
-       (rebox-register-template 71 176 ["? ----------"
-                                        "? box123456  "
-                                        "? ----------"])
-
-       (rebox-register-template 72 276 ["? ----------+"
-                                        "? box123456  "
-                                        "? ----------+"])
-
-       (rebox-register-template 73 376 ["? =========="
-                                        "? box123456  "
-                                        "? =========="])
-
-       (rebox-register-template 74 176 ["?-----------"
-                                        "? box123456 "
-                                        "?-----------"])
-
-       (rebox-register-template 75 276 ["?-----------+"
-                                        "? box123456  "
-                                        "?-----------+"])
-
-       (rebox-register-template 76 376 ["?==========="
-                                        "? box123456"
-                                        "?==========="])
-
-       (rebox-register-template 77 576 ["????????????"
-                                        "? box123456  "
-                                        "????????????"])
-
-       (rebox-register-template 81 186 ["?? -----------"
-                                        "??  box123456  "
-                                        "?? -----------"])
-
-       (rebox-register-template 82 286 ["??-----------+"
-                                        "?? box123456  "
-                                        "??-----------+"])
-
-       (rebox-register-template 83 386 ["??-----------"
-                                        "?? box123456  "
-                                        "??-----------"])
-
-       (rebox-register-template 84 486 ["??==========="
-                                        "?? box123456  "
-                                        "??==========="])
-       ;; (rebox-set-default-style 093)
-       ;; Leave the defaults
-       ;; (global-set-key [(meta q)] 'rebox-dwim)
-       ;; (global-set-key [(shift meta q)] 'rebox-fill)
-       (setq rebox-style-loop '(74 75 76 11))))
-
-
-  ;;(global-linum-mode nil)
-  ;;(setq linum-format 'dynamic)
-  ;;(set-face-attribute 'linum nil :background "Black"))
-
-  ;;        (add-hook 'emacs-lisp-mode-hook (lambda ()
-  ;;                                          (set (make-local-variable 'rebox-style-loop) '(25 17 21))
-  ;;                                          (set (make-local-variable 'rebox-min-fill-column) 40)
-  ;;                                          (rebox-mode 1)))
-  ;
-#+end_src
 **** Rectangle Lisp
 ***** Transpose Rectange
 #+BEGIN_SRC emacs-lisp
@@ -1626,6 +1662,20 @@ without relaunching.
           (define-key special-event-map [sigusr1] 'sigusr1-handler))))
 #+end_src
 
+**** Shell
+#+begin_src emacs-lisp :tangle yes
+  (req-package shell-mode
+    :init
+    (progn
+      (add-hook 'shell-mode-hook 'run-all-prog-mode-hook)
+      (add-hook 'shell-mode-hook
+                (function (lambda ()
+                          (local-set-key "\M-p" 'comint-previous-input)
+                          (local-set-key "\M-n" 'comint-next-input))))))
+
+    ;; (require 'shell-switcher)
+    ;; (shell-switcher-mode t)
+#+end_src
 **** Programming
 ***** All Programming Mode Hook
 #+begin_src emacs-lisp :tangle yes
@@ -1645,46 +1695,8 @@ without relaunching.
 IETF Yang mode.
 #+begin_src emacs-lisp :tangle yes
   (req-package yang-mode
-   :commands yang-mode
    :mode ("\\.yang$" . yang-mode))
 #+end_src
-***** Flycheck
-#+BEGIN_SRC emacs-lisp :tangle yes
-  ;; (req-package flyspell)
-
-  (req-package flycheck
-    :commands flycheck-mode
-    :config
-    (progn
-      (flycheck-define-checker python-pycheckers
-        "A python syntax and style checker using flake8 and pylint."
-        :command ("pycheckers.sh"
-                  (config-file "-8" flycheck-flake8rc)
-                  (config-file "-r" flycheck-pylintrc)
-                  source-inplace)
-        :error-patterns
-        ((error line-start
-                (file-name) ":" line ":" (optional column ":") " "
-                (message "E" (one-or-more digit) (zero-or-more not-newline))
-                line-end)
-         (warning line-start
-                  (file-name) ":" line ":" (optional column ":") " "
-                  (message (or "F"            ; Pyflakes in Flake8 >= 2.0
-                               "W"            ; Pyflakes in Flake8 < 2.0
-                               "C")           ; McCabe in Flake >= 2.0
-                           (one-or-more digit) (zero-or-more not-newline))
-                  line-end)
-         (info line-start
-               (file-name) ":" line ":" (optional column ":") " "
-               (message (or "N"              ; pep8-naming in Flake8 >= 2.0
-                            "R")             ; re-factor from python.
-                        (one-or-more digit) (zero-or-more not-newline))
-               line-end)
-         )
-        :modes python-mode)
-      ;; (add-hook 'after-init-hook 'global-flycheck-mode)
-      ))
-#+END_SRC
 ***** CC Mode
 #+begin_src emacs-lisp
   (req-package cc-mode
@@ -2162,66 +2174,14 @@ IETF Yang mode.
 
 
 #+end_src
-***** Pymacs
-#+begin_src emacs-lisp :tangle no
-  (req-package pymacs
-    :commands (pymacs-apply pymacs-call pymacs-eval pymacs-exec pymacs-load)
-    :config
-    (progn
-      (add-to-list 'pymacs-load-path (concat user-emacs-directory "pymacs-dir"))
-
-      (defun fp-maybe-pymacs-reload ()
-        (let ((buffer-directory (file-name-directory buffer-file-name)))
-          (dolist (pymacsdir pymacs-load-path)
-            (setq pymacsdir (expand-file-name pymacsdir))
-            (when (and (string-equal (file-name-directory buffer-file-name)
-                                     pymacsdir)
-                       (string-match-p "\\.py\\'" buffer-file-name))
-              (pymacs-load (substring buffer-file-name 0 -3))))))
-      (add-hook 'after-save-hook 'fp-maybe-pymacs-reload)
-
-      ;; Rope emacs slows saves down incredibly so don't use it
-      (setq ropemacs-guess-project t)
-      (setq ropemacs-enable-autoimport t)
-
-       ;; (if athome
-       ;;     (progn
-       ;;       (add-hook 'before-save-hook
-       ;;                 (function (lambda ()
-       ;;                                    ; get time and print message
-       ;;                             (message (concat "exit before-save-hook"
-       ;;                                              (current-time-string))))))
-       ;;       (add-hook 'after-save-hook
-       ;;                 (function (lambda ()
-       ;;                                    ; get time and print message
-       ;;                             (message (concat "exit after-save-hook"
-       ;;                                              (current-time-string))))))
-       ;;       ;;(pymacs-load "ropemacs" "rope-")
-       ;;       )
-
-       ;;   (add-hook 'before-save-hook
-       ;;             (function (lambda ()
-       ;;                                    ; get time and print message
-       ;;                         (message (concat "enter before-save-hook"
-       ;;                                          (current-time-string))))))
-       ;;   (add-hook 'after-save-hook
-       ;;             (function (lambda ()
-       ;;                                    ; get time and print message
-       ;;                         (message (concat "enter after-save-hook"
-       ;;                                          (current-time-string))))))
-       ;;   ;;(pymacs-load "ropemacs" "rope-")
-       ;;  )
-      )
-    )
+***** Shell
+#+begin_src emacs-lisp
+  (req-package sh-script
+    :mode ("\\.sh\\'" . sh-mode)
+    :interpreter ("bash" . sh-mode)
+    :init
+    (add-hook 'sh-mode-hook 'run-all-prog-mode-hook))
 #+end_src
-
-**** Task Juggler
-#+begin_src emacs-lisp :tangle yes
-  (req-package taskjuggler-mode
-    :commands taskjuggler-mode
-    :mode "\\.tjp\\'")
-#+end_src
-
 **** Org
 #+begin_src emacs-lisp :tangle yes
   (req-package org-mac-link
