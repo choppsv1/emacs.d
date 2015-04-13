@@ -92,9 +92,6 @@ static char *gnus-pointer[] = {
  '(org-agenda-files
    (quote
     ("~/org-mode/work.org" "/Users/chopps/org-mode/status.org" "/Users/chopps/org-mode/bills.org" "/Users/chopps/org-mode/detroit-tax.org" "/Users/chopps/org-mode/example.org" "/Users/chopps/org-mode/gifts.org" "/Users/chopps/org-mode/ietf.org" "/Users/chopps/org-mode/job.org" "/Users/chopps/org-mode/liem.org" "/Users/chopps/org-mode/lin.org" "/Users/chopps/org-mode/medical.org" "/Users/chopps/org-mode/notes.org" "/Users/chopps/org-mode/puppy.org" "/Users/chopps/org-mode/redbrick.org" "/Users/chopps/org-mode/routing-wg-chairs.org" "/Users/chopps/org-mode/scratch.org" "/Users/chopps/org-mode/temp.org" "/Users/chopps/org-mode/template.org" "/Users/chopps/org-mode/terastream.org" "/Users/chopps/org-mode/toi-sedy.org" "/Users/chopps/org-mode/zipcar.org")))
- '(org-modules
-   (quote
-    (org-bullets org-mac-iCal org-w3m org-bbdb org-bibtex org-docview org-gnus org-info org-irc org-mhe org-rmail)))
  '(org-protocol-default-template-key "t")
  '(org2blog/wp-shortcode-langs-map (quote (("emacs-lisp" . "lisp") ("sh" . "bash"))))
  '(org2blog/wp-use-sourcecode-shortcode t t)

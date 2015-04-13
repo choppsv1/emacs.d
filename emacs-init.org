@@ -1,7 +1,7 @@
 #+TITLE: Emacs Configuration
 #+AUTHOR: Christian E. Hopps
 #+EMAIL: chopps@gmail.com
-#+STARTUP: indent
+#+STARTUP: indent content
 
 * Emacs Init File
 ** Packaging
@@ -48,9 +48,9 @@ We use the default order as el-get is less refined.
     (require 'req-package))
 
   ;; For debugging
-  (require 'use-package)
-  (setq use-package-verbose t)
-  ;(setq use-package-debug t)
+  ; (require 'use-package)
+  ; (setq use-package-verbose t)
+  ; (setq use-package-debug t)
 #+end_src
 *** El-Get
 Finally we initialize =el-get= using =req-package= itself. If we haven't yet
@@ -70,11 +70,11 @@ setup =el-get= do so now.
 #+begin_src emacs-lisp
 (setq debug-init-msg nil)
 #+end_src
-**** Benchmarking Startup
+**** Startup Time
 It’s useful to measure how long it takes Emacs to start up, so let’s show the
 total time in a message:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (defun nox/show-startup-time ()
     "Show Emacs's startup time in the minibuffer"
     (message "Startup time: %s seconds."
@@ -82,16 +82,6 @@ total time in a message:
 
   (add-hook 'emacs-startup-hook 'nox/show-startup-time 'append)
 #+end_src
-
-Benchmark-init.el can give us a breakdown of time spent on require and load
-calls:
-
-#+begin_src emacs-lisp
-  (req-package-force benchmark-init
-    :config
-     (add-hook 'after-init-hook 'benchmark-init/deactivate))
-#+end_src
-
 **** Use Unicode
 #+begin_src emacs-lisp
   (setenv "LC_CTYPE" "UTF-8")
@@ -161,7 +151,7 @@ escape sequence as given below.
 **** Platform (Mac) Specific
 For now this is specific to Mac OS X.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (if (eq system-type 'darwin)
       (progn
         ;; BSD ls does not support --dired. Use GNU core-utils:
@@ -307,7 +297,7 @@ without relaunching.
 #+end_src
 *** Standard Initialization
 **** No Frills
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (dolist (mode '(global-linum-mode highlight-indentation-mode menu-bar-mode tool-bar-mode scroll-bar-mode))
     (when (fboundp mode) (funcall mode -1)))
   (setq inhibit-startup-screen t)
@@ -341,20 +331,22 @@ without relaunching.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defvar mode-line-cleaner-alist
     `((abbrev-mode . " Ab")
-      (auto-complete-mode . " AC")
-      (auto-fill-function . " F")
+      ;; (auto-complete-mode . " AutoComp")
+      ;(auto-fill-function . " Fill")
+
       ;; Buffer face mode causes certain modes to use variable width font.
       ;; (buffer-face-mode . "")
-      (filladapt-mode . " FA")
-      (flyspell-mode . "")
-      (magit-auto-revert-mode . "")
-      (org-indent-mode "OI")
+      (filladapt-mode . " Adapt")
+      (flyspell-mode . " FlyS")
+      ;; (magit-auto-revert-mode . "")
+      ;; (org-indent-mode "o-indent")
       ;; (rebox-mode . " Rbx")
-      (python-mode . " Py")
-      ;; (undo-tree-mode . "")
+      ;; (undo-tree-mode . "u-t")
       ;; (yas/minor-mode . " u")
+
       ;; Major modes have no space in front
       (lisp-interaction-mode . "λ")
+      (python-mode . "Py")
       (org-mode . "O")
       (emacs-lisp-mode . "EL")
       ))
@@ -373,7 +365,6 @@ without relaunching.
 
   (add-hook 'after-change-major-mode-hook 'clean-mode-line)
 #+END_SRC
-
 **** Visuals
 ***** Frames
 #+begin_src emacs-lisp :tangle yes
@@ -1642,7 +1633,7 @@ without relaunching.
     (run-hooks 'all-prog-mode-hook))
 #+end_src
 ***** Projects
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   (req-package projectile
     :require helm
     :commands (projectile-mode helm-projectil-on)
@@ -2172,7 +2163,7 @@ IETF Yang mode.
 
 #+end_src
 ***** Pymacs
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   (req-package pymacs
     :commands (pymacs-apply pymacs-call pymacs-eval pymacs-exec pymacs-load)
     :config

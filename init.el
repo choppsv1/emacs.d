@@ -42,7 +42,7 @@
 
 
 ;; (setq debug-on-error t)
-(if (file-newer-than-file-p "emacs-init.org" "emacs-init.el")
+(if (or (not (file-exists-p "emacs-init.el")) (file-newer-than-file-p "emacs-init.org" "emacs-init.el"))
     (progn
       (message "Loading emacs-init.org")
       (require 'ob-tangle)
