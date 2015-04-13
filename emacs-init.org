@@ -103,7 +103,7 @@ calls:
 #+end_src
 **** Paths
 Elisp load and theme paths
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (add-to-list 'load-path (concat user-emacs-directory "local-lisp"))
   (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
@@ -338,24 +338,24 @@ without relaunching.
   (put 'scroll-left 'disabled nil)
 #+end_src
 **** Cleanup Minor Modes in Modeline
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defvar mode-line-cleaner-alist
     `((abbrev-mode . " Ab")
       (auto-complete-mode . " AC")
-      (auto-fill-mode . "")
+      (auto-fill-function . " F")
       ;; Buffer face mode causes certain modes to use variable width font.
       ;; (buffer-face-mode . "")
-      (filladapt-mode . "")
+      (filladapt-mode . " FA")
       (flyspell-mode . "")
       (magit-auto-revert-mode . "")
       (org-indent-mode "OI")
-      (rebox-mode . " Rbx")
-      (undo-tree-mode . "")
+      ;; (rebox-mode . " Rbx")
+      (python-mode . " Py")
+      ;; (undo-tree-mode . "")
       ;; (yas/minor-mode . " u")
       ;; Major modes have no space in front
       (lisp-interaction-mode . "λ")
       (org-mode . "O")
-      (python-mode . "Py")
       (emacs-lisp-mode . "EL")
       ))
 
@@ -387,11 +387,19 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   (req-package rainbow-mode
     :commands rainbow-mode)
+#+end_src
+#+begin_src emacs-lisp :tangle no
+  ;; This package really doesn't help mutch the color differences are
+  ;;  too hard to notice, and conceivably there is a CPU price to be paid
   (req-package rainbow-delimiters
-    :commands rainbow-delimiters-mode rainbow-delimiters-mode-enable rainbow-delimiters-mode-disable)
+    :commands (rainbow-delimiters-mode
+               rainbow-delimiters-mode-enable
+               rainbow-delimiters-mode-disable)
+    :init
+    (add-hook 'all-prog-mode-hook 'rainbow-delimiters-mode-enable))
 #+end_src
 ***** Themes
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
   (setq current-graphic-theme 'easter)
   (setq current-tty-theme 'easter)
 
@@ -741,29 +749,38 @@ without relaunching.
       (setq epg-gpg-program (executable-find "gpg"))
       ))
 #+end_src
+**** Fill
+#+begin_src emacs-lisp :tangle yes
+  (add-hook 'all-prog-mode-hook 'turn-on-auto-fill)
+
+  (req-package-force filladapt
+    :init
+    (progn
+      (add-hook 'all-prog-mode-hook 'turn-on-filladapt-mode)
+      (add-hook 'text-mode 'turn-on-filladapt-mode)
+      (add-hook 'c-mode-common-hook (lambda () (when (featurep 'filladapt)
+                                                 (c-setup-filladapt))))))
+#+end_src
 **** Text Mode
-#+begin_src emacs-lisp :tangle no
-  (defun my-text-mode-hook ()
-    "Custom text mode hook"
-    (turn-on-auto-fill)
-    (turn-on-flyspell)
-    ;; (variable-pitch-mode 1)
-    )
-  (add-hook 'text-mode-hook 'my-text-mode-hook)
-  (add-hook 'rst-mode-hook (lambda ()
-                             (define-key mode-specific-map "0" 'rst-adjust)
-                             (setq fill-column 79)
-                             ))
-  (setq default-fill-column 80)
+#+begin_src emacs-lisp :tangle yes
+  (req-package text-mode
+    :commands text-mode
+    :init
+    (progn
+      (setq default-fill-column 80)
+      (add-hook 'text-mode-hook 'turn-on-auto-fill)
+      (add-hook 'text-mode-hook 'turn-on-flyspell)
+      (add-hook 'rst-mode-hook (lambda ()
+                                 (define-key mode-specific-map "0" 'rst-adjust)
+                                 (setq fill-column 79))))
+    :config
+    (progn
+      (modify-syntax-entry ?_ "w" text-mode-syntax-table)
+      (modify-syntax-entry ?- "w" text-mode-syntax-table)))
 
-  (add-to-list 'auto-mode-alist '("diff" . diff-mode))
-  (add-to-list 'auto-mode-alist '("\\.diff\\'" . diff-mode))
-
-  (eval-after-load "text-mode"
-    '(progn
-       (modify-syntax-entry ?_ "w" text-mode-syntax-table)
-       (modify-syntax-entry ?- "w" text-mode-syntax-table)
-       ))
+  (req-package diff-mode
+    :mode (("diff" . diff-mode)
+           ("\\.diff\\'" . diff-mode)))
 #+end_src
 
 **** Buffer Handling
@@ -1269,26 +1286,17 @@ without relaunching.
 #+end_src
 **** Generic Editing
 #+begin_src emacs-lisp :tangle yes
-  (autoload 'rebox-comment "rebox2" nil t)
-  (autoload 'rebox-region "rebox2" nil t)
-
-  ;;(global-linum-mode nil)
-  ;;(setq linum-format 'dynamic)
-  ;;(set-face-attribute 'linum nil :background "Black"))
-
-  ;;        (add-hook 'emacs-lisp-mode-hook (lambda ()
-  ;;                                          (set (make-local-variable 'rebox-style-loop) '(25 17 21))
-  ;;                                          (set (make-local-variable 'rebox-min-fill-column) 40)
-  ;;                                          (rebox-mode 1)))
-  ;
-  (eval-after-load "rebox2"
-    '(progn
-       (setq max-comment-fill-column 77)
+  (req-package rebox2
+    :bind (("M-q" . rebox-dwim)
+           ("S-M-q" . rebox-fill))
+    :init (setq max-comment-fill-column 77)
+    ;; (setq rebox-style-loop '(24 16))
+    :config
+    (progn
        (defadvice rebox-get-fill-column (after ad-max-comment-fill-column activate)
          "Set a maximum fill-column for comments"
          (setq ad-return-value (min ad-return-value max-comment-fill-column)))
        (ad-activate 'rebox-get-fill-column)
-       (message "rebox2 loaded")
        (rebox-register-template 71 176 ["? ----------"
                                         "? box123456  "
                                         "? ----------"])
@@ -1332,19 +1340,22 @@ without relaunching.
        (rebox-register-template 84 486 ["??==========="
                                         "?? box123456  "
                                         "??==========="])
-       (setq rebox-style-loop '(74 75 76 11))
-
        ;; (rebox-set-default-style 093)
-       ;; (setq rebox-style-loop '(24 16))
        ;; Leave the defaults
        ;; (global-set-key [(meta q)] 'rebox-dwim)
        ;; (global-set-key [(shift meta q)] 'rebox-fill)
-       ))
+       (setq rebox-style-loop '(74 75 76 11))))
 
 
+  ;;(global-linum-mode nil)
+  ;;(setq linum-format 'dynamic)
+  ;;(set-face-attribute 'linum nil :background "Black"))
 
-  (require 'filladapt)
-  (setq-default filladapt-mode t)
+  ;;        (add-hook 'emacs-lisp-mode-hook (lambda ()
+  ;;                                          (set (make-local-variable 'rebox-style-loop) '(25 17 21))
+  ;;                                          (set (make-local-variable 'rebox-min-fill-column) 40)
+  ;;                                          (rebox-mode 1)))
+  ;
 #+end_src
 **** Rectangle Lisp
 ***** Transpose Rectange
@@ -1402,15 +1413,12 @@ without relaunching.
 #+END_SRC
 
 **** URL Browsing
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
   (req-package browse-url
     :commands browse-url-generic
     :init
-    (progn
-    :config
-    (progn
-      (setq browse-url-browser-function 'browse-url-generic
-            browse-url-generic-program "openurl.sh")))
+    (setq browse-url-browser-function 'browse-url-generic
+          browse-url-generic-program "openurl.sh"))
 #+end_src
 **** RFCs
 #+begin_src emacs-lisp :tangle yes
@@ -1465,21 +1473,10 @@ without relaunching.
     ;; :mode ( "\\.\\(bag\\|bgen\\|cmd\\|m\\|mm\\|sch\\)\\'" . ggtags-mode )
     ;; bind is what we want and then enable ggtags mode if not enabled
   (req-package ggtags
-    :require evil
     :commands enable-ggtags-mode
     :init
     (progn
-      (add-hook 'c-mode-hook      'enable-ggtags-mode)
-      (add-hook 'c++-mode-hook    'enable-ggtags-mode)
-      (add-hook 'html-mode-hook   'enable-ggtags-mode)
-      (add-hook 'java-mode-hook   'enable-ggtags-mode)
-      ;; this causes us to autoload ggtags, hardly needed most of the time in *scratch*
-      ;; (add-hook 'emacs-lisp-mode-hook 'enable-ggtags-mode)
-      ;; (add-hook 'lisp-mode-hook   'enable-ggtags-mode)
-      ;; (add-hook 'lisp-interaction-mode-hook 'enable-ggtags-mode)
-      (add-hook 'objc-mode-hook   'enable-ggtags-mode)
-      (add-hook 'python-mode-hook 'enable-ggtags-mode)
-      (add-hook 'perl-mode-hook   'enable-ggtags-mode)
+      (add-hook 'all-prog-mode-hook 'enable-ggtags-mode)
       (setq ggtags-mode-prefix-key (kbd "C-c C-.")))
     :config
     (progn
@@ -1641,15 +1638,17 @@ without relaunching.
 **** Programming
 ***** All Programming Mode Hook
 #+begin_src emacs-lisp :tangle yes
-  ;; XXX we really want this to be a hook itself.
-  (defun all-prog-mode-hook () nil)
-     ;; rainbow-delimiters-mode t)
+  (defun run-all-prog-mode-hook () nil
+    (run-hooks 'all-prog-mode-hook))
 #+end_src
 ***** Projects
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
   (req-package projectile
-    :commands projectile-mode
-    :interpreter ("projectile" . projectile-mode))
+    :require helm
+    :commands (projectile-mode helm-projectil-on)
+    :init (progn
+            (add-hook 'c-common-mode-hook 'helm-projectile-on)
+            (add-hook 'python-mode-hook 'helm-projectile-on)))
 #+end_src
 ***** Yang
 IETF Yang mode.
@@ -1659,7 +1658,7 @@ IETF Yang mode.
    :mode ("\\.yang$" . yang-mode))
 #+end_src
 ***** Flycheck
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
   ;; (req-package flyspell)
 
   (req-package flycheck
@@ -1692,22 +1691,24 @@ IETF Yang mode.
                line-end)
          )
         :modes python-mode)
-      (add-hook 'after-init-hook 'global-flycheck-mode)
+      ;; (add-hook 'after-init-hook 'global-flycheck-mode)
       ))
 #+END_SRC
 ***** CC Mode
 #+begin_src emacs-lisp
   (req-package cc-mode
     ;; :require projectile
-    :commands (awk-mode c-mode c++-mode java-mode objc-mode)
-    ;; :mode (("\\.c\\'"  . c-mode)
-    ;;        ("\\.h\\'"  . c-mode)
-    ;;        ("\\.m\\'"  . objc-mode)
-    ;;        ("\\.java\\'" . java-mode)
-    ;;        ("\\.C\\'"  . c++-mode)
-    ;;        ("\\.H\\'"  . c++-mode)
-    ;;        ("\\.cc\\'" . c++-mode)
-    ;;        ("\\.hh'"   . c++-mode))
+    ;; :commands (awk-mode c-mode c++-mode java-mode objc-mode)
+    ;; ("\\.C\\'"  . c++-mode)
+    :mode (("\\.c\\'"  . c-mode)
+           ("\\.h\\'"  . c-mode)
+           ("\\.m\\'"  . objc-mode)
+           ("\\.java\\'" . java-mode)
+           ("\\.c++\\'"  . c++-mode)
+           ("\\.H\\'"  . c++-mode)
+           ("\\.cc\\'" . c++-mode)
+           ("\\.hh'"   . c++-mode))
+    :init (add-hook 'c-mode-common-hook 'run-all-prog-mode-hook)
     :config
     (progn
       ;; (modify-syntax-entry ?_ "w" awk-mode-syntax-table)
@@ -1718,7 +1719,6 @@ IETF Yang mode.
       ;; (modify-syntax-entry ?_ "w" objc-mode-syntax-table)
       (add-hook 'c-mode-hook
                 (function (lambda ()
-                            (all-prog-mode-hook)
                             (if (string= (shell-command-to-string "uname -s") "NetBSD\n")
                                 (progn
                                   (c-set-style "KNF")
@@ -1727,7 +1727,6 @@ IETF Yang mode.
                               (setq indent-tabs-mode nil))
                             (c-toggle-auto-hungry-state 1)
                             (setq fill-column 80)
-                            (turn-on-auto-fill)
                             (flyspell-prog-mode)
                             ;;; XXXnew
                             ;;; (projectile-mode t)
@@ -1872,7 +1871,7 @@ IETF Yang mode.
 #+end_src
 ***** Emacs-lisp
 #+begin_src emacs-lisp :tangle yes
-  (add-hook 'emacs-lisp-mode-hook 'all-prog-mode-hook)
+  (add-hook 'emacs-lisp-mode-hook 'run-all-prog-mode-hook)
 
   (defun my-lisp-mode-hook ()
     (flyspell-prog-mode)
@@ -1897,35 +1896,28 @@ IETF Yang mode.
     :commands perl-mode
     :mode ("\\.pl\\'" . perl-mode)
     :interpreter ("perl" . perl-mode)
-    :init (add-hook 'perl-mode-hook 'all-prog-mode-hook))
+    :init (add-hook 'perl-mode-hook 'run-all-prog-mode-hook))
 #+end_src
-
 ***** Python
 #+begin_src emacs-lisp
-  (req-package elpy
-    :commands elpy-enable
-    :init
-    (progn
-      ;; (setq elpy-rpc-backend "jedi")
-      (when (not (setq python-check-command (executable-find "pycheckers.sh")))
-        (setq python-check-command "flake8"))
-      ))
-
   (req-package jedi
-    :commands jedi:setup
+    :defer t
     :init
    (progn
      ;; (setq jedi:server-args '("--log-traceback"))
-     (add-hook 'python-mode-hook 'jedi:setup)
+     ;; (add-hook 'python-mode-hook 'jedi:setup)
     )
    )
 
   (req-package nose
-    :commands (nosetests-all nosetests-module nosetests-one nosetests-pdb-all nosetests-pdb-module nosetests-pdb-one)
-
+    :commands (nosetests-all
+               nosetests-module
+               nosetests-one
+               nosetests-pdb-all
+               nosetests-pdb-module
+               nosetests-pdb-one)
     :init
-    (progn
-     (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn"))))
+    (setq nose-project-root-files '("setup.py" ".hg" ".git" ".svn")))
 
   (req-package pytest
     :commands (pytest-all
@@ -1936,29 +1928,46 @@ IETF Yang mode.
                 pytest-pdb-module
                 pytest-pdb-one)
     :init
-    (progn
-      (setq pytest-global-name "py.test")
-      (setq pytest-cmd-flags "-x --doctest-module")
-      ))
+    (setq pytest-global-name "py.test"
+          pytest-cmd-flags "-x --doctest-module"))
 
-  ;; (req-package flymake-pyfixers)
+  (req-package flymake-pyfixers
+    :commands (pyfixer:ignore-current-line pyfixer:fix-current-line pyfixer:fix-all-errors))
 
   (req-package pylookup
     :commands (pylookup-lookup pylookup-update)
     :init
     (progn
-      (setq pylookup-dir (concat user-emacs-directory "el-get/pylookup/"))
-      (setq pylookup-program (concat pylookup-dir "/pylookup.py"))
-      (setq pylookup-db-file (concat pylookup-dir "/pylookup.db"))
+      (setq pylookup-dir (concat user-emacs-directory "el-get/pylookup/")
+            pylookup-program (concat pylookup-dir "/pylookup.py")
+            pylookup-db-file (concat pylookup-dir "/pylookup.db"))))
+
+  (req-package elpy
+    :require jedi
+    :commands elpy-mode
+    :init
+    (progn
+      ;; (setq elpy-rpc-backend "jedi")
+      (when (not (setq python-check-command (executable-find "pycheckers.sh")))
+        (setq python-check-command "flake8"))
       ))
 
+  ;; :require (elpy flymake-pyfixers nostests pylookup pytest)
   (req-package python
-    :commands python-mode
-    :mode (("\\.py\\'" . python-mode))
+    :mode ("\\.py\\'" . python-mode)
     :interpreter ("python" . python-mode)
     :init
     (progn
-      (setq python-font-lock-keywords
+      (add-hook 'python-mode-hook 'run-all-prog-mode-hooks)
+      (setq
+       python-shell-interpreter "ipython"
+       python-shell-interpreter-args ""
+       python-shell-prompt-regexp "In \\[[0-9]+\\]: "
+       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
+       python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
+       python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
+       python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
+       python-font-lock-keywords
             ;; Keywords
             `(,(rx symbol-start
                    (or
@@ -2065,68 +2074,55 @@ IETF Yang mode.
                                 (python-syntax-context 'paren)))
                     res))
                (1 font-lock-variable-name-face nil nil))))
-      )
-    :config
-    (progn
+
       (defun my-python-mode-hook ()
-        (if debug-init-msg
-            (message "Python mode hook"))
-        (all-prog-mode-hook)
-        ;; Fill values
-        (if debug-init-msg
-            (message "Mark pre req pyfixers"))
+        (message "Python mode hook")
+
+        (elpy-mode)
         ;; (require 'flymake-pyfixers)
-        (if debug-init-msg
-            (message "Mark post req pyfixers"))
         (setq comment-column 60)
         (setq fill-column 120)
-        (turn-on-auto-fill)
-        (highlight-indentation-mode -1)
-        (define-key python-mode-map (kbd "C-c M-\\") 'pyfixer:ignore-current-line)
-        (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
-        (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
-        (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
-        (define-key python-mode-map (kbd "C-c C-h") 'pylookup-lookup)
-        (define-key python-mode-map (kbd "C-c ta") 'pytest-all)
-        (define-key python-mode-map (kbd "C-c tm") 'pytest-module)
-        (define-key python-mode-map (kbd "C-c to") 'pytest-one)
-        (define-key python-mode-map (kbd "C-c td") 'pytest-directory)
-        (define-key python-mode-map (kbd "C-c tpa") 'pytest-pdb-all)
-        (define-key python-mode-map (kbd "C-c tpm") 'pytest-pdb-module)
-        (define-key python-mode-map (kbd "C-c tpo") 'pytest-pdb-one)
-        (define-key python-mode-map (kbd "C-c Ta") 'nosetests-all)
-        (define-key python-mode-map (kbd "C-c Tm") 'nosetests-module)
-        (define-key python-mode-map (kbd "C-c To") 'nosetests-one)
-        (define-key python-mode-map (kbd "C-c Tpa") 'nosetests-pdb-all)
-        (define-key python-mode-map (kbd "C-c Tpm") 'nosetests-pdb-module)
-        (define-key python-mode-map (kbd "C-c Tpo") 'nosetests-pdb-one)
+        ;;(highlight-indentation-mode -1)
 
-        (if debug-init-msg
-          (message "Enabling python flyspell"))
         (flyspell-prog-mode)
-
-        (if debug-init-msg
-            (message "Enabling projectile"))
-        ;; XXXnew 
-        ;; (projectile-mode t)
+        ;; XXXnew (projectile-mode t)
 
         (flycheck-mode t)
         (flycheck-select-checker 'python-pycheckers)
         (flycheck-set-checker-executable 'python-flake8 "~/bin/pycheckers.sh")
-        (if debug-init-msg
-            (message "Enabling rebox"))
-        (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
-        (rebox-mode 1)
 
-        (if debug-init-msg
-            (message "Enabling elpy"))
-        (elpy-enable)
-        (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
-        (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
+        (set (make-local-variable 'rebox-style-loop) '(74 75 76 11))
+        ;; (rebox-mode 1)
+
         (add-to-list 'compilation-error-regexp-alist '("\\(.*\\):[CEFRW][0-9]+: ?\\([0-9]+\\),[0-9]+: .*" 1 2))
-        (if debug-init-msg
-            (message "Python mode hook done"))
-        )
+
+        (message "Python mode hook done"))
+      (add-hook 'python-mode-hook 'my-python-mode-hook)
+      )
+    :config
+    (progn
+      (if debug-init-msg
+          (message "Enabling elpy"))
+      (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
+      (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
+      (define-key python-mode-map (kbd "C-c Ta") 'nosetests-all)
+      (define-key python-mode-map (kbd "C-c Tm") 'nosetests-module)
+      (define-key python-mode-map (kbd "C-c To") 'nosetests-one)
+      (define-key python-mode-map (kbd "C-c Tpa") 'nosetests-pdb-all)
+      (define-key python-mode-map (kbd "C-c Tpm") 'nosetests-pdb-module)
+      (define-key python-mode-map (kbd "C-c Tpo") 'nosetests-pdb-one)
+      (define-key python-mode-map (kbd "C-c ta") 'pytest-all)
+      (define-key python-mode-map (kbd "C-c tm") 'pytest-module)
+      (define-key python-mode-map (kbd "C-c to") 'pytest-one)
+      (define-key python-mode-map (kbd "C-c td") 'pytest-directory)
+      (define-key python-mode-map (kbd "C-c tpa") 'pytest-pdb-all)
+      (define-key python-mode-map (kbd "C-c tpm") 'pytest-pdb-module)
+      (define-key python-mode-map (kbd "C-c tpo") 'pytest-pdb-one)
+      (define-key python-mode-map (kbd "C-c M-\\") 'pyfixer:ignore-current-line)
+      (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
+      (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
+      (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
+      (bind-key "C-c C-h" 'plookup-lookup python-mode-map)
 
       ;; Elpy config
       ;; (define-key elpy-mode-map (kbd "C-c C-n") 'next-error)
@@ -2135,30 +2131,13 @@ IETF Yang mode.
       ;; (elpy-clean-modeline)
 
       ;; Python config
-      (add-hook 'python-mode-hook 'my-python-mode-hook)
 
       ;; Consider _ a part of words for python
       (modify-syntax-entry ?_ "w" python-mode-syntax-table)
-
-      (setq
-       python-shell-interpreter "ipython"
-       python-shell-interpreter-args ""
-       python-shell-prompt-regexp "In \\[[0-9]+\\]: "
-       python-shell-prompt-output-regexp "Out\\[[0-9]+\\]: "
-       python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
-       python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
-       python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n")
-
       ;; (define-key global-map (kbd "C-c o") 'iedit-mode)
 
-      (if (file-exists-p "/home/chopps/sw/xrut-cel-5/bin/python")
-          (setenv "PYMACS_PYTHON" "/home/chopps/sw/xrut-cel-5/bin/python")
-        (if (file-exists-p "/auto/xrut/sw/xrut-cel-5/bin/python")
-            (setenv "PYMACS_PYTHON" "/auto/xrut/sw/xrut-cel-5/bin/python")
-          (if (file-exists-p "/Users/chopps/venv/bin/python"  )
-              (setenv "PYMACS_PYTHON" "/Users/chopps/venv/bin/python")
-            (if (file-exists-p "/usr/local/bin/python"  )
-                (setenv "PYMACS_PYTHON" "/usr/local/bin/python")))))
+      (if (file-exists-p "/usr/local/bin/python"  )
+          (setenv "PYMACS_PYTHON" "/usr/local/bin/python"))
 
       (defun python-sort-import-list ()
         "Split an single import lines with multiple module imports into separate lines sort results"
@@ -2189,6 +2168,8 @@ IETF Yang mode.
                   (goto-char impstart)
                   (insert bigstr)))))))
       ))
+
+
 #+end_src
 ***** Pymacs
 #+begin_src emacs-lisp :tangle yes
@@ -2813,8 +2794,6 @@ IETF Yang mode.
                                           ;(global-set-key "\C-h" 'backward-delete-char-untabify)
 
   (global-set-key (kbd "C-/") 'dabbrev-expand)
-
-  (global-set-key (kbd "M-q") 'rebox-comment)
 
   (global-set-key (kbd "M-Q") 'fill-paragraph)
 
