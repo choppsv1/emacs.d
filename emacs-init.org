@@ -1180,12 +1180,6 @@ without relaunching.
       )
     )
 
-  (defun kill-region-to-mac ()
-    "Copy the region to our mac clipboard"
-    (interactive)
-    (shell-command-on-region (mark) (point) "ssh -q rtp-chopps-8711.cisco.com pbcopy")
-    (deactivate-mark))
-
   (defun kill-region-to-ssh ()
     "Copy the region to our ssh clients clipboard"
     (interactive)
@@ -1466,34 +1460,6 @@ without relaunching.
     (progn
       (make-directory irfc-directory t)))
 #+end_src
-**** Acme Extension
-#+begin_src emacs-lisp :tangle yes
-  (defun is-workspace-root (split-path)
-    (let ((path (concat "/" (mapconcat 'identity split-path "/") "/.ACMEROOT")))
-      (file-attributes path)))
-
-  (defun get-workspace-root ()
-    (let ((split-path (split-string (expand-file-name default-directory) "/")))
-      (while (and (> (length split-path) 0)
-                  (not (is-workspace-root split-path)))
-        (setq split-path (remove-last-elt split-path)))
-      (concat "/" (mapconcat 'identity split-path "/"))))
-
-  ;;
-  ;; XXX this needs to be updated to find the right path
-  ;;
-  (defun acme-ediff-latest()
-   (interactive)
-   (let* (
-          (rel-cur-file (file-relative-name buffer-file-name))
-          (acme-dir (concat  ".CC/cache/"  rel-cur-file  "@@/main/ci/fwd-33/fwd-33-mcast-intact/"))
-          (version-list (directory-files acme-dir nil "[0-9]+" t))
-          (latest-version (car version-list))
-          (rel-base-file (concat  ".CC/cache/"  rel-cur-file  "@@/main/ci/fwd-33/fwd-33-mcast-intact/" latest-version))
-          )
-     (ediff-files rel-cur-file rel-base-file)))
-#+end_src
-
 **** Tagging
 #+begin_src emacs-lisp :tangle yes
     ;; ggtags-mode is a minor mode, this kills proper major mode init
@@ -2844,79 +2810,6 @@ IETF Yang mode.
             (function (lambda ()
                         (font-lock-mode 1))))
 #+end_src
-
-**** XRUT
-#+begin_src emacs-lisp :tangle no
-;; XRUT functionality
-(if debug-init-msg
-    (message "Mark pre xrut mode"))
-
-;; The current launched workspace
-(setq xrut-launched-workspace nil)
-
-;; The last workspace value
-(setq xrut-last-workspace nil)
-
-;; The current launch buffer
-(setq xrut-launch-buffer nil)
-
-(setq xrut-launch-process nil)
-
-(setq xrut-last-connect "")
-
-(setq xrut-connect-history nil)
-
-(defun xrut-launch-script ()
-  "launch the script in the current buffer, prompt for workspace"
-  (interactive)
-  (let ((script-path (buffer-file-name (current-buffer)))
-        dirname
-        script-name
-        w)
-    (if (and xrut-launch-buffer (buffer-live-p xrut-launch-buffer))
-        (switch-to-buffer xrut-launch-buffer)
-      (setq xrut-launch-buffer nil)
-      (setq dirname (read-directory-name "Workspace: " xrut-last-workspace xrut-last-workspace t nil))
-      (if (not (is-workspace-root (split-string dirname "/")))
-          (error "%s is not a workspace" dirname))
-        (setq xrut-last-workspace dirname)
-        (setq script-name (file-name-nondirectory script-path))
-        (if (not xrut-launch-buffer)
-            (setq xrut-launch-buffer (get-buffer-create (concat "*LAUNCH-" script-name "*"))))
-        (condition-case nil
-            (setq w (split-window))
-          (setq w (selected-window)))
-        (switch-to-buffer xrut-launch-buffer)
-        (setq default-directory xrut-last-workspace)
-        (insert (format "Directory: %s\nCommand: %s %s\n" default-directory script-path "--launch"))
-        (setq xrut-launch-process (start-process script-name xrut-launch-buffer script-path "--launch"))
-        )))
-
-(defun xrut-connect-to-router ()
-  "Connect to a router in the currently launched script"
-  (interactive)
-  (let (buffer cmd router-name)
-    (if (not xrut-last-workspace)
-        (progn
-          (setq dirname (read-directory-name "Workspace: " xrut-last-workspace xrut-last-workspace t nil))
-          (if (not (is-workspace-root (split-string dirname "/")))
-              (error "%s is not a workspace" dirname))
-          (setq xrut-last-workspace dirname)))
-    (setq router-name (read-from-minibuffer "Router: " xrut-last-connect nil nil 'xrut-connect-history))
-    (setq buffer (get-buffer-create (concat "*CONNECT-" router-name "*")))
-    (condition-case nil
-        (setq w (split-window))
-      (setq w (selected-window)))
-    (switch-to-buffer buffer)
-    (setq default-directory xrut-last-workspace)
-    (insert (format "Directory: %s\nCommand: lboot -mc %s -- exec\n" default-directory router-name ))
-    (shell buffer)
-    (process-send-string buffer (format "lboot -mc %s -- exec" router-name))
-    ))
-(if debug-init-msg
-    (message "Mark post xrut mode"))
-#+end_src
-
 ** End Req-Packages
 #+begin_src emacs-lisp
   (if debug-init-msg
