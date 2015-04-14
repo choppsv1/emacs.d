@@ -61,6 +61,7 @@ setup =el-get= do so now.
     :init
     (let ((recipedir (concat user-emacs-directory "el-get/el-get/recipes")))
       (setq el-get-github-default-url-type "https")
+      (add-to-list 'el-get-recipe-path recipedir)
       (if (not (file-exists-p recipedir))
           (el-get 'sync))))
 #+end_src
@@ -265,7 +266,10 @@ For now this is specific to Mac OS X.
       ;; Configure some modes to start in emacs mode.
       (dolist (mode '(gud-minor-mode
                       gud-mode
-                      gud))
+                      gud
+                      pylookup
+                      pylookup-mode
+                      ))
         (evil-set-initial-state mode 'emacs))
 
       ))
@@ -297,53 +301,43 @@ without relaunching.
 #+end_src
 *** Standard Initialization
 **** No Frills
+***** Turn off UI stuff
 #+begin_src emacs-lisp :tangle yes
   (dolist (mode '(global-linum-mode highlight-indentation-mode menu-bar-mode tool-bar-mode scroll-bar-mode))
     (when (fboundp mode) (funcall mode -1)))
   (setq inhibit-startup-screen t)
   (setq inhibit-startup-message t)
-  (defalias 'yes-or-no-p 'y-or-n-p)
 #+end_src
-**** Enable Basic Features
-***** Default Mode
-#+begin_src emacs-lisp
-  (setq default-major-mode 'text-mode)
-#+end_src
-
-***** Enable Basic Functionality
-****** Enable setting a goal column with C-x C-n
-#+begin_src emacs-lisp
-  (put 'set-goal-column 'disabled nil)
-#+end_src
-
-****** Enable evaluating an expression in the minibuffer
-#+begin_src emacs-lisp
-  ;; Enable evaulation of expressions
-  (put 'eval-expression 'disabled nil)
-#+end_src
-
-****** Enable leftwise scrolling
-#+begin_src emacs-lisp
-  ;; Enable leftward scrolling.
-  (put 'scroll-left 'disabled nil)
-#+end_src
-**** Cleanup Minor Modes in Modeline
+***** Cleanup Minor Modes in Modeline
 #+BEGIN_SRC emacs-lisp :tangle yes
+  ;; (defvar mode-line-cleaner-alist
+  ;;   `((abbrev-mode . " Ab")
+  ;;     ;(auto-fill-function . " Fill")
+  ;;     ;; Buffer face mode causes certain modes to use variable width font.
+  ;;     ;; (buffer-face-mode . "")
+  ;;     (filladapt-mode . " Adapt")
+  ;;     (flyspell-mode . " FlyS")
+  ;;     (auto-complete-mode . " AutoComp")
+  ;;     (auto-complete-mode . " AutoComl")
+  ;;     ;; (magit-auto-revert-mode . "")
+  ;;     ;; (org-indent-mode "o-indent")
+  ;;     ;; (rebox-mode . " Rbx")
+  ;;     ;; (undo-tree-mode . "u-t")
+  ;;     ;; (yas/minor-mode . " u")
+
+  ;;     ;; Major modes have no space in front
+  ;;     (lisp-interaction-mode . "λ")
+  ;;     (python-mode . "Py")
+  ;;     (org-mode . "O")
+  ;;     (emacs-lisp-mode . "EL")
+  ;;     ))
+  ;;
   (defvar mode-line-cleaner-alist
     `((abbrev-mode . " Ab")
-      ;; (auto-complete-mode . " AutoComp")
-      ;(auto-fill-function . " Fill")
-
-      ;; Buffer face mode causes certain modes to use variable width font.
-      ;; (buffer-face-mode . "")
       (filladapt-mode . " Adapt")
       (flyspell-mode . " FlyS")
-      ;; (magit-auto-revert-mode . "")
-      ;; (org-indent-mode "o-indent")
-      ;; (rebox-mode . " Rbx")
-      ;; (undo-tree-mode . "u-t")
-      ;; (yas/minor-mode . " u")
-
+      (auto-complete-mode . " AutoComp")
+      (company-mode . " Co")
       ;; Major modes have no space in front
       (lisp-interaction-mode . "λ")
       (python-mode . "Py")
@@ -365,6 +359,102 @@ without relaunching.
 
   (add-hook 'after-change-major-mode-hook 'clean-mode-line)
 #+END_SRC
+**** Enable Basic Features
+***** Default Mode
+#+begin_src emacs-lisp
+  (setq default-major-mode 'text-mode)
+#+end_src
+
+***** Enable setting a goal column with C-x C-n
+#+begin_src emacs-lisp
+  (put 'set-goal-column 'disabled nil)
+#+end_src
+
+***** Enable evaluating an expression in the minibuffer
+#+begin_src emacs-lisp
+  ;; Enable evaulation of expressions
+  (put 'eval-expression 'disabled nil)
+#+end_src
+
+***** Enable leftwise scrolling
+#+begin_src emacs-lisp
+  ;; Enable leftward scrolling.
+  (put 'scroll-left 'disabled nil)
+#+end_src
+***** Always use 'y' 'n' for prompts
+#+begin_src emacs-lisp :tangle yes
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+end_src
+***** Cleanup Buffers Automatically
+#+begin_src emacs-lisp :tangle yes
+  (require 'midnight)
+
+  ;; Redefine this function so that we can take into account buffers that have clients
+  (defun clean-buffer-list ()
+      "Kill old buffers that have not been displayed recently.
+  The relevant variables are `clean-buffer-list-delay-general',
+  `clean-buffer-list-delay-special', `clean-buffer-list-kill-buffer-names',
+  `clean-buffer-list-kill-never-buffer-names',
+  `clean-buffer-list-kill-regexps' and
+  `clean-buffer-list-kill-never-regexps'.
+  While processing buffers, this procedure displays messages containing
+  the current date/time, buffer name, how many seconds ago it was
+  displayed (can be nil if the buffer was never displayed) and its
+  lifetime, i.e., its \"age\" when it will be purged."
+      (interactive)
+      (let ((tm (float-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
+            delay cbld bn)
+        (dolist (buf (buffer-list))
+          (when (buffer-live-p buf)
+            (setq bts (midnight-buffer-display-time buf) bn (buffer-name buf)
+                  delay (if bts (- tm bts) 0) cbld (clean-buffer-list-delay bn))
+            (message "[%s] `%s' [%s %d]" ts bn (if bts (round delay)) (- cbld delay))
+            (unless (or (buffer-local-value 'server-buffer-clients buf)
+                        (midnight-find bn clean-buffer-list-kill-never-regexps
+                                       'string-match)
+                        (midnight-find bn clean-buffer-list-kill-never-buffer-names
+                                       'string-equal)
+                        (get-buffer-process buf)
+                        (and (buffer-file-name buf) (buffer-modified-p buf))
+                        (get-buffer-window buf 'visible)
+                        (< delay cbld)
+                        )
+              (message "[%s] killing `%s'" ts bn)
+              (kill-buffer buf))))))
+
+  ;;kill buffers if they were last disabled more than this seconds ago (30m)
+  (setq clean-buffer-list-delay-special 1800)
+
+  (defvar clean-buffer-list-timer nil
+    "Stores clean-buffer-list timer if there is one. You can disable clean-buffer-list by (cancel-timer clean-buffer-list-timer).")
+  ;; run clean-buffer-list every 2 hours
+  (setq clean-buffer-list-timer (run-at-time t 7200 'clean-buffer-list))
+
+  ;; kill everything, clean-buffer-list is very intelligent at not killing unsaved buffer.
+  (setq clean-buffer-list-kill-regexps '("^.*$"))
+
+  ;; keep these buffer untouched
+  ;; prevent append multiple times
+  (defvar clean-buffer-list-kill-never-buffer-names-init
+    clean-buffer-list-kill-never-buffer-names
+    "Init value for clean-buffer-list-kill-never-buffer-names")
+
+  (setq clean-buffer-list-kill-never-buffer-names
+        (append
+         '("*Messages*" "*cmd*" "*scratch*" "*w3m*" "*w3m-cache*" "*Inferior Octave*" "status.org" "notes.org")
+         clean-buffer-list-kill-never-buffer-names-init))
+
+  ;; prevent append multiple times
+  (defvar clean-buffer-list-kill-never-regexps-init
+    clean-buffer-list-kill-never-regexps
+    "Init value for clean-buffer-list-kill-never-regexps")
+
+  ;; append to *-init instead of itself
+  (setq clean-buffer-list-kill-never-regexps
+        (append '("^\\*EMMS Playlist\\*.*$")
+                clean-buffer-list-kill-never-regexps-init))
+#+end_src
+
 **** Visuals
 ***** Frames
 #+begin_src emacs-lisp :tangle yes
@@ -740,15 +830,16 @@ without relaunching.
       (setq epg-gpg-program (executable-find "gpg"))
       ))
 #+end_src
-**** Fill
+**** Filling
 #+begin_src emacs-lisp :tangle yes
   (add-hook 'all-prog-mode-hook 'turn-on-auto-fill)
+  (add-hook 'all-text-mode-hook 'turn-on-auto-fill)
 
   (req-package-force filladapt
     :init
     (progn
       (add-hook 'all-prog-mode-hook 'turn-on-filladapt-mode)
-      (add-hook 'text-mode 'turn-on-filladapt-mode)
+      (add-hook 'all-text-mode-hook 'turn-on-filladapt-mode)
       (add-hook 'c-mode-common-hook (lambda () (when (featurep 'filladapt)
                                                  (c-setup-filladapt))))))
 #+end_src
@@ -874,27 +965,6 @@ without relaunching.
   ;;                                          (rebox-mode 1)))
   ;
 #+end_src
-**** Text Mode
-#+begin_src emacs-lisp :tangle yes
-  (req-package text-mode
-    :commands text-mode
-    :init
-    (progn
-      (setq default-fill-column 80)
-      (add-hook 'text-mode-hook 'turn-on-auto-fill)
-      (add-hook 'rst-mode-hook (lambda ()
-                                 (define-key mode-specific-map "0" 'rst-adjust)
-                                 (setq fill-column 79))))
-    :config
-    (progn
-      (modify-syntax-entry ?_ "w" text-mode-syntax-table)
-      (modify-syntax-entry ?- "w" text-mode-syntax-table)))
-
-  (req-package diff-mode
-    :mode (("diff" . diff-mode)
-           ("\\.diff\\'" . diff-mode)))
-#+end_src
-
 **** Buffer Handling
 #+begin_src emacs-lisp :tangle yes
   ;; (iswitchb-mode 1)
@@ -908,77 +978,6 @@ without relaunching.
         (progn (bury-buffer) nil)
       t))
   (add-hook 'kill-buffer-query-functions 'dont-kill-but-bury-scratch)
-#+end_src
-
-**** Cleanup Buffers Automatically
-#+begin_src emacs-lisp :tangle yes
-  (require 'midnight)
-
-
-  ;; Redefine this function so that we can take into account buffers that have clients
-  (defun clean-buffer-list ()
-      "Kill old buffers that have not been displayed recently.
-  The relevant variables are `clean-buffer-list-delay-general',
-  `clean-buffer-list-delay-special', `clean-buffer-list-kill-buffer-names',
-  `clean-buffer-list-kill-never-buffer-names',
-  `clean-buffer-list-kill-regexps' and
-  `clean-buffer-list-kill-never-regexps'.
-  While processing buffers, this procedure displays messages containing
-  the current date/time, buffer name, how many seconds ago it was
-  displayed (can be nil if the buffer was never displayed) and its
-  lifetime, i.e., its \"age\" when it will be purged."
-      (interactive)
-      (let ((tm (float-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
-            delay cbld bn)
-        (dolist (buf (buffer-list))
-          (when (buffer-live-p buf)
-            (setq bts (midnight-buffer-display-time buf) bn (buffer-name buf)
-                  delay (if bts (- tm bts) 0) cbld (clean-buffer-list-delay bn))
-            (message "[%s] `%s' [%s %d]" ts bn (if bts (round delay)) (- cbld delay))
-            (unless (or (buffer-local-value 'server-buffer-clients buf)
-                        (midnight-find bn clean-buffer-list-kill-never-regexps
-                                       'string-match)
-                        (midnight-find bn clean-buffer-list-kill-never-buffer-names
-                                       'string-equal)
-                        (get-buffer-process buf)
-                        (and (buffer-file-name buf) (buffer-modified-p buf))
-                        (get-buffer-window buf 'visible)
-                        (< delay cbld)
-                        )
-              (message "[%s] killing `%s'" ts bn)
-              (kill-buffer buf))))))
-
-  ;;kill buffers if they were last disabled more than this seconds ago (30m)
-  (setq clean-buffer-list-delay-special 1800)
-
-  (defvar clean-buffer-list-timer nil
-    "Stores clean-buffer-list timer if there is one. You can disable clean-buffer-list by (cancel-timer clean-buffer-list-timer).")
-  ;; run clean-buffer-list every 2 hours
-  (setq clean-buffer-list-timer (run-at-time t 7200 'clean-buffer-list))
-
-  ;; kill everything, clean-buffer-list is very intelligent at not killing unsaved buffer.
-  (setq clean-buffer-list-kill-regexps '("^.*$"))
-
-  ;; keep these buffer untouched
-  ;; prevent append multiple times
-  (defvar clean-buffer-list-kill-never-buffer-names-init
-    clean-buffer-list-kill-never-buffer-names
-    "Init value for clean-buffer-list-kill-never-buffer-names")
-
-  (setq clean-buffer-list-kill-never-buffer-names
-        (append
-         '("*Messages*" "*cmd*" "*scratch*" "*w3m*" "*w3m-cache*" "*Inferior Octave*" "status.org" "notes.org")
-         clean-buffer-list-kill-never-buffer-names-init))
-
-  ;; prevent append multiple times
-  (defvar clean-buffer-list-kill-never-regexps-init
-    clean-buffer-list-kill-never-regexps
-    "Init value for clean-buffer-list-kill-never-regexps")
-
-  ;; append to *-init instead of itself
-  (setq clean-buffer-list-kill-never-regexps
-        (append '("^\\*EMMS Playlist\\*.*$")
-                clean-buffer-list-kill-never-regexps-init))
 #+end_src
 
 **** Windows
@@ -1038,7 +1037,7 @@ without relaunching.
   (global-set-key [?\A-c] 'clipboard-kill-ring-save)
   (global-set-key [?\A-v] 'clipboard-yank)
 #+end_src
-**** Comint
+**** Command Line Interaction (comint)
 #+begin_src emacs-lisp :tangle yes
   (eval-after-load "comint"
     '(progn
@@ -1380,6 +1379,7 @@ without relaunching.
 #+end_src
 **** Rectangle Lisp
 ***** Transpose Rectange
+This should be it's own minor mode or something right?
 #+BEGIN_SRC emacs-lisp
   (defun transpose-array (array)
     "Returns a new array which is a transposed copy of
@@ -1642,11 +1642,47 @@ without relaunching.
     ;; (require 'shell-switcher)
     ;; (shell-switcher-mode t)
 #+end_src
+**** Text Modes
+***** All Textlike Mode Hooks
+#+begin_src emacs-lisp :tangle yes
+  (defun run-all-text-mode-hook ()
+    nil
+    (run-hooks 'all-text-mode-hook))
+#+end_src
+***** Diff Mode
+#+begin_src emacs-lisp :tangle yes
+  (req-package diff-mode
+    :mode (("diff" . diff-mode)
+           ("\\.diff\\'" . diff-mode))
+    :init (add-hook 'rst-mode-hook 'run-all-text-mode-hook))
+#+end_src
+***** Rst Mode
+#+BEGIN_SRC emacs-lisp
+  (req-package rst-mode
+    :mode ("\\.rst\\'" . rst-mode)
+    :init
+    (progn (add-hook 'rst-mode-hook 'run-all-text-mode-hook)
+           (add-hook 'rst-mode-hook (lambda ()
+                                      (define-key mode-specific-map "0" 'rst-adjust)
+                                      (setq fill-column 79)))))
+
+#+END_SRC
+***** Text Mode
+#+begin_src emacs-lisp :tangle yes
+  (req-package text-mode
+    :commands text-mode
+    :init (add-hook 'text-mode-hook 'run-all-text-mode-hook)
+    :config (progn
+              (modify-syntax-entry ?_ "w" text-mode-syntax-table)
+              (modify-syntax-entry ?- "w" text-mode-syntax-table)))
+#+end_src
 **** Programming
 ***** All Programming Mode Hook
 #+begin_src emacs-lisp :tangle yes
-  (defun run-all-prog-mode-hook () nil
-    (run-hooks 'all-prog-mode-hook))
+  (defun run-all-prog-mode-hook ()
+    nil
+    (run-hooks 'all-prog-mode-hook)
+    (font-lock-mode 1))
 #+end_src
 ***** Projects
 #+begin_src emacs-lisp :tangle no
@@ -1665,6 +1701,9 @@ IETF Yang mode.
 #+end_src
 ***** CC Mode
 #+begin_src emacs-lisp
+  (setq c-font-lock-extra-types
+      (quote
+       ("FILE" "\\sw+_st" "\\sw+_t" "Lisp_Object" "\\sw+type" "uint" "ushort" "uchar" "boolean" "active_timer")))
   (req-package cc-mode
     ;; :require projectile
     ;; :commands (awk-mode c-mode c++-mode java-mode objc-mode)
@@ -1859,6 +1898,7 @@ IETF Yang mode.
   (add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-hook)
 
 #+end_src
+***** HTML/XML Mode
 ***** Perl
 #+begin_src emacs-lisp :tangle yes
   (req-package perl-mode
@@ -1908,8 +1948,8 @@ IETF Yang mode.
     :init
     (progn
       (setq pylookup-dir (concat user-emacs-directory "el-get/pylookup/")
-            pylookup-program (concat pylookup-dir "/pylookup.py")
-            pylookup-db-file (concat pylookup-dir "/pylookup.db"))))
+            pylookup-program (concat pylookup-dir "pylookup.py")
+            pylookup-db-file (concat pylookup-dir "pylookup.db"))))
 
   (req-package elpy
     :require jedi
@@ -2091,7 +2131,7 @@ IETF Yang mode.
       (define-key python-mode-map (kbd "C-c C-\\") 'pyfixer:fix-current-line)
       (define-key python-mode-map (kbd "C-c C-M-\\") 'pyfixer:fix-all-errors)
       (define-key python-mode-map (kbd "C-c 8") 'pyfixer:fix-all-errors)
-      (bind-key "C-c C-h" 'plookup-lookup python-mode-map)
+      (bind-key "C-c C-h" 'pylookup-lookup python-mode-map)
 
       ;; Elpy config
       ;; (define-key elpy-mode-map (kbd "C-c C-n") 'next-error)
@@ -2421,62 +2461,36 @@ IETF Yang mode.
 #+END_SRC
 
 ***** Auto Complete
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
   (req-package-force auto-complete
     :require auto-complete-config
     :config
     (progn ; XXX (require 'auto-complete-extension)
       (add-to-list 'ac-dictionary-directories "~/.emacs.d/ac-dict")
       (ac-config-default)
-      (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
-
-      ;; XXXnew python required? we are adding yasnippet and gtags, why python?
-      ;; (defun ac-python-mode-setup ()
-      ;;   (setq ac-sources (append '(ac-source-yasnippet ac-source-gtags) ac-sources)))
-      ;; (add-hook 'python-mode-hook 'ac-python-mode-setup)
-
       (setq ac-auto-start nil)        ; don't run ac-complete continuously
       (setq ac-trigger-key "TAB")     ; do start auto-complete when a tab is encountered
-      (setq ac-trigger-commands '(chopps-python-tab)) ; when entered enables completion
+      ;; (setq ac-trigger-commands '(chopps-python-tab)) ; when entered enables completion
+      (ac-set-trigger-key "TAB")
+      (ac-set-trigger-key "<tab>")
       (define-key ac-menu-map "\C-n" 'ac-next)
       (define-key ac-menu-map "\C-p" 'ac-previous)
-      (define-key ac-menu-map "\e" 'ac-complete)
-
-      (setq ac-trigger-commands-on-completing
-            (cons 'viper-intercept-ESC-key ac-trigger-commands-on-completing))))
-
+      (define-key ac-menu-map "\e" 'ac-complete)))
 #+end_src
-***** File and Buffer Completion (ido)
-;;----------------------------+
-;; File and buffer completion
-;;----------------------------+
-
-#+begin_src emacs-lisp :tangle no
-  (req-package ido-ubiquitous
-    :init
-    (progn
-      ;; ido mode
-      (ido-mode +1)
-      ;; ido almost everywhere
-      (ido-ubiquitous-mode +1)
-      ;; smarter fuzzy matching for ido
-      (flx-ido-mode +1)
-      ;; disable ido faces to see flx highlights
-      (setq ido-use-faces nil)))
-
-  (req-package smex
-    :init
-    (progn
-      ;; remember recently and most frequently used commands
-      ;; (setq-smex-save-fil (expand-file-name ".smex-items"))
-      (smex-initialize)
-      (global-set-key (kbd "M-x") 'smex)
-      (global-set-key (kbd "M-X") 'smex-major-mode-commands)))
-
-#+end_src
-
+***** Company Mode (compete-any)
+#+BEGIN_SRC emacs-lisp
+  (req-package company
+    :init (progn
+            ;; (add-hook 'all-prog-mode-hook 'company-mode-on)
+            (add-hook 'all-text-mode-hook 'company-mode-on))
+    :config (progn
+              (define-key company-active-map (kbd "C-n")
+                (lambda () (interactive) (company-complete-common-or-cycle 1)))
+              (define-key company-active-map (kbd "C-p")
+                (lambda () (interactive) (company-complete-common-or-cycle -1)))))
+#+END_SRC
 ***** Yasnippet
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
   (req-package yasnippet
     :init
     (progn
@@ -2492,199 +2506,199 @@ IETF Yang mode.
       ;; In fact, set it to something we'll never use because
       ;; we'll only ever trigger it indirectly.
 
-      (add-hook 'yas/after-exit-snippet-hook
+      (add-hook 'yas-after-exit-snippet-hook
                 (lambda () (setq ac-trigger-key nil)))
-      (add-hook 'yas/before-expand-snippet-hook
+      (add-hook 'yas-before-expand-snippet-hook
                 (lambda () (setq ac-trigger-key "TAB"))))
     :config
     (yas-reload-all))
   ;;     (yas/global-mode 1)))
 #+end_src
 
-***** Headers
-    #+begin_src emacs-lisp :tangle yes
-      (defun user-full-name ()
-        "Christian Hopps")
+***** Autoinsert Headers
+#+begin_src emacs-lisp :tangle yes
+  (defun user-full-name ()
+    "Christian Hopps")
 
-      (defun my-get-date ()
-        (concat (format-time-string "%B" (current-time))
-                " "
-                (trim-string (format-time-string " %e" (current-time)))
-                (format-time-string " %Y" (current-time))))
-      (setq work-ai-prefix "/.*/\\(?:Documents/Work\\|chopps/w\\)/.*/")
+  (defun my-get-date ()
+    (concat (format-time-string "%B" (current-time))
+            " "
+            (trim-string (format-time-string " %e" (current-time)))
+            (format-time-string " %Y" (current-time))))
+  (setq work-ai-prefix "/.*/\\(?:Documents/Work\\|chopps/w\\)/.*/")
 
-      (eval-after-load 'autoinsert
-        '(progn
+  (eval-after-load 'autoinsert
+    '(progn
 
-           ;;-----------+
-           ;;      Home
-           ;;-----------+
+       ;;-----------+
+       ;;      Home
+       ;;-----------+
 
-           (define-auto-insert
-             '("\\.org\\'" . "Home Org mode skeleton")
-             '("Short description: "
-               "#+TITLE: " _ \n
-               > "#+AUTHOR: Christian E. Hopps" \n
-               > "#+EMAIL: chopps@gmail.com" \n
-               > "#+STARTUP: indent" \n
-               > "" \n
-               ))
-           (define-auto-insert
-             '("\\.o2b\\'" . "Home Blog Org mode skeleton")
-             '("Short description: "
-               "#+TITLE: " _ \n
-               > "#+BLOG: hoppsjots.org" \n
-               > "#+AUTHOR: Christian E. Hopps" \n
-               > "#+EMAIL: chopps@gmail.com" \n
-               > "#+CATEGORY: Development" _ \n
-               > "#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil TeX:nil" \n
-               > "#+STARTUP: indent" \n
-               > "" \n
-               ))
-           (define-auto-insert
-             '("\\.el\\'" . "Home Lisp comment skeleton")
-             '("Short description: "
-               ";;" \n
-               > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > ";;" \n
-               > ";; Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps" \n
-               > ";; All rights reserved." \n
-               > ";;" \n
-               > _ ))
-           (define-auto-insert
-             '("\\.py\\'" . "# Home python comment skeleton")
-             '("Short description: "
-               "# -*- coding: utf-8 -*-"
-               > "#" \n
-               > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "#" \n
-               > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-               > "# All rights reserved." \n
-               > "#" \n
-               > "# REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
-               > "# CONSENT OF THE AUTHOR." \n
-               > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
-               > "" \n
-               > _ \n
-               > "" \n
-               > "__author__ = '" (user-full-name) "'" \n
-               > "__date__ = '" (my-get-date) "'" \n
-               > "__version__ = '1.0'" \n
-               > "__docformat__ = \"restructuredtext en\"" \n
-               > _ ))
-           (define-auto-insert
-             '("\\.sh\'" . "# Home shell comment skeleton")
-             '("Short description: "
-               "#!/bin/bash" \n
-               > "#" \n
-               > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "#" \n
-               > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-               > "# All rights reserved." \n
-               > "#" \n
-               > _ ))
-           (define-auto-insert
-             '("\\.\\(pl\\|tcl\\)" . "# Home comment skeleton")
-             '("Short description: "
-               "#" \n
-               > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "#" \n
-               > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-               > "# All rights reserved." \n
-               > "#" \n
-               > _ ))
-           (define-auto-insert
-             '("\\.rst\\'" . "Home ReST skeleton")
-             '("Short description: "
-               ".." \n
-               > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > ".." \n
-               > ".. Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-               > ".. All rights reserved." \n
-               > ".." \n
-               > _ ))
-           (define-auto-insert
-             '("\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\|m\\)\\'" . "Home C-style skeleton")
-             '("Short description: "
-               "/*" \n
-               > " * " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "*" \n
-               > "* Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
-               > "* All rights reserved." \n
-               > "*" \n
-               > "* REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
-               > "* CONSENT OF THE AUTHOR." \n
-               > "*/" \n
-               > _ ))
+       (define-auto-insert
+         '("\\.org\\'" . "Home Org mode skeleton")
+         '("Short description: "
+           "#+TITLE: " _ \n
+           > "#+AUTHOR: Christian E. Hopps" \n
+           > "#+EMAIL: chopps@gmail.com" \n
+           > "#+STARTUP: indent" \n
+           > "" \n
+           ))
+       (define-auto-insert
+         '("\\.o2b\\'" . "Home Blog Org mode skeleton")
+         '("Short description: "
+           "#+TITLE: " _ \n
+           > "#+BLOG: hoppsjots.org" \n
+           > "#+AUTHOR: Christian E. Hopps" \n
+           > "#+EMAIL: chopps@gmail.com" \n
+           > "#+CATEGORY: Development" _ \n
+           > "#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil TeX:nil" \n
+           > "#+STARTUP: indent" \n
+           > "" \n
+           ))
+       (define-auto-insert
+         '("\\.el\\'" . "Home Lisp comment skeleton")
+         '("Short description: "
+           ";;" \n
+           > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > ";;" \n
+           > ";; Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps" \n
+           > ";; All rights reserved." \n
+           > ";;" \n
+           > _ ))
+       (define-auto-insert
+         '("\\.py\\'" . "# Home python comment skeleton")
+         '("Short description: "
+           "# -*- coding: utf-8 -*-"
+           > "#" \n
+           > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "#" \n
+           > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+           > "# All rights reserved." \n
+           > "#" \n
+           > "# REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+           > "# CONSENT OF THE AUTHOR." \n
+           > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
+           > "" \n
+           > _ \n
+           > "" \n
+           > "__author__ = '" (user-full-name) "'" \n
+           > "__date__ = '" (my-get-date) "'" \n
+           > "__version__ = '1.0'" \n
+           > "__docformat__ = \"restructuredtext en\"" \n
+           > _ ))
+       (define-auto-insert
+         '("\\.sh\'" . "# Home shell comment skeleton")
+         '("Short description: "
+           "#!/bin/bash" \n
+           > "#" \n
+           > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "#" \n
+           > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+           > "# All rights reserved." \n
+           > "#" \n
+           > _ ))
+       (define-auto-insert
+         '("\\.\\(pl\\|tcl\\)" . "# Home comment skeleton")
+         '("Short description: "
+           "#" \n
+           > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "#" \n
+           > "# Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+           > "# All rights reserved." \n
+           > "#" \n
+           > _ ))
+       (define-auto-insert
+         '("\\.rst\\'" . "Home ReST skeleton")
+         '("Short description: "
+           ".." \n
+           > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > ".." \n
+           > ".. Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+           > ".. All rights reserved." \n
+           > ".." \n
+           > _ ))
+       (define-auto-insert
+         '("\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\|m\\)\\'" . "Home C-style skeleton")
+         '("Short description: "
+           "/*" \n
+           > " * " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "*" \n
+           > "* Copyright (c) " (substring (current-time-string) -4) " by Christian E. Hopps." \n
+           > "* All rights reserved." \n
+           > "*" \n
+           > "* REDISTRIBUTION IN ANY FORM PROHIBITED WITHOUT PRIOR WRITTEN" \n
+           > "* CONSENT OF THE AUTHOR." \n
+           > "*/" \n
+           > _ ))
 
 
-           ;;-----------+
-           ;;      Work
-           ;;-----------+
+       ;;-----------+
+       ;;      Work
+       ;;-----------+
 
-           (define-auto-insert
-             (cons (concat work-ai-prefix "\\.org\\'") "Work org mode skeleton")
-             '("Short description: "
-               "#+TITLE: " _ \n
-               > "#+AUTHOR: Christian E. Hopps" \n
-               > "#+EMAIL: chopps@gmail.com" \n
-               > "#+STARTUP: indent" \n
-               > "" \n
-               ))
-           (define-auto-insert
-             (cons (concat work-ai-prefix "\\.el\\'") "Work Lisp comment skeleton")
-             '("Short description: "
-               ";;" \n
-               > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > ";;" \n
-               > _
-               ))
-           (define-auto-insert
-             (cons (concat work-ai-prefix "\\.py\\'") "# Work python comment skeleton")
-             '("Short description: "
-               "# -*- coding: utf-8 -*-"
-               > "#" \n
-               > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "#" \n
-               > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
-               > _ \n
-               > "__author__ = '" (user-full-name) "'" \n
-               > "__date__ = '" (my-get-date) "'" \n
-               > "__version__ = '1.0'" \n
-               > "__docformat__ = \"restructuredtext en\"" \n
-               ))
-           (define-auto-insert
-             (cons (concat work-ai-prefix "\\.sh\\'") "# Work comment skeleton")
-             '("Short description: "
-               "#!/bin/bash" \n
-               > "#" \n
-               > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "#" \n
-               > _ ))
-           (define-auto-insert
-             (cons (concat work-ai-prefix "\\.\\(pl\\|tcl\\)\\'") "# Work comment skeleton")
-             '("Short description: "
-               "#" \n
-               > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "#" \n
-               > _ ))
-           (define-auto-insert
-             (cons (concat work-ai-prefix "\\.rst\\'") "Work ReST skeleton")
-             '("Short description: "
-               ".." \n
-               > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > ".." \n
-               > _ ))
-           (define-auto-insert
-             (cons (concat work-ai-prefix "\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\|m\\)\\'") "Work C-style skeleton")
-             '("Short description: "
-               "/*" \n
-               > "* " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
-               > "*/" \n
-               > _ ))
-             ))
-      (auto-insert-mode)
-    #+end_src
+       (define-auto-insert
+         (cons (concat work-ai-prefix "\\.org\\'") "Work org mode skeleton")
+         '("Short description: "
+           "#+TITLE: " _ \n
+           > "#+AUTHOR: Christian E. Hopps" \n
+           > "#+EMAIL: chopps@gmail.com" \n
+           > "#+STARTUP: indent" \n
+           > "" \n
+           ))
+       (define-auto-insert
+         (cons (concat work-ai-prefix "\\.el\\'") "Work Lisp comment skeleton")
+         '("Short description: "
+           ";;" \n
+           > ";; " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > ";;" \n
+           > _
+           ))
+       (define-auto-insert
+         (cons (concat work-ai-prefix "\\.py\\'") "# Work python comment skeleton")
+         '("Short description: "
+           "# -*- coding: utf-8 -*-"
+           > "#" \n
+           > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "#" \n
+           > "from __future__ import absolute_import, division, unicode_literals, print_function, nested_scopes" \n
+           > _ \n
+           > "__author__ = '" (user-full-name) "'" \n
+           > "__date__ = '" (my-get-date) "'" \n
+           > "__version__ = '1.0'" \n
+           > "__docformat__ = \"restructuredtext en\"" \n
+           ))
+       (define-auto-insert
+         (cons (concat work-ai-prefix "\\.sh\\'") "# Work comment skeleton")
+         '("Short description: "
+           "#!/bin/bash" \n
+           > "#" \n
+           > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "#" \n
+           > _ ))
+       (define-auto-insert
+         (cons (concat work-ai-prefix "\\.\\(pl\\|tcl\\)\\'") "# Work comment skeleton")
+         '("Short description: "
+           "#" \n
+           > "# " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "#" \n
+           > _ ))
+       (define-auto-insert
+         (cons (concat work-ai-prefix "\\.rst\\'") "Work ReST skeleton")
+         '("Short description: "
+           ".." \n
+           > ".. " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > ".." \n
+           > _ ))
+       (define-auto-insert
+         (cons (concat work-ai-prefix "\\.\\(h\\|c\\|CC?\\|cc\\|cxx\\|cpp\\|c++\\|m\\)\\'") "Work C-style skeleton")
+         '("Short description: "
+           "/*" \n
+           > "* " (my-get-date) ", " (user-full-name) " <" (user-login-name) "@gmail.com>" \n
+           > "*/" \n
+           > _ ))
+         ))
+  (auto-insert-mode)
+#+end_src
 **** Keys
 #+begin_src emacs-lisp :tangle yes
   (if debug-init-msg
@@ -2756,11 +2770,11 @@ IETF Yang mode.
     (progn
       (define-key undo-tree-map (kbd "C-x r") nil)))
 #+end_src
-
 **** Modeline
 #+begin_src emacs-lisp :tangle yes
 (column-number-mode t)
 (setq line-number-mode t)
+(display-time-mode)
 ;; (set-face-attribute 'mode-line nil :box nil)
 
 ;; (defun chopps-after-init ()
@@ -2768,47 +2782,10 @@ IETF Yang mode.
 ;;   (sml/setup))
 ;; (add-hook 'after-init-hook 'chopps-after-init)
 #+end_src
-
-**** Display
+**** GUI Interaction Display
 #+begin_src emacs-lisp :tangle yes
-  (if debug-init-msg
-      (message "Mark pre display mode"))
   (setq x-mouse-click-focus-ignore-position t)
   (setq mouse-yank-at-point t)
-  (display-time-mode)
-
-  (if debug-init-msg
-      (message "Mark display mode"))
-  ;;
-  ;; Font-lock
-  ;;
-  (setq c-font-lock-extra-types
-      (quote
-       ("FILE" "\\sw+_st" "\\sw+_t" "Lisp_Object" "\\sw+type" "uint" "ushort" "uchar" "boolean" "active_timer")))
-
-  (add-hook 'c-mode-hook
-            (function (lambda ()
-                        (font-lock-mode 1))))
-
-  (add-hook 'html-mode-hook
-            (function (lambda ()
-                        (font-lock-mode 1))))
-
-  (add-hook 'lisp-mode-hook
-            (function (lambda ()
-                        (font-lock-mode 1))))
-
-  (add-hook 'lisp-interaction-mode-hook
-            (function (lambda ()
-                        (font-lock-mode 1))))
-
-  (add-hook 'perl-mode-hook
-            (function (lambda ()
-                        (font-lock-mode 1))))
-
-  (add-hook 'python-mode-hook
-            (function (lambda ()
-                        (font-lock-mode 1))))
 #+end_src
 ** End Req-Packages
 #+begin_src emacs-lisp
