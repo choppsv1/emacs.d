@@ -120,7 +120,7 @@ static char *gnus-pointer[] = {
  '(scroll-step 1)
  '(show-trailing-whitespace t)
  '(ssh-program "ssh-login.sh")
- '(temporary-file-directory "/tmp")
+ '(temporary-file-directory "/tmp/")
  '(vc-annotate-background nil)
  '(vc-annotate-color-map
    (quote

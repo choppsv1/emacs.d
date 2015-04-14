@@ -152,7 +152,7 @@ escape sequence as given below.
 **** Platform (Mac) Specific
 For now this is specific to Mac OS X.
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
   (if (eq system-type 'darwin)
       (progn
         ;; BSD ls does not support --dired. Use GNU core-utils:
@@ -161,8 +161,8 @@ For now this is specific to Mac OS X.
           (setq insert-directory-program "gls"))
 
         ;; Grab environment from the shell as we may have been launched outside.
-        (req-package-force exec-path-from-shell
-          :if (eq system-type 'darwin)
+        (req-package-force exec-path-from-shell 
+          :if (eq system-type 'darwin) 
           :config
           (progn
             ;; Derive PATH by running a shell so that GUI Emacs
@@ -455,6 +455,17 @@ without relaunching.
                 clean-buffer-list-kill-never-regexps-init))
 #+end_src
 
+***** Mac
+#+begin_src emacs-lisp :tangle yes
+  (unwind-protect
+   (condition-case ex
+        (pc-selection-mode)
+    (`error
+      t)))
+  (global-set-key [?\A-x] 'clipboard-kill-region)
+  (global-set-key [?\A-c] 'clipboard-kill-ring-save)
+  (global-set-key [?\A-v] 'clipboard-yank)
+#+end_src
 **** Visuals
 ***** Frames
 #+begin_src emacs-lisp :tangle yes
@@ -498,6 +509,11 @@ without relaunching.
 #+end_src
 
 **** Mail
+#+begin_src emacs-lisp :tangle no
+  (setq mail-from-style 'angles)
+  (setq mail-archive-file-name (expand-file-name "~/Personal/Mail/mail-archive"))
+#+end_src
+
 #+BEGIN_SRC emacs-lisp :tangle no
   ;; XXXnew
   (req-package bbdb
@@ -843,7 +859,7 @@ without relaunching.
       (add-hook 'c-mode-common-hook (lambda () (when (featurep 'filladapt)
                                                  (c-setup-filladapt))))))
 #+end_src
-**** Spell and Lint Checkers
+**** Spelling and Lint Checkers
 ***** Flyspell
 #+begin_src emacs-lisp :tangle yes
   (req-package flyspell
@@ -890,6 +906,28 @@ without relaunching.
         :modes python-mode)
       ;; (add-hook 'after-init-hook 'global-flycheck-mode)
       ))
+#+end_src
+***** Customization
+#+begin_src emacs-lisp :tangle yes
+  (define-key ctl-x-map (kbd "C-i") 'endless/ispell-word-then-abbrev)
+
+  (defun endless/ispell-word-then-abbrev (p)
+    "Call `ispell-word'. Then create an abbrev for the correction made. With prefix P, create local abbrev. Otherwise it will be global."
+    (interactive "P")
+    (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
+      (call-interactively 'ispell-word)
+      (setq aft (downcase (or (thing-at-point 'word) "")))
+      (unless (string= aft bef)
+        (message "\"%s\" now expands to \"%s\" %sally"
+                 bef aft (if p "loc" "glob"))
+        (define-abbrev
+          (if p global-abbrev-table local-abbrev-table)
+          bef aft))))
+
+  (setq save-abbrevs t)
+  (setq-default abbrev-mode t)
+
+  (setq flyspell-issue-message-flag nil)
 #+end_src
 **** Generic Editing
 #+begin_src emacs-lisp :tangle yes
@@ -1026,17 +1064,6 @@ without relaunching.
 
 #+end_src
 
-**** Mac
-#+begin_src emacs-lisp :tangle yes
-  (unwind-protect
-   (condition-case ex
-        (pc-selection-mode)
-    (`error
-      t)))
-  (global-set-key [?\A-x] 'clipboard-kill-region)
-  (global-set-key [?\A-c] 'clipboard-kill-ring-save)
-  (global-set-key [?\A-v] 'clipboard-yank)
-#+end_src
 **** Command Line Interaction (comint)
 #+begin_src emacs-lisp :tangle yes
   (eval-after-load "comint"
@@ -1564,12 +1591,6 @@ This should be it's own minor mode or something right?
       )
     )
 #+end_src
-**** Mail
-#+begin_src emacs-lisp :tangle yes
-  (setq mail-from-style 'angles)
-  (setq mail-archive-file-name (expand-file-name "~/Personal/Mail/mail-archive"))
-#+end_src
-
 **** Screen/TMUX
 #+begin_src emacs-lisp :tangle yes
   (defun sigusr1-handler ()
@@ -1608,7 +1629,6 @@ This should be it's own minor mode or something right?
           (message "Enabling TMUX signal handling")
           (define-key special-event-map [sigusr1] 'sigusr1-handler))))
 #+end_src
-
 **** Shell
 #+begin_src emacs-lisp :tangle yes
   (req-package shell-mode
@@ -2355,29 +2375,6 @@ IETF Yang mode.
         (add-to-list 'org2blog/wp-sourcecode-langs "lisp")
         (add-to-list 'org2blog/wp-sourcecode-langs "sh")
         (add-hook 'org2blog/wp-mode-hook 'org-mode)))
-#+end_src
-
-**** Spelling
-#+begin_src emacs-lisp :tangle yes
-  (define-key ctl-x-map (kbd "C-i") 'endless/ispell-word-then-abbrev)
-
-  (defun endless/ispell-word-then-abbrev (p)
-    "Call `ispell-word'. Then create an abbrev for the correction made. With prefix P, create local abbrev. Otherwise it will be global."
-    (interactive "P")
-    (let ((bef (downcase (or (thing-at-point 'word) ""))) aft)
-      (call-interactively 'ispell-word)
-      (setq aft (downcase (or (thing-at-point 'word) "")))
-      (unless (string= aft bef)
-        (message "\"%s\" now expands to \"%s\" %sally"
-                 bef aft (if p "loc" "glob"))
-        (define-abbrev
-          (if p global-abbrev-table local-abbrev-table)
-          bef aft))))
-
-  (setq save-abbrevs t)
-  (setq-default abbrev-mode t)
-
-  (setq flyspell-issue-message-flag nil)
 #+end_src
 
 **** Completion
