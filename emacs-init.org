@@ -1441,25 +1441,6 @@ This should be it's own minor mode or something right?
     (setq browse-url-browser-function 'browse-url-generic
           browse-url-generic-program "openurl.sh"))
 #+end_src
-**** RFCs
-#+begin_src emacs-lisp :tangle yes
-  ;; (req-package rfcview
-  ;;   :commands rfcview-mode
-  ;;   :mode (("/\\(rfc|std\\)[0-9]+\\.txt\\'" . rfcview-mode)
-  ;;          ("/draft-[-_a-zA-Z0-9].+.txt\\'" . rfcview-mode)))
-  (req-package irfc
-    :commands irfc-mode
-    :mode (("/\\(rfc|std\\)[0-9]+\\.txt\\'" . irfc-mode)
-           ("/draft-[-_a-zA-Z0-9].+.txt\\'" . irfc-mode))
-    :init
-    (progn
-      (setq irfc-directory (if (file-directory-p "~/Dropbox/RFCs")
-                                "~/Dropbox/RFCs"
-                              "~/RFCs")))
-    :config
-    (progn
-      (make-directory irfc-directory t)))
-#+end_src
 **** Tagging
 #+begin_src emacs-lisp :tangle yes
     ;; ggtags-mode is a minor mode, this kills proper major mode init
@@ -1655,6 +1636,21 @@ This should be it's own minor mode or something right?
     :mode (("diff" . diff-mode)
            ("\\.diff\\'" . diff-mode))
     :init (add-hook 'rst-mode-hook 'run-all-text-mode-hook))
+#+end_src
+***** RFCs
+#+begin_src emacs-lisp :tangle yes
+  ;; (req-package rfcview
+  ;;   :commands rfcview-mode
+  ;;   :mode (("/\\(rfc|std\\)[0-9]+\\.txt\\'" . rfcview-mode)
+  ;;          ("/draft-[-_a-zA-Z0-9].+.txt\\'" . rfcview-mode)))
+  (req-package irfc
+    :mode (("\\(rfc\\|std\\)[0-9]+\\.txt\\'" . irfc-mode)
+           ("draft-[-_a-zA-Z0-9]+.txt\\'" . irfc-mode))
+    :init (progn
+            (setq irfc-directory (if (file-directory-p "~/Dropbox/RFCs")
+                                     "~/Dropbox/RFCs"
+                                   "~/RFCs")))
+    :config (make-directory irfc-directory t))
 #+end_src
 ***** Rst Mode
 #+BEGIN_SRC emacs-lisp
@@ -1899,6 +1895,16 @@ IETF Yang mode.
 
 #+end_src
 ***** HTML/XML Mode
+#+BEGIN_SRC emacs-lisp
+  (req-package sgml-mode
+    :mode (("\\.html\\'" . html-mode))
+    :init (add-hook 'any-text-mode-hook 'run-any-prog-mode-hook))
+
+  (req-package nxml-mode
+    :mode (("\\.xml\\'" . nxml-mode)
+           ("\\.plist\\'" . nxml-mode))
+    :init (add-hook 'any-text-mode-hook 'run-any-prog-mode-hook))
+#+END_SRC
 ***** Perl
 #+begin_src emacs-lisp :tangle yes
   (req-package perl-mode
