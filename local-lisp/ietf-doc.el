@@ -26,19 +26,19 @@
 
 (defvar ietf-doc-cache-directory "~/Dropbox/IETF/doc-cache/")
 
-(defvar ietf-doc-draft-url-directory "http://www.ietf.org/id/")
+(defvar ietf-doc-draft-url-directory "http://tools.ietf.org/id/")
 
-(defvar ietf-doc-rfc-url-directory "http://www.ietf.org/rfc/")
+(defvar ietf-doc-rfc-url-directory "http://tools.ietf.org/rfc/")
 
 (defun ietf-doc-at-point ()
   (interactive)
   (concat (file-name-sans-extension (file-name-base (thing-at-point 'filename))) ".txt"))
 
 (defun ietf-doc-normalize-filename (filename)
-  (concat (file-name-sans-extension filename) ".txt"))
+  (concat (file-name-sans-extension (downcase filename)) ".txt"))
 
 (defun ietf-doc-fetch-to-cache (filename &optional reload)
-  (let* ((pathname (concat ietf-doc-cache-directory filename))
+  (let* ((pathname (concat ietf-doc-cache-directory (downcase filename)))
          url)
     (if (and (file-exists-p pathname) (not reload))
         (message "Cached path %s" pathname)

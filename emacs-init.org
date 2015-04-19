@@ -155,12 +155,8 @@ For now this is specific to Mac OS X.
 #+begin_src emacs-lisp :tangle yes
   (if (eq system-type 'darwin)
       (progn
-        ;; BSD ls does not support --dired. Use GNU core-utils:
-        ;; brew install coreutils
-        (when (executable-find "gls")
-          (setq insert-directory-program "gls"))
-
         ;; Grab environment from the shell as we may have been launched outside.
+        (message "exec-path start")
         (req-package-force exec-path-from-shell 
           :if (eq system-type 'darwin) 
           :config
@@ -172,6 +168,12 @@ For now this is specific to Mac OS X.
             ;; (setq exec-path-from-shell-arguments '("-i"))
             (setq exec-path-from-shell-variables '("HOSTNAME" "PATH" "PYTHONPATH"))
             (exec-path-from-shell-initialize)))
+        (message "exec-path end")
+
+        ;; BSD ls does not support --dired. Use GNU core-utils:
+        ;; brew install coreutils
+        (when (executable-find "gls")
+          (setq insert-directory-program "gls"))
 
         ;; Move to homedir from if in root.
         (if (string= default-directory "/")
@@ -1993,7 +1995,7 @@ IETF Yang mode.
     :interpreter ("python" . python-mode)
     :init
     (progn
-      (add-hook 'python-mode-hook 'run-all-prog-mode-hooks)
+      (add-hook 'python-mode-hook 'run-all-prog-mode-hook)
       (setq
        python-shell-interpreter "ipython"
        python-shell-interpreter-args ""
@@ -2706,23 +2708,32 @@ IETF Yang mode.
 #+begin_src emacs-lisp :tangle yes
   (if debug-init-msg
       (message "Mark pre keys"))
+
+  (req-package-force guide-key
+    :init (setq
+           guide-key/guide-key-sequence '("C-x" "C-c")
+           guide-key/recursive-key-sequence-flag t)
+    :config
+    (guide-key-mode 1))
+
+  ;; XXX fix (guide-key-mode 1)
   ;;(setq vc-default-back-end 'ACMEC)
-  (define-key global-map "\C-xv-" 'ediff-revision)
+  ;; (define-key global-map "\C-xv-" 'ediff-revision)
 
           ;;; C-x C-k - quit.
-  (define-key global-map "\C-x\C-k" 'save-buffers-kill-emacs)
+  ;; (define-key global-map "\C-x\C-k" 'save-buffers-kill-emacs)
 
           ;;; C-x C-j - goto line
-  (define-key global-map "\C-x\C-j" 'goto-line)
+  ;; (define-key global-map "\C-x\C-j" 'goto-line)
 
           ;;; C-x C-m - newline
-  (define-key global-map "\C-x\C-m" 'newline)
+  ;; (define-key global-map "\C-x\C-m" 'newline)
 
           ;;; C-m (RET) newline and indent
-  (define-key global-map "\C-m" 'newline-and-indent)
+  ;; (define-key global-map "\C-m" 'newline-and-indent)
 
           ;;; C-x \  what line
-  (define-key global-map "\C-x\\" 'what-line)
+  ;; (define-key global-map "\C-x\\" 'what-line)
 
           ;;; make Backspace be a delete key
                                           ;(global-set-key "\C-h" 'backward-delete-char-untabify)
@@ -2752,17 +2763,15 @@ IETF Yang mode.
   (global-set-key (kbd "A-+") 'text-scale-increase)
   (global-set-key (kbd "A-_") 'text-scale-decrease)
 
-  (if (getenv "ITERM")
-      (defun viper-translate-all-ESC-keysequences () nil)
-    (defun viper-translate-all-ESC-keysequences () t))
+  ;; (if (getenv "ITERM")
+  ;;     (defun viper-translate-all-ESC-keysequences () nil)
+  ;;   (defun viper-translate-all-ESC-keysequences () t))
 
   (global-set-key (kbd "C-h C-m") 'discover-my-major)
 
   ;; Have to remove undo-tree mappings for discover to work
   ;; XXX fix (global-discover-mode 1)
 
-  (setq guide-key/guide-key-sequence '("C-x 4" "C-c r" "C-x p"))
-  ;; XXX fix (guide-key-mode 1)
 
   #+end_src
 
