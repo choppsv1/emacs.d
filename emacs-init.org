@@ -2246,16 +2246,17 @@ IETF Yang mode.
            ("C-c l" . org-store-link))
     :init
     (progn
-      (setq org-directory "~/org-mode")
-      (setq org-src-fontify-natively t)
-      (setq org-default-notes-file (concat org-directory "/notes.org"))
-      (setq org-agenda-start-on-weekday 5)
+      (setq org-directory "~/org-mode"
+      org-src-fontify-natively t
+      org-default-notes-file (concat org-directory "/notes.org")
+      org-agenda-start-on-weekday 5
+      org-log-done 'time
       ;; (setq org-agenda-start-day "-8d")
       ;; (require 'org-latex)
       ;; (and (buffer-file-name)
       ;;      (string-match "\\.o2b$" (buffer-file-name))
       ;;      (org2blog/wp-mode)))
-      )
+      ))
     :config
     (progn
       (if debug-init-msg
