@@ -471,6 +471,22 @@ without relaunching.
   (global-set-key [?\A-v] 'clipboard-yank)
 #+end_src
 **** Visuals
+***** Special characters
+#+begin_src emacs-lisp :tangle yes
+  (defun truncate-string-to-width-unicode-elipsis (orig-func &rest args)
+    (let ((myargs '(0 nil "…"))
+          (newargs (copy-sequence args))
+          (arglen (length args))
+          lastcons)
+      (if (< 5 arglen)
+          (setcdr (nthcdr (- arglen 1) newargs) (nthcdr (- arglen 2)
+                                                        myargs))
+        (setq lastcons (nthcdr 4 newargs))
+        (when (and (car lastcons) (not (stringp (car lastcons))))
+          (setcar lastcons "…")))
+      (apply orig-func newargs)))
+  (advice-add 'truncate-string-to-width :around #'truncate-string-to-width-unicode-elipsis)
+#+end_src
 ***** Frames
 #+begin_src emacs-lisp :tangle yes
   (if (not (window-system))
@@ -498,8 +514,11 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   ;; (req-package plan9-theme)
 
-  (setq current-graphic-theme 'easter)
-  (setq current-tty-theme 'easter)
+  ;; (setq current-graphic-theme 'easter)
+  ;; (setq current-tty-theme 'easter)
+  ;; leuven
+  (setq current-graphic-theme 'light-blue)
+  (setq current-tty-theme 'light-blue)
 
   (defun new-frame-pick-theme (frame)
     (select-frame frame)
@@ -734,9 +753,9 @@ without relaunching.
             " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/Spam OR maildir:/chopps.org/Junk )"
 
             mu4e-pre-hook-count 0
-            mu4e-full-update-mail-command "offlineimap"
-            mu4e-quick-update-mail-command "offlineimap -q"
-            mu4e-get-mail-command "offlineimap -q"
+            mu4e-full-update-mail-command "offlineimap -l /Users/chopps/.offlineimap/logfile"
+            mu4e-quick-update-mail-command "offlineimap -q -l /Users/chopps/.offlineimap/logfile"
+            ;; mu4e-get-mail-command "offlineimap -l /Users/chopps/.offlineimap/logfile"
             mu4e-update-pre-hook 'mu4e-pre-hook-udpate-command
       
             mu4e-bookmarks (mapcar (lambda (x) (cons (concat (car x) mu4e-junk-folder-filter) (cdr x)))
@@ -750,12 +769,15 @@ without relaunching.
 
        mu4e-maildir-shortcuts '(("/chopps.org/INBOX" . ?i)
                                 ("/gmail.com/INBOX" . ?g)
-                                ("/terastrm.net/INBOX" . ?t))
+                                ("/terastrm.net/INBOX" . ?t)
+                                ("/chopps.org/a-terastream" . ?w)
+                                ("/chopps.org/aa-netbsd" . ?n)
+                                )
 
        mu4e-attachment-dir "~/Downloads"
 
 
-       mu4e-update-interval 240
+       mu4e-update-interval 300
 
        ;; mu4e-sent-folder   "/chopps.org/Sent Messages"
        ;; mu4e-drafts-folder "/chopps.org/Drafts"
@@ -772,15 +794,15 @@ without relaunching.
        mu4e-html2text-command 'mu4e-shr2text
 
        mu4e-compose-signature-auto-include nil
+       mu4e-compose-complete-addresses t
 
        ;; "Date         Flgs   List       From                   Subject
-       mu4e-headers-fields '(
-                             (:flags         .   5)
-                             (:date           .  10)
-                             (:from          .  26)
-                             (:mailing-list . 17)
-                             (:maildir  .  10)
-                             (:subject       .  nil))
+       mu4e-headers-fields '((:flags         .  5)
+                             (:human-date    . 15)
+                             (:from          . 26)
+                             (:mailing-list  . 17)
+                             (:maildir       . 13)
+                             (:subject       . nil))
 
        ;; don't keep message buffers around
        message-kill-buffer-on-exit t
@@ -826,7 +848,7 @@ without relaunching.
           (mu4e-drafts-folder "/gmail.com/[Gmail].Drafts")
           (mu4e-sent-folder   "/gmail.com/[Gmail].Sent Mail")
           (mu4e-trash-folder  "/gmail.com/[Gmail].Trash")
-          (mu4e-sent-messages-behavior 'delete)
+          (mu4e-sent-messages-behavior #'delete)
           ;; smtp
           (smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil)))
           (smtpmail-default-smtp-server "smtp.gmail.com")
@@ -836,6 +858,16 @@ without relaunching.
           (smtpmail-smtp-service 587))
          )
        )
+
+      (defun my-mu4e-add-cc ()
+        "Set up message for composing"
+        (let ((buffer-modified (buffer-modified-p)))
+          (save-excursion
+            (message-add-header (concat "Cc: " user-mail-address))
+            (if (not (string= user-mail-address "chopps@chopps.org"))
+                (message-add-header "Bcc: chopps@chopps.org")))
+          (set-buffer-modified-p buffer-modified)))
+
       (defun my-mu4e-set-account (account)
         "Set account variables up"
         (let ((account-vars (cdr (assoc account my-mu4e-account-alist))))
@@ -873,11 +905,12 @@ without relaunching.
       )
     :config
     (progn
-      (require 'mu4e-maildirs-extension)
+      ;; (require 'mu4e-maildirs-extension)
+      ;; (mu4e-maildirs-extension)
       (require 'mu4e-contrib)
-      (mu4e-maildirs-extension)
       (add-hook 'mu4e-compose-pre-hook
                 'my-mu4e-set-account-using-message)
+      (add-hook 'mu4e-compose-mode-hook 'my-mu4e-add-cc)
       (my-mu4e-set-account "chopps.org")
       )
     )
@@ -2429,8 +2462,10 @@ IETF Yang mode.
               ("T" "Terastream related")
               ("Tm" "Terastram Todo with Mail" entry (file+headline (concat org-directory "/notes.org") "Terastream")
                "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
-              ("Tl" "Terastram Link Note" entry (file+headline (concat org-directory "/notes.org") "Terastream")
+              ("Ts" "Terastram Safari Note" entry (file+headline (concat org-directory "/notes.org") "Terastream")
                "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
+              ("Tc" "Terastram Code Todo" entry (file+olp (concat org-directory "/notes.org") "Terastream" "Code Todo")
+               "* TODO %?\n%t\n%f:%a\n")
               ("Tt" "Terastream Todo" entry (file+headline (concat org-directory "/notes.org") "Terastream")
                "* TODO %?\n%T\n")
               )

@@ -95,7 +95,8 @@ static char *gnus-pointer[] = {
  '(req-package-log-level (quote debug))
  '(safe-local-variable-values
    (quote
-    ((evil-shift-width . 2)
+    ((org-latex-listings . t)
+     (evil-shift-width . 2)
      (eval when
            (require
             (quote rainbow-mode)
