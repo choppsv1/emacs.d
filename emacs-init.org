@@ -514,11 +514,11 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   ;; (req-package plan9-theme)
 
-  ;; (setq current-graphic-theme 'easter)
-  ;; (setq current-tty-theme 'easter)
+  (setq current-graphic-theme 'easter)
+  (setq current-tty-theme 'easter)
   ;; leuven
-  (setq current-graphic-theme 'light-blue)
-  (setq current-tty-theme 'light-blue)
+  ;; (setq current-graphic-theme 'light-blue)
+  ;; (setq current-tty-theme 'light-blue)
 
   (defun new-frame-pick-theme (frame)
     (select-frame frame)
@@ -749,20 +749,32 @@ without relaunching.
     :bind (("C-x m" . mu4e))
     :init
     (progn
-      (setq mu4e-junk-folder-filter
-            " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/Spam OR maildir:/chopps.org/Junk )"
+      (setq mu4e-not-junk-folder-filter
+            " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/Spam OR maildir:/chopps.org/Junk OR maildir:/chopps.org/spam-* )"
+            mu4e-inbox-filter-base "( maildir:/gmail.com/INBOX OR maildir:/chopps.org/INBOX OR maildir:/terastrm.net/INBOX OR maildir:/chopps.org/a-terastrm )"
 
             mu4e-pre-hook-count 0
-            mu4e-full-update-mail-command "offlineimap -l /Users/chopps/.offlineimap/logfile"
-            mu4e-quick-update-mail-command "offlineimap -q -l /Users/chopps/.offlineimap/logfile"
+            ;; mu4e-full-update-mail-command "offlineimap -l /Users/chopps/.offlineimap/logfile"
+            ;; mu4e-quick-update-mail-command "offlineimap -q -l /Users/chopps/.offlineimap/logfile"
             ;; mu4e-get-mail-command "offlineimap -l /Users/chopps/.offlineimap/logfile"
-            mu4e-update-pre-hook 'mu4e-pre-hook-udpate-command
-      
-            mu4e-bookmarks (mapcar (lambda (x) (cons (concat (car x) mu4e-junk-folder-filter) (cdr x)))
+            ;; mu4e-update-pre-hook 'mu4e-pre-hook-udpate-command
+
+            mu4e-bookmarks (mapcar (lambda (x) (cons (concat (car x) mu4e-not-junk-folder-filter) (cdr x)))
                                    '(("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
                                      ("date:today..now" "Today's messages" ?t)
                                      ("date:7d..now" "Last 7 days" ?w)
-                                     ("mime:image/*" "Messages with images" 112))))
+                                     ("mime:image/*" "Messages with images" 112)
+                                     )))
+
+      (add-to-list 'mu4e-bookmarks
+                   (list "flag:unread AND NOT flag:trashed AND maildir:/chopps.org/spam-probable" "Probable spam messages" ?s))
+      (add-to-list 'mu4e-bookmarks
+                   (list (concat "flag:unread AND NOT flag:trashed AND "
+                                 mu4e-inbox-filter-base) "Unread INBOX messages" ?i))
+      (add-to-list 'mu4e-bookmarks
+                   (list (concat "flag:unread AND NOT flag:trashed AND NOT "
+                                 mu4e-inbox-filter-base mu4e-not-junk-folder-filter)
+                         "Unread Non-INBOX messages" ?I))
 
       (setq
        mu4e-maildir "~/Maildir"
@@ -848,7 +860,7 @@ without relaunching.
           (mu4e-drafts-folder "/gmail.com/[Gmail].Drafts")
           (mu4e-sent-folder   "/gmail.com/[Gmail].Sent Mail")
           (mu4e-trash-folder  "/gmail.com/[Gmail].Trash")
-          (mu4e-sent-messages-behavior #'delete)
+          (mu4e-sent-messages-behavior delete)
           ;; smtp
           (smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil)))
           (smtpmail-default-smtp-server "smtp.gmail.com")
@@ -899,7 +911,7 @@ without relaunching.
         (let ((check (% mu4e-pre-hook-count 8)))
           (setq mu4e-get-mail-command (if (= check 0)
                                           mu4e-full-update-mail-command
-                                        mu4e-quick-update-mail-command))
+                                        mu4e-full-update-mail-command))
           (setq mu4e-pre-hook-count (1+ mu4e-pre-hook-count))))
 
       )
@@ -1782,6 +1794,15 @@ This should be it's own minor mode or something right?
            ("\\.diff\\'" . diff-mode))
     :init (add-hook 'rst-mode-hook 'run-all-text-mode-hook))
 #+end_src
+***** Markdown mode
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (req-package markdown-mode
+    :commands markdown-mode
+    :mode ((".md\\'" . markdown-mode))
+    )
+#+END_SRC
+
+
 ***** RFCs
 #+begin_src emacs-lisp :tangle yes
   ;; (req-package rfcview
@@ -1826,10 +1847,14 @@ This should be it's own minor mode or something right?
     (font-lock-mode 1))
 #+end_src
 ***** Projects
-#+begin_src emacs-lisp :tangle no
-  (req-package projectile
+#+begin_src emacs-lisp :tangle yes
+  (req-package helm-projectile
     :require helm
-    :commands (projectile-mode helm-projectil-on)
+    :commands (helm-projectile-on)
+  )
+  (req-package projectile
+    :require helm-projectile
+    :commands (projectile-mode helm-projectile-on)
     :init (progn
             (add-hook 'c-common-mode-hook 'helm-projectile-on)
             (add-hook 'python-mode-hook 'helm-projectile-on)))
