@@ -95,13 +95,20 @@ total time in a message:
 **** Paths
 Elisp load and theme paths
 #+begin_src emacs-lisp :tangle yes
-  (add-to-list 'load-path (concat user-emacs-directory "local-lisp"))
+  (let ((default-directory "~/.emacs.d/local-lisp/"))
+    (normal-top-level-add-subdirs-to-load-path))
+
+  (let ((default-directory "~/.emacs.d/lisp/"))
+    (normal-top-level-add-subdirs-to-load-path))
+
+  (add-to-list 'load-path (concat user-emacs-directory "powerline"))
   (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
+
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-easter-theme"))
   (if (file-exists-p "/usr/local/share/emacs/site-lisp")
-    (add-to-list 'load-path "/usr/local/share/emacs/site-lisp"))
+      (add-to-list 'load-path "/usr/local/share/emacs/site-lisp"))
 #+end_src
 **** Temporary Files
 Auto save and backup files go in /tmp.
@@ -166,8 +173,9 @@ For now this is specific to Mac OS X.
             ;; Derive PATH by running a shell so that GUI Emacs
             ;; sessions have access to it
             ;; We do not actually want a login shell
-            (setq exec-path-from-shell-arguments nil)
-            ;; (setq exec-path-from-shell-arguments '("-i"))
+            (if (display-graphic-p)
+                (setq exec-path-from-shell-arguments '("-li"))
+              (setq exec-path-from-shell-arguments nil))
             (setq exec-path-from-shell-variables '("HOSTNAME" "PATH" "PYTHONPATH"))
             (exec-path-from-shell-initialize)))
         (message "exec-path end")
@@ -192,7 +200,9 @@ For now this is specific to Mac OS X.
 #+end_src
 **** Evil
 #+begin_src emacs-lisp :tangle yes
+  ;; (req-package evil-terminal-cursor-changer)
   (req-package-force evil
+    ;; :require evil-terminal-cursor-changer
     ;;:require (evil-args evil-nerd-commenter evil-terminal-cursor-changer)
     ;;:require (evil-args evil-nerd-commenter)
     ;; :require (evil-matchit)
@@ -338,15 +348,19 @@ without relaunching.
   ;;
   (defvar mode-line-cleaner-alist
     `((abbrev-mode . " Ab")
-      (filladapt-mode . " Adapt")
+      (filladapt-mode . " Fill+")
       (flyspell-mode . " FlyS")
-      (auto-complete-mode . " A-C")
+      (auto-complete-mode . " AutoComp")
       (company-mode . " Co")
+      ;; Turn these off entirely
+      (guide-key-mode . "")
+      (undo-tree-mode . "")
+      (auto-fill-function . "")
       ;; Major modes have no space in front
       (lisp-interaction-mode . "λ")
-      (python-mode . "Py")
-      (org-mode . "O")
-      (emacs-lisp-mode . "EL")
+      ;; (python-mode . "Python")
+      ;; (org-mode . "O")
+      ;; (emacs-lisp-mode . "EL")
       ))
 
   (defun clean-mode-line ()
@@ -514,23 +528,73 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   ;; (req-package plan9-theme)
 
-  (setq current-graphic-theme 'easter)
-  (setq current-tty-theme 'easter)
-  ;; leuven
-  ;; (setq current-graphic-theme 'light-blue)
-  ;; (setq current-tty-theme 'light-blue)
+  (req-package powerline-evil
+    :init
+    (setq powerline-evil-tag-style 'standard))
 
-  (defun new-frame-pick-theme (frame)
-    (select-frame frame)
+  (req-package-force powerline
+    :require powerline-evil)
+
+  (req-package-force moe-theme
+    :require powerline
+    :commands (moe-dark moe-light powerline-moe-theme)
+    :init
+    (setq moe-theme-highlight-buffer-id t
+          ;; Resize titles (optional).
+          moe-theme-resize-markdown-title '(1.5 1.4 1.3 1.2 1.0 1.0)
+          moe-theme-resize-org-title '(1.5 1.4 1.3 1.2 1.1 1.0 1.0 1.0 1.0)
+          moe-theme-resize-rst-title '(1.5 1.4 1.3 1.2 1.1 1.0)
+     )
+    :config
+    (progn
+      ;; Choose a color for mode-line.(Default: blue)
+      (moe-theme-set-color 'w/b)))
+
+  (defun iterm-set-backgroun-from-default ()
+    (let* ((frame (window-frame))
+           (bgcolor (color-name-to-rgb
+                     (face-attribute 'default :background frame)))
+           rgbstr)
+      (setq bgcolor (mapcar (lambda (x) (* x 255)) bgcolor))
+      (setq rgbstr (apply 'concat (mapcar (lambda (x) (format "%02x" x)) bgcolor)))
+      ;; send \e[ P h RR GG BB \e \ to set background color
+      (message "sending \e]Ph%s\e\\" rgbstr)
+      (send-string-to-terminal (format "\e]Ph%s\e\\" rgbstr))
+      (set-face-attribute 'default nil :background "unspecified-bg")))
+
+  (if nil
+      (moe-light)
+        ;;(powerline-moe-theme))
+
+    ;;  :config
+    ;;  (progn
+    ;;    powerline-center-evil-theme))
+
+    ;; (setq current-graphic-theme 'solarized-light)
+    ;; (setq current-tty-theme 'solarized-light)
+    (setq current-graphic-theme 'leuven)
+    (setq current-tty-theme 'leuven)
+    ;; (setq current-graphic-theme 'zenburn)
+    ;; (setq current-tty-theme 'zenburn)
+    ;; (setq current-graphic-theme 'easter)
+    ;; (setq current-tty-theme 'easter)
+    ;; leuven
+    ;; (setq current-graphic-theme 'light-blue)
+    ;; (setq current-tty-theme 'light-blue)
+    
+    (defun new-frame-pick-theme (frame)
+      (select-frame frame)
     (if (window-system frame)
         (load-theme current-graphic-theme t)
       (load-theme current-tty-theme t)))
-
-  (if (daemonp)
-      (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
-    (load-theme current-tty-theme))
-
-  (set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?|))
+    
+    (if (daemonp)
+        (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
+      (load-theme current-tty-theme)))
+    
+  (powerline-evil-center-color-theme)
+  (if (not (display-graphic-p))
+      (iterm-set-backgroun-from-default))
 #+end_src
 
 **** Mail
@@ -742,134 +806,128 @@ without relaunching.
                                                 "/gmail.com/INBOX")))
 
 
+  ;; we have to use-package here b/c it doesn't see the package installed by homebrew
   (use-package mu4e
     ;; :require (smtpmail mu4e-maildirs-extension)
-    ;; :require (smtpmail)
     :commands (mu4e)
     :bind (("C-x m" . mu4e))
     :init
     (progn
-      (setq mu4e-not-junk-folder-filter
-            " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/Spam OR maildir:/chopps.org/Junk OR maildir:/chopps.org/spam-* )"
-            mu4e-inbox-filter-base "( maildir:/gmail.com/INBOX OR maildir:/chopps.org/INBOX OR maildir:/terastrm.net/INBOX OR maildir:/chopps.org/a-terastrm )"
+      (defcustom mu4e-spam-folder "/chopps.org/spam-train"
+        "Folder for spam email"
+        :type '(string :tag "Folder name")
+        :group 'mu4e-folders)
 
+      (setq mu4e-maildir "~/Maildir"
+            ;; Updating
             mu4e-pre-hook-count 0
-            ;; mu4e-full-update-mail-command "offlineimap -l /Users/chopps/.offlineimap/logfile"
-            ;; mu4e-quick-update-mail-command "offlineimap -q -l /Users/chopps/.offlineimap/logfile"
-            ;; mu4e-get-mail-command "offlineimap -l /Users/chopps/.offlineimap/logfile"
-            ;; mu4e-update-pre-hook 'mu4e-pre-hook-udpate-command
+            mu4e-full-update-mail-command "bash -c '(cd && offlineimap -l /Users/chopps/.offlineimap/logfile)'"
+            mu4e-quick-update-mail-command "bash -c '(cd && offlineimap -q -l /Users/chopps/.offlineimap/logfile)'"
+            mu4e-update-pre-hook 'mu4e-pre-hook-udpate-command
+            mu4e-update-interval 300
 
-            mu4e-bookmarks (mapcar (lambda (x) (cons (concat (car x) mu4e-not-junk-folder-filter) (cdr x)))
+            ;; [b]ookmarks
+            mu4e-not-junk-folder-filter " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/spam* )"
+            mu4e-inbox-filter-base "( maildir:/gmail.com/INBOX OR maildir:/chopps.org/INBOX OR maildir:/terastrm.net/INBOX OR maildir:/chopps.org/a-terastrm )"
+            mu4e-bookmarks (append
+                            (list (list (concat "flag:unread AND NOT flag:trashed AND " mu4e-inbox-filter-base) "Unread INBOX messages" ?i)
+                                  (list "maildir:/chopps.org/spam-probable" "Probable spam messages" ?s)
+                                  (list (concat "flag:unread AND NOT flag:trashed AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread Non-INBOX messages" ?I))
+                            (mapcar (lambda (x) (cons (concat (car x) mu4e-not-junk-folder-filter) (cdr x)))
                                    '(("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
                                      ("date:today..now" "Today's messages" ?t)
                                      ("date:7d..now" "Last 7 days" ?w)
                                      ("mime:image/*" "Messages with images" 112)
                                      )))
 
-      (add-to-list 'mu4e-bookmarks
-                   (list "flag:unread AND NOT flag:trashed AND maildir:/chopps.org/spam-probable" "Probable spam messages" ?s))
-      (add-to-list 'mu4e-bookmarks
-                   (list (concat "flag:unread AND NOT flag:trashed AND "
-                                 mu4e-inbox-filter-base) "Unread INBOX messages" ?i))
-      (add-to-list 'mu4e-bookmarks
-                   (list (concat "flag:unread AND NOT flag:trashed AND NOT "
-                                 mu4e-inbox-filter-base mu4e-not-junk-folder-filter)
-                         "Unread Non-INBOX messages" ?I))
 
-      (setq
-       mu4e-maildir "~/Maildir"
+            ;; [j]ump shortcuts
+            mu4e-maildir-shortcuts '(("/chopps.org/INBOX" . ?i)
+                                     ("/gmail.com/INBOX" . ?g)
+                                     ("/terastrm.net/INBOX" . ?t)
+                                     ("/chopps.org/a-terastream" . ?w)
+                                     ("/chopps.org/aa-netbsd" . ?n)
+                                     ("/chopps.org/spam-train" . ?S)
+                                     ("/chopps.org/spam-probable" . ?s))
 
-       mu4e-maildir-shortcuts '(("/chopps.org/INBOX" . ?i)
-                                ("/gmail.com/INBOX" . ?g)
-                                ("/terastrm.net/INBOX" . ?t)
-                                ("/chopps.org/a-terastream" . ?w)
-                                ("/chopps.org/aa-netbsd" . ?n)
-                                )
+            ;; Visuals
+            mu4e-use-fancy-chars nil
+            mu4e-view-show-addresses t
+            mu4e-headers-default-prefix      (purecopy '("|"  . "┃"))
+            mu4e-headers-has-child-prefix    (purecopy '("+"  . "┣"))
+            mu4e-headers-first-child-prefix  (purecopy '("\\" . "┗▶"))
+            mu4e-headers-empty-parent-prefix (purecopy '("-"  . "━"))
+            mu4e-headers-duplicate-prefix    (purecopy '("="  . "⚌"))
+            mu4e-html2text-command 'mu4e-shr2text
+            mu4e-view-html-plaintext-ratio-heuristic 15
+            ;; mu4e-html2text-command "html2text -nobs -utf8 -width 120"
 
-       mu4e-attachment-dir "~/Downloads"
+            ;; Folders -- most setup per account
+            ;; mu4e-sent-folder   "/chopps.org/Sent Messages"
+            ;; mu4e-drafts-folder "/chopps.org/Drafts"
+            ;; mu4e-trash-folder  "/chopps.org/Deleted Messages"
+            mu4e-attachment-dir "~/Downloads"
 
+            mu4e-user-mail-address-list (list "chopps@chopps.org"
+                                              "chopps@dev.terastrm.net"
+                                              "chopps@gmail.com"
+                                              "chopps@rawdofmt.org")
 
-       mu4e-update-interval 300
+            mu4e-compose-signature-auto-include nil
+            mu4e-compose-complete-addresses t
 
-       ;; mu4e-sent-folder   "/chopps.org/Sent Messages"
-       ;; mu4e-drafts-folder "/chopps.org/Drafts"
-       ;; mu4e-trash-folder  "/chopps.org/Deleted Messages"
+            ;; don't keep message buffers around
+            message-kill-buffer-on-exit t
 
-       mu4e-use-fancy-chars t
-       mu4e-user-mail-address-list (list "chopps@chopps.org"
-                                         "chopps@dev.terastrm.net"
-                                         "chopps@gmail.com"
-                                         "chopps@rawdofmt.org")
+            my-mu4e-account-alist
+            '(
+              ("chopps.org"
+               ;; about me
+               (user-mail-address      "chopps@chopps.org")
+               ;; mu4e
+               (mu4e-sent-folder   "/chopps.org/Sent Messages")
+               (mu4e-trash-folder  "/chopps.org/Deleted Messages")
+               (mu4e-drafts-folder "/chopps.org/Drafts")
+               (mu4e-sent-messages-behavior sent)
+               ;; smtp
+               (smtpmail-starttls-credentials '(("smtp.chopps.org" 9005 nil nil)))
+               (smtpmail-default-smtp-server "smtp.chopps.org")
+               (smtpmail-smtp-server "smtp.chopps.org")
+               ;; smtpmail-local-domain?
+               ;; smtpmail-sendto-domain?
+               (smtpmail-smtp-service 9005))
 
+              ("terastrm.net"
+               ;; about me
+               (user-mail-address      "chopps@dev.terastrm.net")
+               ;; mu4e
+               (mu4e-sent-folder   "/terastrm.net/Sent Messages")
+               (mu4e-trash-folder  "/terastrm.net/Deleted Messages")
+               (mu4e-drafts-folder "/terastrm.net/Drafts")
+               (mu4e-sent-messages-behavior sent)
+               ;; smtp
+               (smtpmail-starttls-credentials '(("smtp.dev.terastrm.net" 587 nil nil)))
+               (smtpmail-default-smtp-server "smtp.dev.terastrm.net")
+               (smtpmail-smtp-server "smtp.dev.terastrm.net")
+               ;; smtpmail-local-domain?
+               ;; smtpmail-sendto-domain?
+               (smtpmail-smtp-service 587))
 
-       ;; mu4e-html2text-command "html2text -nobs -utf8 -width 120"
-       mu4e-html2text-command 'mu4e-shr2text
-
-       mu4e-compose-signature-auto-include nil
-       mu4e-compose-complete-addresses t
-
-       ;; "Date         Flgs   List       From                   Subject
-       mu4e-headers-fields '((:flags         .  5)
-                             (:human-date    . 15)
-                             (:from          . 26)
-                             (:mailing-list  . 17)
-                             (:maildir       . 13)
-                             (:subject       . nil))
-
-       ;; don't keep message buffers around
-       message-kill-buffer-on-exit t
-
-       my-mu4e-account-alist
-       '(
-         ("chopps.org"
-          ;; about me
-          (user-mail-address      "chopps@chopps.org")
-          ;; mu4e
-          (mu4e-sent-folder   "/chopps.org/Sent Messages")
-          (mu4e-trash-folder  "/chopps.org/Deleted Messages")
-          (mu4e-drafts-folder "/chopps.org/Drafts")
-          (mu4e-sent-messages-behavior sent)
-          ;; smtp
-          (smtpmail-starttls-credentials '(("smtp.chopps.org" 9005 nil nil)))
-          (smtpmail-default-smtp-server "smtp.chopps.org")
-          (smtpmail-smtp-server "smtp.chopps.org")
-          ;; smtpmail-local-domain?
-          ;; smtpmail-sendto-domain?
-          (smtpmail-smtp-service 9005))
-
-         ("terastrm.net"
-          ;; about me
-          (user-mail-address      "chopps@dev.terastrm.net")
-          ;; mu4e
-          (mu4e-sent-folder   "/terastrm.net/Sent Messages")
-          (mu4e-trash-folder  "/terastrm.net/Deleted Messages")
-          (mu4e-drafts-folder "/terastrm.net/Drafts")
-          (mu4e-sent-messages-behavior sent)
-          ;; smtp
-          (smtpmail-starttls-credentials '(("smtp.dev.terastrm.net" 587 nil nil)))
-          (smtpmail-default-smtp-server "smtp.dev.terastrm.net")
-          (smtpmail-smtp-server "smtp.dev.terastrm.net")
-          ;; smtpmail-local-domain?
-          ;; smtpmail-sendto-domain?
-          (smtpmail-smtp-service 587))
-
-         ("gmail.com"
-          ;; about me
-          (user-mail-address      "chopps@gmail.com")
-          ;; mu4e
-          (mu4e-drafts-folder "/gmail.com/[Gmail].Drafts")
-          (mu4e-sent-folder   "/gmail.com/[Gmail].Sent Mail")
-          (mu4e-trash-folder  "/gmail.com/[Gmail].Trash")
-          (mu4e-sent-messages-behavior delete)
-          ;; smtp
-          (smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil)))
-          (smtpmail-default-smtp-server "smtp.gmail.com")
-          (smtpmail-smtp-server "smtp.gmail.com")
-          ;; smtpmail-local-domain?
-          ;; smtpmail-sendto-domain?
-          (smtpmail-smtp-service 587))
-         )
-       )
+              ("gmail.com"
+               ;; about me
+               (user-mail-address      "chopps@gmail.com")
+               ;; mu4e
+               (mu4e-drafts-folder "/gmail.com/[Gmail].Drafts")
+               (mu4e-sent-folder   "/gmail.com/[Gmail].Sent Mail")
+               (mu4e-trash-folder  "/gmail.com/[Gmail].Trash")
+               (mu4e-sent-messages-behavior delete)
+               ;; smtp
+               (smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil)))
+               (smtpmail-default-smtp-server "smtp.gmail.com")
+               (smtpmail-smtp-server "smtp.gmail.com")
+               ;; smtpmail-local-domain?
+               ;; smtpmail-sendto-domain?
+               (smtpmail-smtp-service 587))))
 
       (defun my-mu4e-add-cc ()
         "Set up message for composing"
@@ -892,7 +950,7 @@ without relaunching.
       (defun my-mu4e-set-account-using-message ()
         "Set the account for composing a message."
         (let* ((account
-                (if mu4e-compose-parent-message
+                (if (and nil mu4e-compose-parent-message)
                     (let ((maildir (mu4e-message-field mu4e-compose-parent-message :maildir)))
                       (string-match "/\\(.*?\\)/" maildir)
                       (match-string 1 maildir))
@@ -907,12 +965,25 @@ without relaunching.
                         (set (car var) (cadr var)))
                     account-vars)
             (error "No email account found"))))
+
       (defun mu4e-pre-hook-udpate-command ()
-        (let ((check (% mu4e-pre-hook-count 8)))
+        (let ((check (% mu4e-pre-hook-count 4)))
           (setq mu4e-get-mail-command (if (= check 0)
                                           mu4e-full-update-mail-command
                                         mu4e-full-update-mail-command))
           (setq mu4e-pre-hook-count (1+ mu4e-pre-hook-count))))
+
+      ;; Mark to move to spam folder from headers view.
+      (defun mu4e-headers-mark-move-to-spam ()
+        (interactive)
+        (mu4e-mark-set 'move mu4e-spam-folder)
+        (mu4e-headers-next))
+
+      ;; Mark to move to spam folder from message view.
+      (defun mu4e-view-mark-move-to-spam ()
+        (interactive)
+        (mu4e~view-in-headers-context
+            (mu4e-headers-mark-move-to-spam)))
 
       )
     :config
@@ -920,10 +991,40 @@ without relaunching.
       ;; (require 'mu4e-maildirs-extension)
       ;; (mu4e-maildirs-extension)
       (require 'mu4e-contrib)
+      (add-hook 'mu4e-headers-mode-hook
+                (lambda () (setq show-trailing-whitespace nil)))
+      (add-hook 'mu4e-view-mode-hook
+                (lambda () (setq show-trailing-whitespace nil)))
       (add-hook 'mu4e-compose-pre-hook
                 'my-mu4e-set-account-using-message)
       (add-hook 'mu4e-compose-mode-hook 'my-mu4e-add-cc)
+      (add-to-list 'mu4e-view-actions
+                   '("ViewInBrowser" . mu4e-action-view-in-browser))
+
       (my-mu4e-set-account "chopps.org")
+      (define-key mu4e-headers-mode-map "d" 'mu4e-headers-mark-for-read)
+      (define-key mu4e-headers-mode-map "#" 'mu4e-headers-mark-move-to-spam)
+      (define-key mu4e-view-mode-map "#" 'mu4e-view-mark-move-to-spam)
+      (define-key mu4e-headers-mode-map "\\" 'mu4e-headers-mark-move-to-spam)
+      (define-key mu4e-view-mode-map "\\" 'mu4e-view-mark-move-to-spam)
+
+      (add-to-list 'mu4e-header-info-custom
+                   '(:list-or-dir .
+                                  (:name "ML or maildir" ;; long name, as seen in message view
+                                         :shortname "ML-D"     ;; short name, as seen in the headers view
+                                         :help "Mailing list or maildir if not set"
+                                         :function
+                                         (lambda (msg)
+                                           (or (mu4e-message-field msg :mailing-list)
+                                               (mu4e-message-field msg :maildir))))))
+      (setq
+       ;; "Date         Flgs   List       From                   Subject
+       mu4e-headers-fields '((:flags          .  5)
+                             (:human-date     . 15)
+                             (:from           . 26)
+                             (:list-or-dir    . 30)
+                             (:thread-subject . nil)))
+
       )
     )
 #+END_SRC
@@ -983,6 +1084,16 @@ without relaunching.
       (setq epg-gpg-program (executable-find "gpg"))
       ))
 #+end_src
+**** Autotext
+#+begin_src emacs-lisp :tangle no
+  (req-package-force smartparens
+    :require (evil-smartparens-mode)
+    :commands (turn-on-smartparens-mode)
+    :init
+    (progn
+      (add-hook 'all-prog-mode-hook 'turn-on-smartparens-mode)))
+#+END_SRC
+
 **** Filling
 #+begin_src emacs-lisp :tangle yes
   (add-hook 'all-prog-mode-hook 'turn-on-auto-fill)
@@ -2145,6 +2256,8 @@ IETF Yang mode.
     (progn
       (add-hook 'python-mode-hook 'run-all-prog-mode-hook)
       (setq
+       python-fill-docstring-style 'symmetric
+       python-fill-string-function 'my-python-fill-string-function
        python-shell-interpreter "ipython"
        python-shell-interpreter-args ""
        python-shell-prompt-regexp "In \\[[0-9]+\\]: "
@@ -2259,6 +2372,9 @@ IETF Yang mode.
                                 (python-syntax-context 'paren)))
                     res))
                (1 font-lock-variable-name-face nil nil))))
+      (defun my-python-fill-string-function (&optional justify)
+        (let ((fill-column 72))
+          (python-fill-string justify)))
 
       (defun my-python-mode-hook ()
         (message "Python mode hook")
@@ -2367,7 +2483,7 @@ IETF Yang mode.
 **** Org
 #+begin_src emacs-lisp :tangle yes
   (req-package org-mac-link
-    :commands org-mac-grab-link)
+    :commands org-mac-grab-link org-mac-safari-get-frontmost-url)
 
   ;; (require s)
   (req-package ietf-doc
@@ -2388,7 +2504,7 @@ IETF Yang mode.
                org-crypt-use-before-save-magic))
 
   (req-package org
-    :commands (org-mode org-agenda org-capture org-store-link)
+    :commands (org-mode org-agenda org-capture org-mu4e org-store-link)
     :interpreter ("org" . org-mode)
     :mode ("\\.org\\'" . org-mode)
     :bind (("C-c c" . org-capture)
@@ -2460,35 +2576,37 @@ IETF Yang mode.
 
       (setq org-capture-templates
             '(("t" "Todo" entry (file+headline (concat org-directory "/notes.org") "Tasks")
-               "* TODO %?\n%T\n%a\n")
+               "* TODO %?\n%T\nAnnotation: %a\n")
 
-              ("m" "Mail Todo" entry (file+headline (concat org-directory "/notes.org") "Mail")
+              ("m" "Mac Mail Todo" entry (file+headline (concat org-directory "/notes.org") "Mail")
                "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
 
               ("l" "Link Note" entry (file+headline (concat org-directory "/notes.org") "Notes")
                "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
 
-              ("n" "Generic Note" entry (file+datetree (concat org-directory "/notes.org") "Notes")
+              ("n" "Generic Note" entry (file+headline (concat org-directory "/notes.org") "Notes")
                "* NOTE %?\n%T\nannotation:%a\nx:%x\n")
 
               ("s" "Status" entry (file+datetree (concat org-directory "/status.org"))
                "* NOTE %?\n%T\n")
 
               ("i" "IETF related")
-              ("im" "IETF Todo w/ Mail" entry (file+headline (concat org-directory "/notes.org") "IETF")
+              ("im" "IETF Todo w/ Mac Mail" entry (file+headline (concat org-directory "/notes.org") "IETF")
                "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
-              ("il" "IETF Note w/ Link " entry (file+headline (concat org-directory "/notes.org") "IETF")
+              ("il" "IETF Note w/ Mac Link " entry (file+headline (concat org-directory "/notes.org") "IETF")
                "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
-              ("in" "IETF Note" entry (file+datetree (concat org-directory "/notes.org") "IETF")
+              ("in" "IETF Note (ann, clip)" entry (file+headline (concat org-directory "/notes.org") "IETF")
                "* NOTE %?\n%T\nannotation:%a\nx:%x\n")
-              ("it" "IETF Todo" entry (file+headline (concat org-directory "/notes.org") "IETF")
+              ("it" "IETF Todo (with annotation)" entry (file+headline (concat org-directory "/notes.org") "IETF")
                "* TODO %?\n%T\nannotation:%a\n")
 
               ("T" "Terastream related")
-              ("Tm" "Terastram Todo with Mail" entry (file+headline (concat org-directory "/notes.org") "Terastream")
+              ("Tm" "Terastram Todo with Mac Mail" entry (file+headline (concat org-directory "/notes.org") "Terastream")
                "* TODO %?\n%T\n%(org-mac-message-get-links \"s\")\n")
-              ("Ts" "Terastram Safari Note" entry (file+headline (concat org-directory "/notes.org") "Terastream")
+              ("Tl" "Terastram Safari Note" entry (file+headline (concat org-directory "/notes.org") "Terastream")
                "* NOTE %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
+              ("Tl" "Terastram Safari Todo" entry (file+headline (concat org-directory "/notes.org") "Terastream")
+               "* TODO %?\n%T\n%(org-mac-safari-get-frontmost-url)\n")
               ("Tc" "Terastram Code Todo" entry (file+olp (concat org-directory "/notes.org") "Terastream" "Code Todo")
                "* TODO %?\n%t\n%f:%a\n")
               ("Tt" "Terastream Todo" entry (file+headline (concat org-directory "/notes.org") "Terastream")
@@ -2941,15 +3059,37 @@ IETF Yang mode.
 #+end_src
 **** Modeline
 #+begin_src emacs-lisp :tangle yes
-(column-number-mode t)
-(setq line-number-mode t)
-(display-time-mode)
-;; (set-face-attribute 'mode-line nil :box nil)
+  ;;(req-package-force powerline
+  ;;  :require evil-powerline)
 
-;; (defun chopps-after-init ()
-;;   (setq sml/theme 'respectful)
-;;   (sml/setup))
-;; (add-hook 'after-init-hook 'chopps-after-init)
+  ;;  :config
+  ;;  (progn
+  ;;    powerline-center-evil-theme))
+  ;; (req-package smart-mode-line-powerline-theme)
+  ;; (req-package-force smart-mode-line
+  ;;   :require smart-mode-line-powerline-theme
+  ;;   :init (progn
+  ;;           (setq powerline-default-separator-dir '(right . left)
+  ;;                 ;;powerline-arrow-shape 'curve
+  ;;                 sml/theme 'powerline)))
+  ;; (sml/setup)
+
+  ;; (require 'powerline)
+  ;; (powerline-center-evil-theme)
+  ;; (column-number-mode t)
+  ;; (setq line-number-mode t)
+  ;; (setq display-time-mail-directory "~/Maildir/chopps.org/INBOX/new")
+  ;; (display-time)
+
+  ;; (display-time-mode)
+
+  ;; orig disabled
+  ;; (set-face-attribute 'mode-line nil :box nil)
+
+  ;; (defun chopps-after-init ()
+  ;;   (setq sml/theme 'respectful)
+  ;;   (sml/setup))
+  ;; (add-hook 'after-init-hook 'chopps-after-init)
 #+end_src
 **** GUI Interaction Display
 #+begin_src emacs-lisp :tangle yes
