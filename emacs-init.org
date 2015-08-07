@@ -95,14 +95,15 @@ total time in a message:
 **** Paths
 Elisp load and theme paths
 #+begin_src emacs-lisp :tangle yes
-  (let ((default-directory "~/.emacs.d/local-lisp/"))
+  (let ((default-directory "/usr/local/share/emacs/site-lisp/"))
     (normal-top-level-add-subdirs-to-load-path))
 
   (let ((default-directory "~/.emacs.d/lisp/"))
     (normal-top-level-add-subdirs-to-load-path))
 
-  (add-to-list 'load-path (concat user-emacs-directory "powerline"))
   (add-to-list 'load-path (concat user-emacs-directory "flymake-pyfixers"))
+  (add-to-list 'load-path (concat user-emacs-directory "local-lisp"))
+
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/"))
 
   (add-to-list 'custom-theme-load-path (concat user-emacs-directory "my-themes/emacs-color-theme-solarized"))
@@ -572,10 +573,10 @@ without relaunching.
 
     ;; (setq current-graphic-theme 'solarized-light)
     ;; (setq current-tty-theme 'solarized-light)
-    (setq current-graphic-theme 'leuven)
-    (setq current-tty-theme 'leuven)
-    ;; (setq current-graphic-theme 'zenburn)
-    ;; (setq current-tty-theme 'zenburn)
+    ;; (setq current-graphic-theme 'leuven)
+    ;; (setq current-tty-theme 'leuven)
+     (setq current-graphic-theme 'zenburn)
+     (setq current-tty-theme 'zenburn)
     ;; (setq current-graphic-theme 'easter)
     ;; (setq current-tty-theme 'easter)
     ;; leuven
@@ -584,6 +585,7 @@ without relaunching.
     
     (defun new-frame-pick-theme (frame)
       (select-frame frame)
+
     (if (window-system frame)
         (load-theme current-graphic-theme t)
       (load-theme current-tty-theme t)))
@@ -593,8 +595,8 @@ without relaunching.
       (load-theme current-tty-theme)))
     
   (powerline-evil-center-color-theme)
-  (if (not (display-graphic-p))
-      (iterm-set-backgroun-from-default))
+  ;; (if (not (display-graphic-p))
+  ;;    (iterm-set-backgroun-from-default))
 #+end_src
 
 **** Mail
