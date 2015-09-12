@@ -87,15 +87,16 @@ total time in a message:
   (setenv "LC_CTYPE" "UTF-8")
 #+end_src
 **** Load Customizations
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (setq custom-file "~/.emacs.d/custom.el")
   (load custom-file 'noerror)
 #+end_src
 **** Paths
 Elisp load and theme paths
 #+begin_src emacs-lisp :tangle yes
-  (let ((default-directory "/usr/local/share/emacs/site-lisp/"))
-    (normal-top-level-add-subdirs-to-load-path))
+  (if (file-exists-p "/usr/local/share/emacs/site-lisp/")
+      (let ((default-directory "/usr/local/share/emacs/site-lisp/"))
+             (normal-top-level-add-subdirs-to-load-path)))
 
   (let ((default-directory "~/.emacs.d/lisp/"))
     (normal-top-level-add-subdirs-to-load-path))
@@ -113,7 +114,7 @@ Elisp load and theme paths
 **** Temporary Files
 Auto save and backup files go in /tmp.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (setq auto-save-file-name-transforms
         `((".*" ,temporary-file-directory t)))
   (setq backup-directory-alist
@@ -126,7 +127,7 @@ sequence. This is a way to pass keys that normally don't translate through a
 tty to do so. In order to implement this one needs to map the given key to an
 escape sequence as given below.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (defun chopps-add-local-keys (&optional frame)
     (let ((keymap function-key-map))    ; was local-function-key-map
       (message "adding keys")
@@ -384,23 +385,23 @@ without relaunching.
 #+END_SRC
 **** Enable Basic Features
 ***** Default Mode
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (setq default-major-mode 'text-mode)
 #+end_src
 
 ***** Enable setting a goal column with C-x C-n
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (put 'set-goal-column 'disabled nil)
 #+end_src
 
 ***** Enable evaluating an expression in the minibuffer
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   ;; Enable evaulation of expressions
   (put 'eval-expression 'disabled nil)
 #+end_src
 
 ***** Enable leftwise scrolling
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   ;; Enable leftward scrolling.
   (put 'scroll-left 'disabled nil)
 #+end_src
@@ -1671,7 +1672,7 @@ without relaunching.
 **** Rectangle Lisp
 ***** Transpose Rectange
 This should be it's own minor mode or something right?
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defun transpose-array (array)
     "Returns a new array which is a transposed copy of
   ARRAY (vector, string, or bool-vector)."
@@ -1946,7 +1947,7 @@ This should be it's own minor mode or something right?
     :config (make-directory irfc-directory t))
 #+end_src
 ***** Rst Mode
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (req-package rst-mode
     :mode ("\\.rst\\'" . rst-mode)
     :init
@@ -1993,7 +1994,7 @@ IETF Yang mode.
    :mode ("\\.yang$" . yang-mode))
 #+end_src
 ***** CC Mode
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (setq c-font-lock-extra-types
       (quote
        ("FILE" "\\sw+_st" "\\sw+_t" "Lisp_Object" "\\sw+type" "uint" "ushort" "uchar" "boolean" "active_timer")))
@@ -2192,7 +2193,7 @@ IETF Yang mode.
 
 #+end_src
 ***** HTML/XML Mode
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (req-package sgml-mode
     :mode (("\\.html\\'" . html-mode))
     :init (add-hook 'any-text-mode-hook 'run-any-prog-mode-hook))
@@ -2211,7 +2212,7 @@ IETF Yang mode.
     :init (add-hook 'perl-mode-hook 'run-all-prog-mode-hook))
 #+end_src
 ***** Python
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (req-package jedi
     :defer t
     :init
@@ -2489,7 +2490,7 @@ IETF Yang mode.
 
 #+end_src
 ***** Shell
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (req-package sh-script
     :mode ("\\.sh\\'" . sh-mode)
     :interpreter ("bash" . sh-mode)
@@ -2831,7 +2832,7 @@ IETF Yang mode.
       (define-key ac-menu-map "\e" 'ac-complete)))
 #+end_src
 ***** Company Mode (compete-any)
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (req-package company
     :init (progn
             ;; (add-hook 'all-prog-mode-hook 'company-mode-on)
@@ -3172,7 +3173,7 @@ IETF Yang mode.
   (setq mouse-yank-at-point t)
 #+end_src
 ** End Req-Packages
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (if debug-init-msg
       (message "Pre req-package-finish"))
   (req-package-finish)

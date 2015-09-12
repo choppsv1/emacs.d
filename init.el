@@ -48,13 +48,14 @@
 (setq emacs-init-source (concat user-emacs-directory "emacs-init.org"))
 (if (or (not (file-exists-p emacs-init-target)) (file-newer-than-file-p emacs-init-source emacs-init-target))
     (let* ((org-dir (and (file-exists-p package-user-dir)
+                         (file-name-completion "org-plus-contrib-" package-user-dir)
                          (expand-file-name (file-name-completion "org-plus-contrib-" package-user-dir) package-user-dir)))
 	   (exit-after-write nil))
       (if (and org-dir (file-exists-p org-dir))
 	  (let ((load-path (append (list org-dir)
 				   (or load-path nil))))
 	    (require 'ob-tangle))
-	(setq exit-after-write t)
+	(setq exit-after-write nil)
 	(require 'ob-tangle))
       (message "Converting emacs-init.org using %s and load path %s" org-dir load-path)
       (message "Saved to %s" (org-babel-tangle-file emacs-init-source emacs-init-target "emacs-lisp"))
@@ -64,6 +65,3 @@
 
 (message "Loading up-to-date emacs-init.el")
 (load-file emacs-init-target)
-;; Disabled
-;; (ad-disable-advice 'message 'before 'when-was-that)
-;; (ad-update 'message)
