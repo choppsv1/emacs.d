@@ -381,7 +381,7 @@ without relaunching.
                (when (eq mode major-mode)
                  (setq mode-name mode-str)))))
 
-  (add-hook 'after-change-major-mode-hook 'clean-mode-line)
+  ;; (add-hook 'after-change-major-mode-hook 'clean-mode-line)
 #+END_SRC
 **** Enable Basic Features
 ***** Default Mode
@@ -576,15 +576,19 @@ without relaunching.
     ;;  (progn
     ;;    powerline-center-evil-theme))
 
+    (if (file-exists-p (concat user-emacs-directory "my-themes/emacs-easter-theme"))
+      (progn
+        (setq current-graphic-theme 'easter)
+        (setq current-tty-theme 'easter))
+      (setq current-graphic-theme 'zenburn)
+      (setq current-tty-theme 'zenburn))
+
     ;; (setq current-graphic-theme 'solarized-light)
     ;; (setq current-tty-theme 'solarized-light)
     ;; (setq current-graphic-theme 'leuven)
     ;; (setq current-tty-theme 'leuven)
     ;; (setq current-graphic-theme 'zenburn)
     ;; (setq current-tty-theme 'zenburn)
-    (setq current-graphic-theme 'easter)
-    (setq current-tty-theme 'easter)
-    ;; leuven
     ;; (setq current-graphic-theme 'light-blue)
     ;; (setq current-tty-theme 'light-blue)
     
