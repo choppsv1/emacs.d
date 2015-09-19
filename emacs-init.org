@@ -352,23 +352,23 @@ without relaunching.
   ;;     (emacs-lisp-mode . "EL")
   ;;     ))
   ;;
-  (defvar mode-line-cleaner-alist
-    `((abbrev-mode . " Ab")
-      (filladapt-mode . " Fill+")
-      (flyspell-mode . " FlyS")
-      (auto-complete-mode . " AutoComp")
-      (company-mode . " Co")
-      ;; Turn these off entirely
-      (guide-key-mode . "")
-      (undo-tree-mode . "")
-      (auto-fill-function . "")
-      ;; Major modes have no space in front
-      (lisp-interaction-mode . "λ")
-      ;; (python-mode . "Python")
-      ;; (org-mode . "O")
-      ;; (emacs-lisp-mode . "EL")
-      ))
-
+;;  (defvar mode-line-cleaner-alist
+;;    `((abbrev-mode . " Ab")
+;;      (filladapt-mode . " Fill+")
+;;      (flyspell-mode . " FlyS")
+;;      (auto-complete-mode . " AutoComp")
+;;      (company-mode . " Co")
+;;      ;; Turn these off entirely
+;;      (guide-key-mode . "")
+;;      (undo-tree-mode . "")
+;;      (auto-fill-function . "")
+;;      ;; Major modes have no space in front
+;;      (lisp-interaction-mode . "λ")
+;;      ;; (python-mode . "Python")
+;;      ;; (org-mode . "O")
+;;      ;; (emacs-lisp-mode . "EL")
+;;      ))
+;;
   (defun clean-mode-line ()
     (interactive)
     (loop for cleaner in mode-line-cleaner-alist
@@ -1478,7 +1478,7 @@ without relaunching.
   (defun kill-region-to-ssh ()
     "Copy the region to our ssh clients clipboard"
     (interactive)
-    (let ((cmd (or (and (string= "" (getenv "SSH_CLIENT")) (concat "ssh -q " (car (split-string (getenv "SSH_CLIENT"))) " pbcopy"))
+    (let ((cmd (or (and (not (string= "" (getenv "SSH_CLIENT"))) (concat "ssh -q " (car (split-string (getenv "SSH_CLIENT"))) " pbcopy"))
                    "pbcopy")))
       (message "running command: %s" cmd)
       (shell-command-on-region (mark) (point) cmd))
