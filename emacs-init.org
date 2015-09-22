@@ -330,58 +330,58 @@ without relaunching.
 #+end_src
 ***** Cleanup Minor Modes in Modeline
 #+BEGIN_SRC emacs-lisp :tangle yes
-  ;; (defvar mode-line-cleaner-alist
-  ;;   `((abbrev-mode . " Ab")
-  ;;     ;(auto-fill-function . " Fill")
-  ;;     ;; Buffer face mode causes certain modes to use variable width font.
-  ;;     ;; (buffer-face-mode . "")
-  ;;     (filladapt-mode . " Adapt")
-  ;;     (flyspell-mode . " FlyS")
-  ;;     (auto-complete-mode . " AutoComp")
-  ;;     (auto-complete-mode . " AutoComl")
-  ;;     ;; (magit-auto-revert-mode . "")
-  ;;     ;; (org-indent-mode "o-indent")
-  ;;     ;; (rebox-mode . " Rbx")
-  ;;     ;; (undo-tree-mode . "u-t")
-  ;;     ;; (yas/minor-mode . " u")
+    ;; (defvar mode-line-cleaner-alist
+    ;;   `((abbrev-mode . " Ab")
+    ;;     ;(auto-fill-function . " Fill")
+    ;;     ;; Buffer face mode causes certain modes to use variable width font.
+    ;;     ;; (buffer-face-mode . "")
+    ;;     (filladapt-mode . " Adapt")
+    ;;     (flyspell-mode . " FlyS")
+    ;;     (auto-complete-mode . " AutoComp")
+    ;;     (auto-complete-mode . " AutoComl")
+    ;;     ;; (magit-auto-revert-mode . "")
+    ;;     ;; (org-indent-mode "o-indent")
+    ;;     ;; (rebox-mode . " Rbx")
+    ;;     ;; (undo-tree-mode . "u-t")
+    ;;     ;; (yas/minor-mode . " u")
 
-  ;;     ;; Major modes have no space in front
-  ;;     (lisp-interaction-mode . "λ")
-  ;;     (python-mode . "Py")
-  ;;     (org-mode . "O")
-  ;;     (emacs-lisp-mode . "EL")
-  ;;     ))
-  ;;
-;;  (defvar mode-line-cleaner-alist
-;;    `((abbrev-mode . " Ab")
-;;      (filladapt-mode . " Fill+")
-;;      (flyspell-mode . " FlyS")
-;;      (auto-complete-mode . " AutoComp")
-;;      (company-mode . " Co")
-;;      ;; Turn these off entirely
-;;      (guide-key-mode . "")
-;;      (undo-tree-mode . "")
-;;      (auto-fill-function . "")
-;;      ;; Major modes have no space in front
-;;      (lisp-interaction-mode . "λ")
-;;      ;; (python-mode . "Python")
-;;      ;; (org-mode . "O")
-;;      ;; (emacs-lisp-mode . "EL")
-;;      ))
-;;
-  (defun clean-mode-line ()
-    (interactive)
-    (loop for cleaner in mode-line-cleaner-alist
-          do (let* ((mode (car cleaner))
-                   (mode-str (cdr cleaner))
-                   (old-mode-str (cdr (assq mode minor-mode-alist))))
-               (when old-mode-str
-                   (setcar old-mode-str mode-str))
-                 ;; major mode
-               (when (eq mode major-mode)
-                 (setq mode-name mode-str)))))
+    ;;     ;; Major modes have no space in front
+    ;;     (lisp-interaction-mode . "λ")
+    ;;     (python-mode . "Py")
+    ;;     (org-mode . "O")
+    ;;     (emacs-lisp-mode . "EL")
+    ;;     ))
+    ;;
+   (defvar mode-line-cleaner-alist
+     `((abbrev-mode . " Ab")
+       (filladapt-mode . " Fill+")
+       (flyspell-mode . " FlyS")
+       (auto-complete-mode . " AutoComp")
+       (company-mode . " Co")
+       ;; Turn these off entirely
+       (guide-key-mode . "")
+       (undo-tree-mode . "")
+       (auto-fill-function . "")
+       ;; Major modes have no space in front
+       (lisp-interaction-mode . "λ")
+       ;; (python-mode . "Python")
+       ;; (org-mode . "O")
+       ;; (emacs-lisp-mode . "EL")
+       ))
 
-  ;; (add-hook 'after-change-major-mode-hook 'clean-mode-line)
+    (defun clean-mode-line ()
+      (interactive)
+      (loop for cleaner in mode-line-cleaner-alist
+            do (let* ((mode (car cleaner))
+                     (mode-str (cdr cleaner))
+                     (old-mode-str (cdr (assq mode minor-mode-alist))))
+                 (when old-mode-str
+                     (setcar old-mode-str mode-str))
+                   ;; major mode
+                 (when (eq mode major-mode)
+                   (setq mode-name mode-str)))))
+
+    ;; (add-hook 'after-change-major-mode-hook 'clean-mode-line)
 #+END_SRC
 **** Enable Basic Features
 ***** Default Mode
@@ -537,6 +537,8 @@ without relaunching.
   (req-package powerline-evil
     :init
     (setq powerline-evil-tag-style 'standard))
+  
+  (req-package color-theme-sanityinc-tomorrow)
 
   (req-package-force powerline
     :require powerline-evil)
@@ -591,18 +593,18 @@ without relaunching.
     ;; (setq current-tty-theme 'zenburn)
     ;; (setq current-graphic-theme 'light-blue)
     ;; (setq current-tty-theme 'light-blue)
-    
+  
     (defun new-frame-pick-theme (frame)
       (select-frame frame)
 
     (if (window-system frame)
         (load-theme current-graphic-theme t)
       (load-theme current-tty-theme t)))
-    
+  
     (if (daemonp)
         (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
       (load-theme current-tty-theme)))
-    
+  
   ;; (powerline-evil-center-color-theme)
   ;; (if (not (display-graphic-p))
   ;;    (iterm-set-backgroun-from-default))
@@ -1980,16 +1982,16 @@ This should be it's own minor mode or something right?
 #+end_src
 ***** Projects
 #+begin_src emacs-lisp :tangle yes
-  (req-package helm-projectile
-    :require helm
-    :commands (helm-projectile-on)
-  )
-  (req-package projectile
-    :require helm-projectile
-    :commands (projectile-mode helm-projectile-on)
-    :init (progn
-            (add-hook 'c-common-mode-hook 'helm-projectile-on)
-            (add-hook 'python-mode-hook 'helm-projectile-on)))
+  ;; (req-package helm-projectile
+  ;;   :require helm
+  ;;   :commands (helm-projectile-on)
+  ;; )
+  ;; (req-package projectile
+  ;;   :require helm-projectile
+  ;;   :commands (projectile-mode helm-projectile-on)
+  ;;   :init (progn
+  ;;           (add-hook 'c-common-mode-hook 'helm-projectile-on)))
+  ;;           ;; (add-hook 'python-mode-hook 'helm-projectile-on)))
 #+end_src
 ***** Yang
 IETF Yang mode.
@@ -2286,113 +2288,114 @@ IETF Yang mode.
        python-shell-completion-setup-code "from IPython.core.completerlib import module_completion"
        python-shell-completion-module-string-code "';'.join(module_completion('''%s'''))\n"
        python-shell-completion-string-code "';'.join(get_ipython().Completer.all_completions('''%s'''))\n"
-       python-font-lock-keywords
-            ;; Keywords
-            `(,(rx symbol-start
-                   (or
-                    "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
-                    "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
-                    "in" "raise" "continue" "finally" "is" "return" "def" "for" "lambda"
-                    "try"
-                    ;; Python 2:
-                    "print" "exec"
-                    ;; Python 3:
-                    ;; False, None, and True are listed as keywords on the Python 3
-                    ;; documentation, but since they also qualify as constants they are
-                    ;; fontified like that in order to keep font-lock consistent between
-                    ;; Python versions.
-                    "nonlocal"
-                    ;; Extra:
-                    ;; XXX chopps "self")
-                    )
-                   symbol-end)
-              (,(rx symbol-start
-                    (or "self")
-                    symbol-end) . font-lock-constant-face)
-              ;; functions
-              (,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
-               (1 font-lock-function-name-face))
-              ;; classes
-              (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
-               (1 font-lock-type-face))
-              ;; Constants
-              (,(rx symbol-start
-                    (or
-                     "Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
-                     ;; copyright, license, credits, quit and exit are added by the site
-                     ;; module and they are not intended to be used in programs
-                     "copyright" "credits" "exit" "license" "quit")
-                    symbol-end) . font-lock-constant-face)
-              ;; Decorators.
-              (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
-                                                      (0+ "." (1+ (or word ?_)))))
-               (1 font-lock-type-face))
-              ;; Builtin Exceptions
-              (,(rx symbol-start
-                    (or
-                     "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
-                     "DeprecationWarning" "EOFError" "EnvironmentError" "Exception"
-                     "FloatingPointError" "FutureWarning" "GeneratorExit" "IOError"
-                     "ImportError" "ImportWarning" "IndexError" "KeyError"
-                     "KeyboardInterrupt" "LookupError" "MemoryError" "NameError"
-                     "NotImplementedError" "OSError" "OverflowError"
-                     "PendingDeprecationWarning" "ReferenceError" "RuntimeError"
-                     "RuntimeWarning" "StopIteration" "SyntaxError" "SyntaxWarning"
-                     "SystemError" "SystemExit" "TypeError" "UnboundLocalError"
-                     "UnicodeDecodeError" "UnicodeEncodeError" "UnicodeError"
-                     "UnicodeTranslateError" "UnicodeWarning" "UserWarning" "VMSError"
-                     "ValueError" "Warning" "WindowsError" "ZeroDivisionError"
-                     ;; Python 2:
-                     "StandardError"
-                     ;; Python 3:
-                     "BufferError" "BytesWarning" "IndentationError" "ResourceWarning"
-                     "TabError")
-                    symbol-end) . font-lock-type-face)
-              ;; Builtins
-              (,(rx symbol-start
-                    (or
-                     "abs" "all" "any" "bin" "bool" "callable" "chr" "classmethod"
-                     "compile" "complex" "delattr" "dict" "dir" "divmod" "enumerate"
-                     "eval" "filter" "float" "format" "frozenset" "getattr" "globals"
-                     "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
-                     "issubclass" "iter" "len" "list" "locals" "map" "max" "memoryview"
-                     "min" "next" "object" "oct" "open" "ord" "pow" "print" "property"
-                     "range" "repr" "reversed" "round" "set" "setattr" "slice" "sorted"
-                     "staticmethod" "str" "sum" "super" "tuple" "type" "vars" "zip"
-                     "__import__"
-                     ;; Python 2:
-                     "basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
-                     "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
-                     "intern"
-                     ;; Python 3:
-                     "ascii" "bytearray" "bytes" "exec"
-                     ;; Extra:
-                     "__all__" "__doc__" "__name__" "__package__")
-                    symbol-end) . font-lock-builtin-face)
-              ;; assignments
-              ;; support for a = b = c = 5
-              (,(lambda (limit)
-                  (let ((re (python-rx (group (+ (any word ?. ?_)))
-                                       (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
-                                       assignment-operator))
-                        (res nil))
-                    (while (and (setq res (re-search-forward re limit t))
-                                (or (python-syntax-context 'paren)
-                                    (equal (char-after (point-marker)) ?=))))
-                    res))
-               (1 font-lock-variable-name-face nil nil))
-              ;; support for a, b, c = (1, 2, 3)
-              (,(lambda (limit)
-                  (let ((re (python-rx (group (+ (any word ?. ?_))) (* space)
-                                       (* ?, (* space) (+ (any word ?. ?_)) (* space))
-                                       ?, (* space) (+ (any word ?. ?_)) (* space)
-                                       assignment-operator))
-                        (res nil))
-                    (while (and (setq res (re-search-forward re limit t))
-                                (goto-char (match-end 1))
-                                (python-syntax-context 'paren)))
-                    res))
-               (1 font-lock-variable-name-face nil nil))))
+       ;; python-font-lock-keywords
+       ;;      ;; Keywords
+       ;;      `(,(rx symbol-start
+       ;;             (or
+       ;;              "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
+       ;;              "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
+       ;;              "in" "raise" "continue" "finally" "is" "return" "def" "for" "lambda"
+       ;;              "try"
+       ;;              ;; Python 2:
+       ;;              "print" "exec"
+       ;;              ;; Python 3:
+       ;;              ;; False, None, and True are listed as keywords on the Python 3
+       ;;              ;; documentation, but since they also qualify as constants they are
+       ;;              ;; fontified like that in order to keep font-lock consistent between
+       ;;              ;; Python versions.
+       ;;              "nonlocal"
+       ;;              ;; Extra:
+       ;;              ;; XXX chopps "self")
+       ;;              )
+       ;;             symbol-end)
+       ;;        (,(rx symbol-start
+       ;;              (or "self")
+       ;;              symbol-end) . font-lock-constant-face)
+       ;;        ;; functions
+       ;;        (,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
+       ;;         (1 font-lock-function-name-face))
+       ;;        ;; classes
+       ;;        (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
+       ;;         (1 font-lock-type-face))
+       ;;        ;; Constants
+       ;;        (,(rx symbol-start
+       ;;              (or
+       ;;               "Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
+       ;;               ;; copyright, license, credits, quit and exit are added by the site
+       ;;               ;; module and they are not intended to be used in programs
+       ;;               "copyright" "credits" "exit" "license" "quit")
+       ;;              symbol-end) . font-lock-constant-face)
+       ;;        ;; Decorators.
+       ;;        (,(rx line-start (* (any " \t")) (group "@" (1+ (or word ?_))
+       ;;                                                (0+ "." (1+ (or word ?_)))))
+       ;;         (1 font-lock-type-face))
+       ;;        ;; Builtin Exceptions
+       ;;        (,(rx symbol-start
+       ;;              (or
+       ;;               "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
+       ;;               "DeprecationWarning" "EOFError" "EnvironmentError" "Exception"
+       ;;               "FloatingPointError" "FutureWarning" "GeneratorExit" "IOError"
+       ;;               "ImportError" "ImportWarning" "IndexError" "KeyError"
+       ;;               "KeyboardInterrupt" "LookupError" "MemoryError" "NameError"
+       ;;               "NotImplementedError" "OSError" "OverflowError"
+       ;;               "PendingDeprecationWarning" "ReferenceError" "RuntimeError"
+       ;;               "RuntimeWarning" "StopIteration" "SyntaxError" "SyntaxWarning"
+       ;;               "SystemError" "SystemExit" "TypeError" "UnboundLocalError"
+       ;;               "UnicodeDecodeError" "UnicodeEncodeError" "UnicodeError"
+       ;;               "UnicodeTranslateError" "UnicodeWarning" "UserWarning" "VMSError"
+       ;;               "ValueError" "Warning" "WindowsError" "ZeroDivisionError"
+       ;;               ;; Python 2:
+       ;;               "StandardError"
+       ;;               ;; Python 3:
+       ;;               "BufferError" "BytesWarning" "IndentationError" "ResourceWarning"
+       ;;               "TabError")
+       ;;              symbol-end) . font-lock-type-face)
+       ;;        ;; Builtins
+       ;;        (,(rx symbol-start
+       ;;              (or
+       ;;               "abs" "all" "any" "bin" "bool" "callable" "chr" "classmethod"
+       ;;               "compile" "complex" "delattr" "dict" "dir" "divmod" "enumerate"
+       ;;               "eval" "filter" "float" "format" "frozenset" "getattr" "globals"
+       ;;               "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
+       ;;               "issubclass" "iter" "len" "list" "locals" "map" "max" "memoryview"
+       ;;               "min" "next" "object" "oct" "open" "ord" "pow" "print" "property"
+       ;;               "range" "repr" "reversed" "round" "set" "setattr" "slice" "sorted"
+       ;;               "staticmethod" "str" "sum" "super" "tuple" "type" "vars" "zip"
+       ;;               "__import__"
+       ;;               ;; Python 2:
+       ;;               "basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
+       ;;               "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
+       ;;               "intern"
+       ;;               ;; Python 3:
+       ;;               "ascii" "bytearray" "bytes" "exec"
+       ;;               ;; Extra:
+       ;;               "__all__" "__doc__" "__name__" "__package__")
+       ;;              symbol-end) . font-lock-builtin-face)
+       ;;        ;; assignments
+       ;;        ;; support for a = b = c = 5
+       ;;        (,(lambda (limit)
+       ;;            (let ((re (python-rx (group (+ (any word ?. ?_)))
+       ;;                                 (? ?\[ (+ (not (any  ?\]))) ?\]) (* space)
+       ;;                                 assignment-operator))
+       ;;                  (res nil))
+       ;;              (while (and (setq res (re-search-forward re limit t))
+       ;;                          (or (python-syntax-context 'paren)
+       ;;                              (equal (char-after (point-marker)) ?=))))
+       ;;              res))
+       ;;         (1 font-lock-variable-name-face nil nil))
+       ;;        ;; support for a, b, c = (1, 2, 3)
+       ;;        (,(lambda (limit)
+       ;;            (let ((re (python-rx (group (+ (any word ?. ?_))) (* space)
+       ;;                                 (* ?, (* space) (+ (any word ?. ?_)) (* space))
+       ;;                                 ?, (* space) (+ (any word ?. ?_)) (* space)
+       ;;                                 assignment-operator))
+       ;;                  (res nil))
+       ;;              (while (and (setq res (re-search-forward re limit t))
+       ;;                          (goto-char (match-end 1))
+       ;;                          (python-syntax-context 'paren)))
+       ;;              res))
+       ;;         (1 font-lock-variable-name-face nil nil))))
+       )
       (defun my-python-fill-string-function (&optional justify)
         (let ((fill-column 72))
           (python-fill-string justify)))
@@ -2401,14 +2404,13 @@ IETF Yang mode.
         (message "Python mode hook")
 
         (elpy-mode)
-        ;; (require 'flymake-pyfixers)
+
+        (require 'flymake-pyfixers)
         (setq comment-column 60)
         (setq fill-column 120)
-        ;;(highlight-indentation-mode -1)
+        (highlight-indentation-mode -1)
 
         (flyspell-prog-mode)
-        ;; XXXnew (projectile-mode t)
-
         (flycheck-mode t)
         (flycheck-select-checker 'python-pycheckers)
         (flycheck-set-checker-executable 'python-flake8 "~/bin/pycheckers.sh")
@@ -2423,8 +2425,6 @@ IETF Yang mode.
       )
     :config
     (progn
-      (if debug-init-msg
-          (message "Enabling elpy"))
       (define-key python-mode-map (kbd "M-n") 'flycheck-next-error)
       (define-key python-mode-map (kbd "M-p") 'flycheck-previous-error)
       (define-key python-mode-map (kbd "C-c Ta") 'nosetests-all)
@@ -2456,7 +2456,7 @@ IETF Yang mode.
 
       ;; Consider _ a part of words for python
       (modify-syntax-entry ?_ "w" python-mode-syntax-table)
-      ;; (define-key global-map (kbd "C-c o") 'iedit-mode)
+      (define-key global-map (kbd "C-c o") 'iedit-mode)
 
       (if (file-exists-p "/usr/local/bin/python"  )
           (setenv "PYMACS_PYTHON" "/usr/local/bin/python"))
@@ -2622,7 +2622,7 @@ IETF Yang mode.
       (if debug-init-msg
           (message "org-mode after load"))
       ;; (require 'ob-latex)
-      (add-to-list 'org-babel-load-languages '(python . t))
+      ;; (add-to-list 'org-babel-load-languages '(python . t))
       (add-to-list 'org-babel-load-languages '(dot . t))
       (add-to-list 'org-babel-load-languages '(dot2tex . t))
       (require 'ox-latex)
