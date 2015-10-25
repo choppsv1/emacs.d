@@ -205,7 +205,10 @@ For now this is specific to Mac OS X.
 **** Evil
 #+begin_src emacs-lisp :tangle yes
   ;; (req-package evil-terminal-cursor-changer)
+  (req-package evil-iedit-state)
+
   (req-package-force evil
+    :require evil-iedit-state
     ;; :require evil-terminal-cursor-changer
     ;;:require (evil-args evil-nerd-commenter evil-terminal-cursor-changer)
     ;;:require (evil-args evil-nerd-commenter)
@@ -329,29 +332,7 @@ without relaunching.
   (setq inhibit-startup-message t)
 #+end_src
 ***** Cleanup Minor Modes in Modeline
-#+BEGIN_SRC emacs-lisp :tangle yes
-    ;; (defvar mode-line-cleaner-alist
-    ;;   `((abbrev-mode . " Ab")
-    ;;     ;(auto-fill-function . " Fill")
-    ;;     ;; Buffer face mode causes certain modes to use variable width font.
-    ;;     ;; (buffer-face-mode . "")
-    ;;     (filladapt-mode . " Adapt")
-    ;;     (flyspell-mode . " FlyS")
-    ;;     (auto-complete-mode . " AutoComp")
-    ;;     (auto-complete-mode . " AutoComl")
-    ;;     ;; (magit-auto-revert-mode . "")
-    ;;     ;; (org-indent-mode "o-indent")
-    ;;     ;; (rebox-mode . " Rbx")
-    ;;     ;; (undo-tree-mode . "u-t")
-    ;;     ;; (yas/minor-mode . " u")
-
-    ;;     ;; Major modes have no space in front
-    ;;     (lisp-interaction-mode . "λ")
-    ;;     (python-mode . "Py")
-    ;;     (org-mode . "O")
-    ;;     (emacs-lisp-mode . "EL")
-    ;;     ))
-    ;;
+#+BEGIN_SRC emacs-lisp :tangle no
    (defvar mode-line-cleaner-alist
      `((abbrev-mode . " Ab")
        (filladapt-mode . " Fill+")
@@ -404,6 +385,10 @@ without relaunching.
 #+begin_src emacs-lisp :tangle yes
   ;; Enable leftward scrolling.
   (put 'scroll-left 'disabled nil)
+  ;; Always leave a couple lines at the bottom of the display
+  (setq scroll-margin 2)
+  ;; Conservative scrolling
+  (setq scroll-conservatively 101)
 #+end_src
 ***** Always use 'y' 'n' for prompts
 #+begin_src emacs-lisp :tangle yes
@@ -490,126 +475,6 @@ without relaunching.
   (global-set-key [?\A-c] 'clipboard-kill-ring-save)
   (global-set-key [?\A-v] 'clipboard-yank)
 #+end_src
-**** Visuals
-***** Special characters
-#+begin_src emacs-lisp :tangle yes
-  (defun truncate-string-to-width-unicode-elipsis (orig-func &rest args)
-    (let ((myargs '(0 nil "…"))
-          (newargs (copy-sequence args))
-          (arglen (length args))
-          lastcons)
-      (if (< 5 arglen)
-          (setcdr (nthcdr (- arglen 1) newargs) (nthcdr (- arglen 2)
-                                                        myargs))
-        (setq lastcons (nthcdr 4 newargs))
-        (when (and (car lastcons) (not (stringp (car lastcons))))
-          (setcar lastcons "…")))
-      (apply orig-func newargs)))
-  (advice-add 'truncate-string-to-width :around #'truncate-string-to-width-unicode-elipsis)
-#+end_src
-***** Frames
-#+begin_src emacs-lisp :tangle yes
-  (if (not (window-system))
-      (setq initial-frame-alist '((top . -420) (left . 4800) (width . 233) (height . 90)))
-    )
-  ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
-  ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
-#+end_src
-***** Rainbow Modes (highlight using colors)
-#+begin_src emacs-lisp :tangle yes
-  (req-package rainbow-mode
-    :commands rainbow-mode)
-#+end_src
-#+begin_src emacs-lisp :tangle no
-  ;; This package really doesn't help mutch the color differences are
-  ;;  too hard to notice, and conceivably there is a CPU price to be paid
-  (req-package rainbow-delimiters
-    :commands (rainbow-delimiters-mode
-               rainbow-delimiters-mode-enable
-               rainbow-delimiters-mode-disable)
-    :init
-    (add-hook 'all-prog-mode-hook 'rainbow-delimiters-mode-enable))
-#+end_src
-***** Themes
-#+begin_src emacs-lisp :tangle yes
-  ;; (req-package plan9-theme)
-
-  (req-package powerline-evil
-    :init
-    (setq powerline-evil-tag-style 'standard))
-  
-  (req-package color-theme-sanityinc-tomorrow)
-
-  (req-package-force powerline
-    :require powerline-evil)
-
-  (req-package-force moe-theme
-    :require powerline
-    :commands (moe-dark moe-light powerline-moe-theme)
-    :init
-    (setq moe-theme-highlight-buffer-id t
-          ;; Resize titles (optional).
-          moe-theme-resize-markdown-title '(1.5 1.4 1.3 1.2 1.0 1.0)
-          moe-theme-resize-org-title '(1.5 1.4 1.3 1.2 1.1 1.0 1.0 1.0 1.0)
-          moe-theme-resize-rst-title '(1.5 1.4 1.3 1.2 1.1 1.0)
-     )
-    :config
-    (progn
-      ;; Choose a color for mode-line.(Default: blue)
-      (moe-theme-set-color 'w/b)))
-
-  (defun iterm-set-backgroun-from-default ()
-    (let* ((frame (window-frame))
-           (bgcolor (color-name-to-rgb
-                     (face-attribute 'default :background frame)))
-           rgbstr)
-      (setq bgcolor (mapcar (lambda (x) (* x 255)) bgcolor))
-      (setq rgbstr (apply 'concat (mapcar (lambda (x) (format "%02x" x)) bgcolor)))
-      ;; send \e[ P h RR GG BB \e \ to set background color
-      (message "sending \e]Ph%s\e\\" rgbstr)
-      (send-string-to-terminal (format "\e]Ph%s\e\\" rgbstr))
-      (set-face-attribute 'default nil :background "unspecified-bg")))
-
-  (if nil
-      (moe-dark)
-        ;;(powerline-moe-theme))
-
-    ;;  :config
-    ;;  (progn
-    ;;    powerline-center-evil-theme))
-
-    (if (file-exists-p (concat user-emacs-directory "my-themes/emacs-easter-theme"))
-      (progn
-        (setq current-graphic-theme 'easter)
-        (setq current-tty-theme 'easter))
-      (setq current-graphic-theme 'zenburn)
-      (setq current-tty-theme 'zenburn))
-
-    ;; (setq current-graphic-theme 'solarized-light)
-    ;; (setq current-tty-theme 'solarized-light)
-    ;; (setq current-graphic-theme 'leuven)
-    ;; (setq current-tty-theme 'leuven)
-    ;; (setq current-graphic-theme 'zenburn)
-    ;; (setq current-tty-theme 'zenburn)
-    ;; (setq current-graphic-theme 'light-blue)
-    ;; (setq current-tty-theme 'light-blue)
-  
-    (defun new-frame-pick-theme (frame)
-      (select-frame frame)
-
-    (if (window-system frame)
-        (load-theme current-graphic-theme t)
-      (load-theme current-tty-theme t)))
-  
-    (if (daemonp)
-        (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
-      (load-theme current-tty-theme)))
-  
-  ;; (powerline-evil-center-color-theme)
-  ;; (if (not (display-graphic-p))
-  ;;    (iterm-set-backgroun-from-default))
-#+end_src
-
 **** Mail
 #+begin_src emacs-lisp :tangle yes
   ;; (setq mail-from-style 'angles)
@@ -820,8 +685,9 @@ without relaunching.
 
 
   ;; we have to use-package here b/c it doesn't see the package installed by homebrew
-  (use-package mu4e
+  (req-package mu4e
     ;;; :require (smtpmail mu4e-maildirs-extension)
+    :require (mu4e-alert)
     :commands (mu4e)
     :bind (("C-x m" . mu4e))
     :init
@@ -841,14 +707,21 @@ without relaunching.
             mu4e-update-interval nil
 
             ;; [b]ookmarks
-            mu4e-not-junk-folder-filter " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/spam* )"
-            mu4e-inbox-filter-base "( maildir:/gmail.com/INBOX OR maildir:/chopps.org/INBOX OR maildir:/terastrm.net/INBOX OR maildir:/chopps.org/a-terastrm )"
+            mu4e-not-junk-folder-filter " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/spam* ) "
+            mu4e-inbox-filter-base " ( maildir:/gmail.com/INBOX OR maildir:/chopps.org/INBOX OR maildir:/terastrm.net/INBOX OR maildir:/chopps.org/a-terastream ) "
+            mu4e-imp-filter-base " ( maildir:/chopps.org/ietf-rtg-yang-dt OR maildir:/chopps.org/ietf-wg-isis OR maildir:/chopps.org/ietf-wg-netmod OR maildir:/chopps.org/ietf-wg-homenet ) "
             mu4e-bookmarks (append
                             (list (list (concat "flag:unread AND NOT flag:trashed AND " mu4e-inbox-filter-base) "Unread INBOX messages" ?i)
-                                  (list (concat "flag:flagged AND NOT flag:trashed AND " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Flagged INBOX messages" ?f)
-                                  (list (concat "flag:unread AND NOT flag:flagged AND NOT flag:trashed AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread Non-INBOX messages" ?I)
-                                  (list (concat "flag:unread AND flag:flagged AND NOT flag:trashed AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread Flagged Non-INBOX messages" ?U)
+                                  (list (concat "flag:flagged AND NOT flag:trashed AND " mu4e-inbox-filter-base) "Flagged INBOX messages" ?f)
                                   (list (concat "flag:flagged AND NOT flag:trashed AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Flagged Non-INBOX messages" ?F)
+
+                                  (list (concat "flag:unread AND NOT flag:flagged AND NOT flag:trashed AND " mu4e-imp-filter-base) "Unread Important messages" ?n)
+                                  (list (concat "flag:unread AND     flag:flagged AND NOT flag:trashed AND " mu4e-imp-filter-base) "Unread-flagged Important messages" ?N)
+
+                                  (list (concat "flag:unread AND NOT flag:flagged AND NOT flag:trashed AND NOT " mu4e-imp-filter-base " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread unimportant messages" ?u)
+                                  (list (concat "flag:unread AND     flag:flagged AND NOT flag:trashed AND NOT " mu4e-imp-filter-base " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread-flagged unimportant messages" ?U)
+
+
                                   (list "maildir:/chopps.org/spam-probable" "Probable spam messages" ?s)
                                   )
                             (mapcar (lambda (x) (cons (concat (car x) mu4e-not-junk-folder-filter) (cdr x)))
@@ -862,9 +735,12 @@ without relaunching.
             ;; [j]ump shortcuts
             mu4e-maildir-shortcuts '(("/chopps.org/INBOX" . ?i)
                                      ("/gmail.com/INBOX" . ?g)
-                                     ("/terastrm.net/INBOX" . ?t)
-                                     ("/chopps.org/a-terastream" . ?w)
+                                     ("/terastrm.net/INBOX" . ?w)
+                                     ("/chopps.org/a-terastream" . ?t)
                                      ("/chopps.org/aa-netbsd" . ?n)
+                                     ("/chopps.org/ietf-wg-isis" . ?I)
+                                     ("/chopps.org/ietf-wg-homenet" . ?H)
+                                     ("/chopps.org/ietf-wg-netmod" . ?N)
                                      ("/chopps.org/spam-train" . ?S)
                                      ("/chopps.org/spam-probable" . ?s))
 
@@ -876,6 +752,9 @@ without relaunching.
             mu4e-headers-first-child-prefix  (purecopy '("\\" . "┗▶"))
             mu4e-headers-empty-parent-prefix (purecopy '("-"  . "━"))
             mu4e-headers-duplicate-prefix    (purecopy '("="  . "⚌"))
+            mu4e-headers-duplicate-prefix    (purecopy '("="  . "⚌"))
+            mu4e-headers-visible-lines 15
+            mu4e-headers-visible-columns 80
             mu4e-html2text-command 'mu4e-shr2text
             mu4e-view-html-plaintext-ratio-heuristic 15
             ;; mu4e-html2text-command "html2text -nobs -utf8 -width 120"
@@ -886,9 +765,12 @@ without relaunching.
             ;; mu4e-trash-folder  "/chopps.org/Deleted Messages"
             mu4e-attachment-dir "~/Downloads"
 
+            ;; only complete addresses found in email to one of the below addresses
+            mu4e-compose-complete-only-personal t
             mu4e-user-mail-address-list (list "chopps@chopps.org"
                                               "chopps@dev.terastrm.net"
                                               "chopps@gmail.com"
+                                              "chopps@netbsd.org"
                                               "chopps@rawdofmt.org")
 
             mu4e-compose-signature-auto-include nil
@@ -946,6 +828,10 @@ without relaunching.
                ;; smtpmail-local-domain?
                ;; smtpmail-sendto-domain?
                (smtpmail-smtp-service 587))))
+
+      (defun my-mu4e-use-hard-nl ()
+        "Outgoing mails get format=flowed."
+        (use-hard-newlines t 'guess))
 
       (defun my-mu4e-add-cc ()
         "Set up message for composing"
@@ -1014,18 +900,30 @@ without relaunching.
       ;; (require 'mu4e-maildirs-extension)
       ;; (mu4e-maildirs-extension)
       (require 'mu4e-contrib)
+
+      (mu4e-alert-enable-mode-line-display)
+      (mu4e-alert-enable-notifications)
       (add-hook 'mu4e-headers-mode-hook
-                (lambda () (setq show-trailing-whitespace nil)))
+                (lambda () (progn
+                             (make-local-variable 'scroll-conservatively)
+                             (setq
+                              show-trailing-whitespace nil
+                              scroll-conservatively 0
+                              scroll-up-aggressively .8
+                              scroll-down-aggressively .8)
+                            )))
       (add-hook 'mu4e-view-mode-hook
                 (lambda () (setq show-trailing-whitespace nil)))
       (add-hook 'mu4e-compose-pre-hook
                 'my-mu4e-set-account-using-message)
       (add-hook 'mu4e-compose-mode-hook 'my-mu4e-add-cc)
+      (add-hook 'mu4e-compose-mode-hook 'my-mu4e-use-hard-nl)
       (add-to-list 'mu4e-view-actions
                    '("ViewInBrowser" . mu4e-action-view-in-browser))
 
       (my-mu4e-set-account "chopps.org")
       (define-key mu4e-headers-mode-map "d" 'mu4e-headers-mark-for-read)
+      (define-key mu4e-view-mode-map "d" 'mu4e-view-mark-for-read)
       (define-key mu4e-headers-mode-map "#" 'mu4e-headers-mark-move-to-spam)
       (define-key mu4e-view-mode-map "#" 'mu4e-view-mark-move-to-spam)
       (define-key mu4e-headers-mode-map "\\" 'mu4e-headers-mark-move-to-spam)
@@ -1181,6 +1079,9 @@ without relaunching.
 ***** Customization
 #+begin_src emacs-lisp :tangle yes
   (define-key ctl-x-map (kbd "C-i") 'endless/ispell-word-then-abbrev)
+
+  (req-package-force beacon)
+  (beacon-mode)
 
   (defun endless/ispell-word-then-abbrev (p)
     "Call `ispell-word'. Then create an abbrev for the correction made. With prefix P, create local abbrev. Otherwise it will be global."
@@ -1730,7 +1631,12 @@ This should be it's own minor mode or something right?
       (goto-char start)
       (insert-rectangle rect)))
 #+END_SRC
-
+**** Searching
+#+begin_src emacs-lisp :tangle yes
+  (req-package spotight
+    :bind (("C-c SPC" . spotlight-fast)
+           ("C-C C-SPC" . spotlight)))
+#+end_src
 **** URL Browsing
 #+begin_src emacs-lisp :tangle yes
   (req-package browse-url
@@ -1931,12 +1837,8 @@ This should be it's own minor mode or something right?
 ***** Markdown mode
 #+BEGIN_SRC emacs-lisp :tangle yes
   (req-package markdown-mode
-    :commands markdown-mode
-    :mode ((".md\\'" . markdown-mode))
-    )
+    :mode ((".md\\'" . markdown-mode)))
 #+END_SRC
-
-
 ***** RFCs
 #+begin_src emacs-lisp :tangle yes
   ;; (req-package rfcview
@@ -2257,7 +2159,7 @@ IETF Yang mode.
     :commands (pylookup-lookup pylookup-update)
     :init
     (progn
-      (setq pylookup-dir (concat user-emacs-directory "el-get/pylookup/")
+      (setq pylookup-dir (concat user-emacs-directory "lisp/pylookup/")
             pylookup-program (concat pylookup-dir "pylookup.py")
             pylookup-db-file (concat pylookup-dir "pylookup.db"))))
 
@@ -2270,6 +2172,8 @@ IETF Yang mode.
       (when (not (setq python-check-command (executable-find "pycheckers.sh")))
         (setq python-check-command "flake8"))
       ))
+
+  (req-package pyenv-mode)
 
   ;; :require (elpy flymake-pyfixers nostests pylookup pytest)
   (req-package python
@@ -2404,6 +2308,7 @@ IETF Yang mode.
         (message "Python mode hook")
 
         (elpy-mode)
+        (pyenv-mode)
 
         (require 'flymake-pyfixers)
         (setq comment-column 60)
@@ -2512,12 +2417,12 @@ IETF Yang mode.
   ;;  :commands org-mac-grab-link org-mac-safari-get-frontmost-url)
 
   ;; (require s)
-  (req-package ietf-doc
-    :bind ("C-c i o" . ietf-doc-open-at-point)
-    :init
-    (setq ietf-doc-directory "~/Dropbox/IETF/doc-cache/"
-          ietf-draft-url-directory "http://www.ietf.org/id/"
-          ietf-rfc-url-directory "http://www.ietf.org/rfc/"))
+  (req-package ietf-docs
+    :bind ("C-c i o" . ietf-docs-open-at-point))
+;;    :init
+ ;;   (setq ietf-doc-directory "~/Dropbox/IETF/doc-cache/"
+  ;;        ietf-draft-url-directory "http://www.ietf.org/id/"
+   ;;       ietf-rfc-url-directory "http://www.ietf.org/rfc/"))
 
   ;;(load-library "org-plus-contrib-autoloads")
 
@@ -2538,7 +2443,7 @@ IETF Yang mode.
   (req-package org-plus-contrib
     ;; :require (org)
     ;; :require (org-mu4e calfw org-mac-notify)
-    ;; :require (org-mu4e)
+    :require (org-mu4e)
     :commands (org-mode org-agenda org-capture org-store-link)
     :interpreter ("org" . org-mode)
     :mode ("\\.org\\'" . org-mode)
@@ -2552,13 +2457,15 @@ IETF Yang mode.
                  (string= lang "dot2tex")
                  (string= lang "dot"))))
       ;; (add-to-list 'org-babel-load-languages '(dot2tex . t))
-      (setq org-directory "~/org-mode"
+      (
+      setq org-directory "~/org"
       org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate
       org-src-fontify-natively t
       org-default-notes-file (concat org-directory "/notes.org")
       org-agenda-start-on-weekday 5
       org-src-window-setup 'current-window
       org-log-done 'time
+      rg-hide-leading-stars t
 
 
       ;; capture the search instead of the highlighted message in
@@ -2616,7 +2523,12 @@ IETF Yang mode.
               ("Tt" "Terastream Todo" entry (file+headline (concat org-directory "/notes.org") "Terastream")
                "* TODO %?\n%T\n")
               )
-     ))
+      )
+      (set-register ?W `(file . ,(concat org-directory "/work.org")))
+      (set-register ?N `(file . ,org-default-notes-file))
+      (set-register ?I `(file . ,(concat org-directory "/ietf.org")))
+      (set-register ?S `(file . ,(concat org-directory "/status.org")))
+     )
     :config
     (progn
       (if debug-init-msg
@@ -2736,7 +2648,8 @@ IETF Yang mode.
   ;; :require (helm-config)
   (req-package helm
     :require helm-config
-    :bind (("M-x" . helm-M-x)
+    :bind (
+           ("C-M-x" . helm-M-x)
            ("M-y" . helm-show-kill-ring)
            ;; XXX For some reason the next one get's removed sometimes
            ([remap find-file] . helm-find-files)
@@ -3064,6 +2977,11 @@ IETF Yang mode.
 
   (setq tab-always-indent 'complete)
 
+  ;-----------
+  ; Registers
+  ;-----------
+  (set-register ?E `(file . ,emacs-init-source))
+
   (req-package-force guide-key
     :init (setq
            guide-key/guide-key-sequence '("C-x" "C-c")
@@ -3127,6 +3045,53 @@ IETF Yang mode.
   ;; Have to remove undo-tree mappings for discover to work
   ;; XXX fix (global-discover-mode 1)
 
+  (define-prefix-command 'chopps/toggle-map)
+  ;; The manual recommends C-c for user keys, but C-x t is
+  ;; always free, whereas C-c t is used by some modes.
+  (define-key ctl-x-map "t" 'chopps/toggle-map)
+  (define-key chopps/toggle-map "c" #'column-number-mode)
+  (define-key chopps/toggle-map "d" #'toggle-debug-on-error)
+  (define-key chopps/toggle-map "e" #'toggle-debug-on-error)
+  (define-key chopps/toggle-map "f" #'auto-fill-mode)
+  (define-key chopps/toggle-map "l" #'toggle-truncate-lines)
+  (define-key chopps/toggle-map "q" #'toggle-debug-on-quit)
+  (define-key chopps/toggle-map "t" #'endless/toggle-theme)
+  ;;; Generalized version of `read-only-mode'.
+  (define-key chopps/toggle-map "r" #'dired-toggle-read-only)
+  (autoload 'dired-toggle-read-only "dired" nil t)
+  (define-key chopps/toggle-map "w" #'whitespace-mode)
+  (define-key chopps/toggle-map "W" #'whitespace-mode)
+
+  (defun narrow-or-widen-dwim (p)
+    "If the buffer is narrowed, it widens. Otherwise, it narrows intelligently.
+  Intelligently means: region, org-src-block, org-subtree, or defun,
+  whichever applies first.
+  Narrowing to org-src-block actually calls `org-edit-src-code'.
+
+  With prefix P, don't widen, just narrow even if buffer is already
+  narrowed."
+    (interactive "P")
+    (declare (interactive-only))
+    (cond ((and (buffer-narrowed-p) (not p)) (widen))
+          ((region-active-p)
+           (narrow-to-region (region-beginning) (region-end)))
+          ((derived-mode-p 'org-mode)
+           ;; `org-edit-src-code' is not a real narrowing command.
+           ;; Remove this first conditional if you don't want it.
+           (cond ((ignore-errors (org-edit-src-code))
+                  (delete-other-windows))
+                 ((org-at-block-p)
+                  (org-narrow-to-block))
+                 (t (org-narrow-to-subtree))))
+          (t (narrow-to-defun))))
+
+  (define-key chopps/toggle-map "n" #'narrow-or-widen-dwim)
+  ;; This line actually replaces Emacs' entire narrowing keymap, that's
+  ;; how much I like this command. Only copy it if that's what you want.
+  (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+  (eval-after-load 'org-src
+    '(define-key org-src-mode-map
+       "\C-x\C-s" #'org-edit-src-exit))
 
   #+end_src
 
@@ -3138,7 +3103,7 @@ IETF Yang mode.
       (define-key undo-tree-map (kbd "C-x r") nil)))
 #+end_src
 **** Modeline
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
   ;;(req-package-force powerline
   ;;  :require evil-powerline)
 
@@ -3171,6 +3136,130 @@ IETF Yang mode.
   ;;   (sml/setup))
   ;; (add-hook 'after-init-hook 'chopps-after-init)
 #+end_src
+**** Visuals
+***** Special characters
+#+begin_src emacs-lisp :tangle yes
+  (defun truncate-string-to-width-unicode-elipsis (orig-func &rest args)
+    (let ((myargs '(0 nil "…"))
+          (newargs (copy-sequence args))
+          (arglen (length args))
+          lastcons)
+      (if (< 5 arglen)
+          (setcdr (nthcdr (- arglen 1) newargs) (nthcdr (- arglen 2)
+                                                        myargs))
+        (setq lastcons (nthcdr 4 newargs))
+        (when (and (car lastcons) (not (stringp (car lastcons))))
+          (setcar lastcons "…")))
+      (apply orig-func newargs)))
+  (advice-add 'truncate-string-to-width :around #'truncate-string-to-width-unicode-elipsis)
+#+end_src
+***** Frames
+#+begin_src emacs-lisp :tangle yes
+  (if (not (window-system))
+      (setq initial-frame-alist '((top . -420) (left . 4800) (width . 233) (height . 90)))
+    )
+  ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
+  ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
+#+end_src
+***** Rainbow Modes (highlight using colors)
+#+begin_src emacs-lisp :tangle yes
+  (req-package rainbow-mode
+    :commands rainbow-mode)
+#+end_src
+#+begin_src emacs-lisp :tangle no
+  ;; This package really doesn't help mutch the color differences are
+  ;;  too hard to notice, and conceivably there is a CPU price to be paid
+  (req-package rainbow-delimiters
+    :commands (rainbow-delimiters-mode
+               rainbow-delimiters-mode-enable
+               rainbow-delimiters-mode-disable)
+    :init
+    (add-hook 'all-prog-mode-hook 'rainbow-delimiters-mode-enable))
+#+end_src
+***** Themes
+#+begin_src emacs-lisp :tangle yes
+    ;; (req-package plan9-theme)
+
+    ;; (req-package powerline-evil
+    ;;   :init
+    ;;   (setq powerline-evil-tag-style 'standard))
+
+    ;; (req-package color-theme-sanityinc-tomorrow)
+    ;; (req-package zonokai-theme)
+
+    (req-package-force powerline
+      :require powerline-evil)
+
+    (req-package-force moe-theme
+      :require powerline markdown-mode
+      :commands (moe-dark moe-light powerline-moe-theme)
+      :init
+      (setq moe-theme-highlight-buffer-id t
+            ;; Resize titles (optional).
+            moe-theme-resize-markdown-title '(1.5 1.4 1.3 1.2 1.0 1.0)
+            moe-theme-resize-org-title '(1.5 1.4 1.3 1.2 1.1 1.0 1.0 1.0 1.0)
+            moe-theme-resize-rst-title '(1.5 1.4 1.3 1.2 1.1 1.0)
+       )
+      :config
+      (progn
+        ;; Choose a color for mode-line.(Default: blue)
+        (moe-theme-set-color 'w/b)))
+
+    (defun iterm-set-backgroun-from-default ()
+      (let* ((frame (window-frame))
+             (bgcolor (color-name-to-rgb
+                       (face-attribute 'default :background frame)))
+             rgbstr)
+        (setq bgcolor (mapcar (lambda (x) (* x 255)) bgcolor))
+        (setq rgbstr (apply 'concat (mapcar (lambda (x) (format "%02x" x)) bgcolor)))
+        ;; send \e[ P h RR GG BB \e \ to set background color
+        (message "sending \e]Ph%s\e\\" rgbstr)
+        (send-string-to-terminal (format "\e]Ph%s\e\\" rgbstr))
+        (set-face-attribute 'default nil :background "unspecified-bg")))
+
+    (if t
+        (progn
+          (moe-dark)
+          (powerline-moe-theme)
+          (powerline-evil-center-color-theme))
+          ;;(powerline-moe-theme))
+
+      ;;  :config
+      ;;  (progn
+      ;;    powerline-center-evil-theme))
+
+      (if (file-exists-p (concat user-emacs-directory "my-themes/emacs-easter-theme"))
+        (progn
+          (setq current-graphic-theme 'easter)
+          (setq current-tty-theme 'easter))
+        (setq current-graphic-theme 'leuven)
+        (setq current-tty-theme 'leuven))
+
+      ;; (setq current-graphic-theme 'solarized-light)
+      ;; (setq current-tty-theme 'solarized-light)
+      ;; (setq current-graphic-theme 'leuven)
+      ;; (setq current-tty-theme 'leuven)
+      ;; (setq current-graphic-theme 'zenburn)
+      ;; (setq current-tty-theme 'zenburn)
+      ;; (setq current-graphic-theme 'light-blue)
+      ;; (setq current-tty-theme 'light-blue)
+
+      (defun new-frame-pick-theme (frame)
+        (select-frame frame)
+
+      (if (window-system frame)
+          (load-theme current-graphic-theme t)
+        (load-theme current-tty-theme t)))
+
+      (if (daemonp)
+          (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
+        (load-theme current-tty-theme)))
+
+    ;; (powerline-evil-center-color-theme)
+    ;; (if (not (display-graphic-p))
+    ;;    (iterm-set-backgroun-from-default))
+#+end_src
+
 **** GUI Interaction Display
 #+begin_src emacs-lisp :tangle yes
   (setq x-mouse-click-focus-ignore-position t)
