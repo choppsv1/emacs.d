@@ -77,7 +77,6 @@ static char *gnus-pointer[] = {
 \"###########.######\" };")) t)
  '(gtags-path-style (quote relative))
  '(highlight-changes-colors (quote ("#d33682" "#6c71c4")))
- '(ietf-docs-cache-directory "/Users/chopps/Dropbox/IETF/doc-cache/")
  '(indent-tabs-mode nil)
  '(jedi:install-imenu nil)
  '(jedi:server-args (quote ("--sys-path" "/ws/chopps-sjc/ws/xrut-ats/modules")))
