@@ -181,6 +181,8 @@ escape sequence as given below.
       (define-key keymap (kbd "ESC \" 5 \'") '[?\C-\'])
       (define-key keymap (kbd "ESC \" 5 \"") '[?\C-\"])
 
+      (define-key keymap (kbd "ESC \" 6 |") '[?\C-|])
+
       (define-key isearch-mode-map [remap isearch-delete-char] 'isearch-del-char)))
     (chopps-add-local-keys)
   ;; (add-hook 'after-make-frame-functions 'chopps-add-local-keys)
@@ -693,7 +695,7 @@ without relaunching.
    user-mail-address  "chopps@chopps.org"
    user-full-name     "Christian Hopps")
 #+END_SRC
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
   ;; We need to use brew command to get the path here.
   (req-package mu4e-maildirs-extension
     :defer t
@@ -2766,9 +2768,9 @@ IETF Yang mode.
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;; helm-projectile projectile)
   ;; :require (helm-config)
-  (req-package helm-mu
-    :require mu4e
-    :commands (helm-mu helm-mu-contacts))
+  ;; (req-package helm-mu
+  ;;  :require mu4e
+  ;;  :commands (helm-mu helm-mu-contacts))
   (req-package helm-config)
   (req-package-force helm
     :require helm-config
@@ -3306,97 +3308,105 @@ IETF Yang mode.
 #+end_src
 ***** Themes
 #+begin_src emacs-lisp :tangle yes
-  ;; (req-package plan9-theme)
+    ;; (req-package plan9-theme)
 
-  ;; (req-package powerline-evil
-  ;;   :init
-  ;;   (setq powerline-evil-tag-style 'standard))
+    ;; (req-package powerline-evil
+    ;;   :init
+    ;;   (setq powerline-evil-tag-style 'standard))
 
-  ;; (req-package color-theme-sanityinc-tomorrow)
-  ;; (req-package zonokai-theme)
-
-  (req-package powerline-evil)
-
-  (req-package powerline
-    :require powerline-evil)
-
-  ;; (req-package moe-theme
-  ;;  :require powerline markdown-mode
-  ;;  :commands (moe-dark moe-light powerline-moe-theme)
-  ;;  :init
-  ;;  (setq moe-theme-highlight-buffer-id t
-  ;;        ;; Resize titles (optional).
-  ;;        moe-theme-resize-markdown-title '(1.5 1.4 1.3 1.2 1.0 1.0)
-  ;;        moe-theme-resize-org-title '(1.5 1.4 1.3 1.2 1.1 1.0 1.0 1.0 1.0)
-  ;;        moe-theme-resize-rst-title '(1.5 1.4 1.3 1.2 1.1 1.0)
-  ;;   ))
-  ;;  ;; :config
-  ;;  ;; (progn
-  ;;  ;;   ;; Choose a color for mode-line.(Default: blue)
-  ;;  ;;   (moe-theme-set-color 'w/b)))
-
-  (defun iterm-set-backgroun-from-default ()
-    (let* ((frame (window-frame))
-           (bgcolor (color-name-to-rgb
-                     (face-attribute 'default :background frame)))
-           rgbstr)
-      (setq bgcolor (mapcar (lambda (x) (* x 255)) bgcolor))
-      (setq rgbstr (apply 'concat (mapcar (lambda (x) (format "%02x" x)) bgcolor)))
-      ;; send \e[ P h RR GG BB \e \ to set background color
-      (message "sending \e]Ph%s\e\\" rgbstr)
-      (send-string-to-terminal (format "\e]Ph%s\e\\" rgbstr))
-      (set-face-attribute 'default nil :background "unspecified-bg")))
-
-  (if debug-init-msg
-      (message "Mark pre themes"))
-
-  (if nil
+    ;; (req-package color-theme-sanityinc-tomorrow)
+    ;; (req-package zonokai-theme)
+    (req-package theme-looper
+      :bind (("C-|" . theme-looper-enable-next-theme)
+             ("C-\\" . theme-looper-enable-random-theme))
+      :config
       (progn
-        (load-library "moe-theme")
-        (moe-dark)
-        (powerline-moe-theme)
-        (powerline-evil-center-color-theme))
+        (theme-looper-set-theme-set
+         ;; (list 'easter 'solarized-dark 'hc-zenburn 'zenburn 'light-blue 'leuven)
+         (custom-available-themes))))
 
-    (if (file-exists-p (concat user-emacs-directory "my-themes/emacs-easter-theme"))
+    (req-package powerline-evil)
+
+    (req-package powerline
+      :require powerline-evil)
+
+    ;; (req-package moe-theme
+    ;;  :require powerline markdown-mode
+    ;;  :commands (moe-dark moe-light powerline-moe-theme)
+    ;;  :init
+    ;;  (setq moe-theme-highlight-buffer-id t
+    ;;        ;; Resize titles (optional).
+    ;;        moe-theme-resize-markdown-title '(1.5 1.4 1.3 1.2 1.0 1.0)
+    ;;        moe-theme-resize-org-title '(1.5 1.4 1.3 1.2 1.1 1.0 1.0 1.0 1.0)
+    ;;        moe-theme-resize-rst-title '(1.5 1.4 1.3 1.2 1.1 1.0)
+    ;;   ))
+    ;;  ;; :config
+    ;;  ;; (progn
+    ;;  ;;   ;; Choose a color for mode-line.(Default: blue)
+    ;;  ;;   (moe-theme-set-color 'w/b)))
+
+    (defun iterm-set-backgroun-from-default ()
+      (let* ((frame (window-frame))
+             (bgcolor (color-name-to-rgb
+                       (face-attribute 'default :background frame)))
+             rgbstr)
+        (setq bgcolor (mapcar (lambda (x) (* x 255)) bgcolor))
+        (setq rgbstr (apply 'concat (mapcar (lambda (x) (format "%02x" x)) bgcolor)))
+        ;; send \e[ P h RR GG BB \e \ to set background color
+        (message "sending \e]Ph%s\e\\" rgbstr)
+        (send-string-to-terminal (format "\e]Ph%s\e\\" rgbstr))
+        (set-face-attribute 'default nil :background "unspecified-bg")))
+
+    (if debug-init-msg
+        (message "Mark pre themes"))
+
+    (if nil
         (progn
-          (setq current-graphic-theme 'easter)
-          (setq current-tty-theme 'easter))
-      ;; (setq current-graphic-theme 'leuven)
-      ;;(setq current-tty-theme 'leuven)
-      ;; (setq current-graphic-theme 'solarized-dark)
-      ;; (setq current-tty-theme 'solarized-dark)
-      (setq current-graphic-theme 'hc-zenburn)
-      (setq current-tty-theme 'hc-zenburn)
-      ;; (setq current-graphic-theme 'anti-zenburn)
-      ;; (setq current-tty-theme 'anti-zenburn)
-      ))
+          (load-library "moe-theme")
+          (moe-dark)
+          (powerline-moe-theme)
+          (powerline-evil-center-color-theme))
 
-  ;; (setq current-graphic-theme 'solarized-light)
-  ;; (setq current-tty-theme 'solarized-light)
-  ;; (setq current-graphic-theme 'leuven)
-  ;; (setq current-tty-theme 'leuven)
-  ;; (setq current-graphic-theme 'zenburn)
-  ;; (setq current-tty-theme 'zenburn)
-  ;; (setq current-graphic-theme 'light-blue)
-  ;; (setq current-tty-theme 'light-blue)
+      (if (file-exists-p (concat user-emacs-directory "my-themes/emacs-easter-theme"))
+          (progn
+            (setq current-graphic-theme 'easter)
+            (setq current-tty-theme 'easter))
+        ;; (setq current-graphic-theme 'leuven)
+        ;;(setq current-tty-theme 'leuven)
+        ;; (setq current-graphic-theme 'solarized-dark)
+        ;; (setq current-tty-theme 'solarized-dark)
+        (setq current-graphic-theme 'hc-zenburn)
+        (setq current-tty-theme 'hc-zenburn)
+        ;; (setq current-graphic-theme 'anti-zenburn)
+        ;; (setq current-tty-theme 'anti-zenburn)
+        ))
 
-  (defun new-frame-pick-theme (frame)
-    (select-frame frame)
-    (if (window-system frame)
-        (load-theme current-graphic-theme t)
-      (load-theme current-tty-theme t)))
+    ;; (setq current-graphic-theme 'solarized-light)
+    ;; (setq current-tty-theme 'solarized-light)
+    ;; (setq current-graphic-theme 'leuven)
+    ;; (setq current-tty-theme 'leuven)
+    ;; (setq current-graphic-theme 'zenburn)
+    ;; (setq current-tty-theme 'zenburn)
+    ;; (setq current-graphic-theme 'light-blue)
+    ;; (setq current-tty-theme 'light-blue)
 
-  (if (daemonp)
-      (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
-    (load-theme current-tty-theme))
+    (defun new-frame-pick-theme (frame)
+      (select-frame frame)
+      (if (window-system frame)
+          (load-theme current-graphic-theme t)
+        (load-theme current-tty-theme t)))
 
-  (if debug-init-msg
-      (message "Mark post themes"))
+    (if (daemonp)
+        (add-hook 'after-make-frame-functions 'new-frame-pick-theme)
+      (load-theme current-tty-theme))
 
-  (powerline-evil-center-color-theme)
+    (if debug-init-msg
+        (message "Mark post themes"))
 
-  ;; (if (not (display-graphic-p))
-  ;;    (iterm-set-backgroun-from-default))
+    (powerline-evil-center-color-theme)
+
+    ;; (if (not (display-graphic-p))
+    ;;    (iterm-set-backgroun-from-default))
 #+end_src
 
 **** GUI Interaction Display

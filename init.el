@@ -37,6 +37,26 @@
 ;; (message "Enabling pallet mode")
 ;; (pallet-mode t)
 
+(if (or (string= (getenv "TERM") "tmux")
+    (string= (getenv "TERM") "tmux-256color"))
+(progn
+
+(load "term/xterm")
+
+(declare-function xterm-register-default-colors "xterm" ())
+
+(defun terminal-init-tmux-256color ()
+  "Terminal initialization function for screen."
+    ;; Use the xterm color initialization code.
+    (xterm-register-default-colors)
+    (tty-set-up-initial-frame-faces))
+
+(defun terminal-init-tmux ()
+  "Terminal initialization function for screen."
+    ;; Use the xterm color initialization code.
+    (xterm-register-default-colors)
+    (tty-set-up-initial-frame-faces))
+))
 
 ;; (setq debug-on-error t)
 (setq package-user-dir (concat user-emacs-directory "packages/" emacs-version "/elpa"))
