@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -d ietf-doc ]; then
-    git pull git@github.com:choppsv1/ietf-doc.git
+    git pull git@github.com:choppsv1/theme-looper.git
 else
-    git clone git@github.com:choppsv1/ietf-doc.git
+    git clone git@github.com:choppsv1/theme-looper.git
 fi
