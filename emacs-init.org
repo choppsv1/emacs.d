@@ -1050,10 +1050,12 @@ without relaunching.
     (progn
       (setq epg-debug t)
       ;; (setq epg-key-id "D7B83025")
-      (setq epg-user-id "D7B83025")
-      (setq epg-user-id-alist '(("chopps@gmail.com" . "D7B83025")
-                                ("chopps@chopps.org" . "D7B83025")
-                                ("chopps" . "D7B83025")))
+      ;; (setq epg-user-id "D7B83025")
+      (setq epg-user-id-alist '(("D7B83025" . "Christian Hopps <chopps@gmail.com>")
+                                ("D7B83025" . "chopps@gmail.com")
+                                ("D7B83025" . "Christian Hopps <chopps@chopps.org>")
+                                ("D7B83025" . "chopps@chopps.org")
+                                ("D7B83025" . "chopps")))
       (setq epg-gpg-program (executable-find "gpg"))
       ))
 #+end_src
@@ -2776,9 +2778,9 @@ IETF Yang mode.
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;; helm-projectile projectile)
   ;; :require (helm-config)
-  ;; (req-package helm-mu
-  ;;  :require mu4e
-  ;;  :commands (helm-mu helm-mu-contacts))
+  (req-package helm-mu
+    :require mu4e
+    :commands (helm-mu helm-mu-contacts))
   (req-package helm-config)
   (req-package-force helm
     :require helm-config
