@@ -695,8 +695,16 @@ without relaunching.
    user-mail-address  "chopps@chopps.org"
    user-full-name     "Christian Hopps")
 #+END_SRC
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
   ;; We need to use brew command to get the path here.
+
+
+  (req-package mu4e-alert
+    :commands (mu4e-alert-enable-mode-line-display
+               mu4e-alert-enable-notifications)
+    :config
+    (mu4e-alert-set-default-style 'notifier))
+
   (req-package mu4e-maildirs-extension
     :defer t
     :init
