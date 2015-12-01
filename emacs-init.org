@@ -3320,10 +3320,6 @@ IETF Yang mode.
 #+begin_src emacs-lisp :tangle yes
     ;; (req-package plan9-theme)
 
-    ;; (req-package powerline-evil
-    ;;   :init
-    ;;   (setq powerline-evil-tag-style 'standard))
-
     ;; (req-package color-theme-sanityinc-tomorrow)
     ;; (req-package zonokai-theme)
     (req-package theme-looper
@@ -3335,10 +3331,12 @@ IETF Yang mode.
          ;; (list 'easter 'solarized-dark 'hc-zenburn 'zenburn 'light-blue 'leuven)
          (custom-available-themes))))
 
-    (req-package powerline-evil)
+    (req-package powerline)
+    (req-package-force powerline-evil
+      :require powerline
+      :init
+      (setq powerline-evil-tag-style 'standard))
 
-    (req-package powerline
-      :require powerline-evil)
 
     ;; (req-package moe-theme
     ;;  :require powerline markdown-mode
@@ -3385,16 +3383,16 @@ IETF Yang mode.
         ;;(setq current-tty-theme 'leuven)
         ;; (setq current-graphic-theme 'solarized-dark)
         ;; (setq current-tty-theme 'solarized-dark)
-        (setq current-graphic-theme 'hc-zenburn)
-        (setq current-tty-theme 'hc-zenburn)
+        ;; (setq current-graphic-theme 'hc-zenburn)
+        ;; (setq current-tty-theme 'hc-zenburn)
         ;; (setq current-graphic-theme 'anti-zenburn)
         ;; (setq current-tty-theme 'anti-zenburn)
+           (setq current-graphic-theme 'misterioso)
+           (setq current-tty-theme 'misterioso)
         ))
 
     ;; (setq current-graphic-theme 'solarized-light)
     ;; (setq current-tty-theme 'solarized-light)
-    ;; (setq current-graphic-theme 'leuven)
-    ;; (setq current-tty-theme 'leuven)
     ;; (setq current-graphic-theme 'zenburn)
     ;; (setq current-tty-theme 'zenburn)
     ;; (setq current-graphic-theme 'light-blue)
