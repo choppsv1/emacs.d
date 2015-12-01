@@ -699,11 +699,11 @@ without relaunching.
   ;; We need to use brew command to get the path here.
 
 
-  (req-package mu4e-alert
-    :commands (mu4e-alert-enable-mode-line-display
-               mu4e-alert-enable-notifications)
-    :config
-    (mu4e-alert-set-default-style 'notifier))
+  ;; (req-package mu4e-alert
+  ;;   :commands (mu4e-alert-enable-mode-line-display
+  ;;              mu4e-alert-enable-notifications)
+  ;;   :config
+  ;;   (mu4e-alert-set-default-style 'notifier))
 
   (req-package mu4e-maildirs-extension
     :defer t
@@ -748,17 +748,25 @@ without relaunching.
             mu4e-not-junk-folder-filter " AND NOT ( maildir:/gmail.com/[Gmail].Spam OR maildir:/chopps.org/spam* ) "
             mu4e-inbox-filter-base " ( maildir:/gmail.com/INBOX OR maildir:/chopps.org/INBOX OR maildir:/terastrm.net/INBOX OR maildir:/chopps.org/a-terastream ) "
             mu4e-imp-filter-base " ( maildir:/chopps.org/ietf-rtg-yang-dt OR maildir:/chopps.org/ietf-wg-isis OR maildir:/chopps.org/ietf-wg-netmod OR maildir:/chopps.org/ietf-wg-homenet ) "
+            mu4e-unread-filter " ( flag:unread AND NOT flag:flagged AND NOT flag:trashed ) "
+            mu4e-unread-flagged-filter " ( flag:unread AND flag:flagged AND NOT flag:trashed ) "
             mu4e-bookmarks (append
-                            (list (list (concat "flag:unread AND NOT flag:trashed AND " mu4e-inbox-filter-base) "Unread INBOX messages" ?i)
-                                  (list (concat "flag:flagged AND NOT flag:trashed AND " mu4e-inbox-filter-base) "Flagged INBOX messages" ?f)
-                                  (list (concat "flag:flagged AND NOT flag:trashed AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Flagged Non-INBOX messages" ?F)
+                            (list (list (concat "flag:unread AND NOT flag:trashed AND " mu4e-inbox-filter-base) "Unread [i]NBOX messages" ?i)
 
-                                  (list (concat "flag:unread AND NOT flag:flagged AND NOT flag:trashed AND " mu4e-imp-filter-base) "Unread Important messages" ?n)
-                                  (list (concat "flag:unread AND     flag:flagged AND NOT flag:trashed AND " mu4e-imp-filter-base) "Unread-flagged Important messages" ?N)
+                                  (list (concat "flag:flagged AND NOT flag:trashed AND " mu4e-inbox-filter-base) "[f]lagged INBOX messages" ?f)
+                                  (list (concat "flag:flagged AND NOT flag:trashed AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "[F]lagged Non-INBOX messages" ?F)
 
-                                  (list (concat "flag:unread AND NOT flag:flagged AND NOT flag:trashed AND NOT " mu4e-imp-filter-base " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread unimportant messages" ?u)
-                                  (list (concat "flag:unread AND     flag:flagged AND NOT flag:trashed AND NOT " mu4e-imp-filter-base " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread-flagged unimportant messages" ?U)
+                                  (list (concat mu4e-unread-filter         mu4e-imp-filter-base) "Unread Important messages" ?n)
+                                  (list (concat mu4e-unread-flagged-filter mu4e-imp-filter-base) "Unread-Flagged Important messages" ?N)
 
+                                  (list (concat mu4e-unread-filter         "AND NOT" mu4e-imp-filter-base " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread [u]nimportant messages" ?u)
+                                  (list (concat mu4e-unread-flagged-filter "AND NOT" mu4e-imp-filter-base " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread-Flagged [U]nimportant messages" ?U)
+
+                                  (list (concat mu4e-unread-filter         " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread Non-INBOX messages" ?o)
+                                  (list (concat mu4e-unread-flagged-filter " AND NOT " mu4e-inbox-filter-base mu4e-not-junk-folder-filter) "Unread-Flagged Non-INBOX messages" ?O)
+
+                                  (list (concat mu4e-unread-filter         mu4e-not-junk-folder-filter) "Unread messages" ?a)
+                                  (list (concat mu4e-unread-flagged-filter mu4e-not-junk-folder-filter) "Unread-flagged messages" ?A)
 
                                   (list "maildir:/chopps.org/spam-probable" "Probable spam messages" ?s)
                                   )
@@ -954,17 +962,17 @@ without relaunching.
       ;; (mu4e-maildirs-extension)
       (require 'mu4e-contrib)
 
-      (mu4e-alert-enable-mode-line-display)
-      (mu4e-alert-enable-notifications)
-      (add-hook 'mu4e-headers-mode-hook
-                (lambda () (progn
-                             (make-local-variable 'scroll-conservatively)
-                             (setq
-                              show-trailing-whitespace nil
-                              scroll-conservatively 0
-                              scroll-up-aggressively .8
-                              scroll-down-aggressively .8)
-                            )))
+      ;; (mu4e-alert-enable-mode-line-display)
+      ;; (mu4e-alert-enable-notifications)
+      ;; (add-hook 'mu4e-headers-mode-hook
+      ;;           (lambda () (progn
+      ;;                        (make-local-variable 'scroll-conservatively)
+      ;;                        (setq
+      ;;                         show-trailing-whitespace nil
+      ;;                         scroll-conservatively 0
+      ;;                         scroll-up-aggressively .8
+      ;;                         scroll-down-aggressively .8)
+      ;;                       )))
       (add-hook 'mu4e-view-mode-hook
                 (lambda () (setq show-trailing-whitespace nil)))
       (add-hook 'mu4e-compose-pre-hook
@@ -981,21 +989,22 @@ without relaunching.
       (define-key mu4e-headers-mode-map "\\" 'mu4e-headers-mark-move-to-spam)
       (define-key mu4e-view-mode-map "\\" 'mu4e-view-mark-move-to-spam)
 
-      (add-to-list 'mu4e-header-info-custom
-                   '(:list-or-dir .
-                                  (:name "ML or maildir" ;; long name, as seen in message view
-                                         :shortname "ML-D"     ;; short name, as seen in the headers view
-                                         :help "Mailing list or maildir if not set"
-                                         :function
-                                         (lambda (msg)
-                                           (or (mu4e-message-field msg :mailing-list)
-                                               (mu4e-message-field msg :maildir))))))
+      ;; (add-to-list 'mu4e-header-info-custom
+      ;;              '(:list-or-dir .
+      ;;                             (:name "ML or maildir" ;; long name, as seen in message view
+      ;;                                    :shortname "ML-D"     ;; short name, as seen in the headers view
+      ;;                                    :help "Mailing list or maildir if not set"
+      ;;                                    :function
+      ;;                                    (lambda (msg)
+      ;;                                      (or (mu4e-message-field msg :mailing-list)
+      ;;                                          (mu4e-message-field msg :maildir))))))
+
       (setq
        ;; "Date         Flgs   List       From                   Subject
        mu4e-headers-fields '((:flags          .  5)
                              (:human-date     . 15)
                              (:from           . 26)
-                             (:list-or-dir    . 30)
+                             ;; (:list-or-dir    . 30)
                              (:thread-subject . nil)))
 
       )
@@ -2543,6 +2552,9 @@ IETF Yang mode.
                 ("t" "Todo" entry (file+headline (concat org-directory "/notes.org") "Tasks")
                  "* TODO %?\nCreated: %t\nAnnotation: %a\n")
 
+                ("x" "Tramdose" entry (file+datetree (concat org-directory "/medicine.org") "Tramadol")
+                 "* NOTE %?\nCreated: %U")
+
                 ("m" "Mail Todo" entry (file+headline (concat org-directory "/notes.org") "Mail")
                  "* TODO Read Mail%? (%:fromname about %:subject)\n%U\n%a\n")
 
@@ -2779,7 +2791,7 @@ IETF Yang mode.
   ;; helm-projectile projectile)
   ;; :require (helm-config)
   (req-package helm-mu
-    :require mu4e
+    ;; :require mu4e
     :commands (helm-mu helm-mu-contacts))
   (req-package helm-config)
   (req-package-force helm
@@ -3297,7 +3309,7 @@ IETF Yang mode.
 #+begin_src emacs-lisp :tangle yes
   (if (not (window-system))
       (setq initial-frame-alist '((top . -420) (left . 4800) (width . 233) (height . 90)))
-    )
+    (setq initial-frame-alist '((width . 180) (height . 80))))
   ;; (setq initial-frame-alist '((top . 200) (left . 100) (width . 147) (height . 98)))
   ;; (setq initial-frame-alist '((top + -47) (left + -908) (width . 124) (height . 85)))
 #+end_src
@@ -3435,4 +3447,5 @@ IETF Yang mode.
   (if debug-init-msg
       (message "Done with emacs-init.org"))
 #+end_src
+
 
