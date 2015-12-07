@@ -181,6 +181,8 @@ escape sequence as given below.
       (define-key keymap (kbd "ESC \" 5 \'") '[?\C-\'])
       (define-key keymap (kbd "ESC \" 5 \"") '[?\C-\"])
 
+      (define-key keymap (kbd "ESC \" 5 T") '[C-tab])
+
       (define-key keymap (kbd "ESC \" 6 |") '[?\C-|])
 
       (define-key isearch-mode-map [remap isearch-delete-char] 'isearch-del-char)))
@@ -504,6 +506,78 @@ without relaunching.
   (global-set-key [?\A-c] 'clipboard-kill-ring-save)
   (global-set-key [?\A-v] 'clipboard-yank)
 #+end_src
+**** Chat
+***** ICB
+***** ERC
+***** Jabber
+****** History
+#+begin_src emacs-lisp :tangle no
+(setq
+  jabber-history-enabled t
+  jabber-use-global-history nil
+  jabber-backlog-number 40
+  jabber-backlog-days 30
+ )
+#+end_src
+****** Client
+#+begin_src emacs-lisp :tangle no
+  (req-package jabber
+    :init
+    (progn
+      (defun my-jabber-chat-delete-or-bury ()
+        (interactive)
+        (if (eq 'jabber-chat-mode major-mode)
+            (condition-case e
+                (delete-frame)
+              (error
+               (if (string= "Attempt to delete the sole visible or iconified frame"
+                            (cadr e))
+                   (bury-buffer))))))
+
+      (defun jabber ()
+        (interactive)
+        (jabber-connect)))
+    :config 
+    (progn
+      (define-key jabber-chat-mode-map [escape]
+        'my-jabber-chat-delete-or-bury)
+
+      (define-key mode-specific-map "jr"
+        (lambda ()
+          (interactive)
+          (switch-to-buffer "*-jabber-*")))
+
+      (define-key mode-specific-map "jc"
+        '(lambda ()
+           (interactive)
+           (call-interactively 'jabber-connect)))
+
+      (define-key mode-specific-map "jd"
+        '(lambda ()
+           (interactive)
+           (call-interactively 'jabber-disconnect)))
+
+      (define-key mode-specific-map "jj"
+        '(lambda ()
+           (interactive)
+           (call-interactively 'jabber-chat-with)))
+
+      (define-key mode-specific-map "ja"
+        '(lambda ()
+           (interactive)
+           (jabber-send-presence "away" "" 10)))
+
+      (define-key mode-specific-map "jo"
+        '(lambda ()
+           (interactive)
+           (jabber-send-presence "" "" 10)))
+
+      (define-key mode-specific-map "jx"
+        '(lambda ()
+           (interactive)
+           (jabber-send-presence "xa" "" 10)))))
+#+end_src
+
 **** Mail
 #+begin_src emacs-lisp :tangle yes
   ;; (setq mail-from-style 'angles)
@@ -2358,6 +2432,25 @@ IETF Yang mode.
              ("C-c l" . org-store-link))
       :init
       (progn
+        (add-hook 'org-mode-hook #'yas-minor-mode)
+
+        (defun my-org-mode-hook ()
+          (if debug-init-msg
+              (message "Org-mode-hook"))
+          ;; (org-set-local 'yas/trigger-key [tab])
+          ;;(yas-minor-mode)
+          (turn-on-flyspell)
+          ;; (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
+          (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
+          (define-key org-mode-map (kbd "C-c e e") 'org-encrypt-entries)
+          (define-key org-mode-map (kbd "C-c e E") 'org-encrypt-entry)
+          (define-key org-mode-map (kbd "C-c e d") 'org-decrypt-entries)
+          (define-key org-mode-map (kbd "C-c e D") 'org-decrypt-entry)
+          (setq org-tags-exclude-from-inheritance '("crypt"))
+          (setq org-crypt-disable-auto-save t)
+          (setq org-crypt-key "D7B83025"))
+        (add-hook 'org-mode-hook 'my-org-mode-hook)
+
         (defun my-org-confirm-babel-evaluate (lang body)
           (not (or (string= lang "ditaa")
                    (string= lang "dot2tex")
@@ -2470,22 +2563,6 @@ IETF Yang mode.
                  ("\\subsubsection\{%s\}" . "\\subsubsection*\{%s\}")))
 
         ;; (require 'calfw-org)
-        (defun my-org-mode-hook ()
-          (if debug-init-msg
-              (message "Org-mode-hook"))
-          (org-set-local 'yas/trigger-key [tab])
-          (yas-minor-mode)
-          (turn-on-flyspell)
-          (define-key yas/keymap [tab] 'yas/next-field-or-maybe-expand)
-          (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)
-          (define-key org-mode-map (kbd "C-c e e") 'org-encrypt-entries)
-          (define-key org-mode-map (kbd "C-c e E") 'org-encrypt-entry)
-          (define-key org-mode-map (kbd "C-c e d") 'org-decrypt-entries)
-          (define-key org-mode-map (kbd "C-c e D") 'org-decrypt-entry)
-          (setq org-tags-exclude-from-inheritance '("crypt"))
-          (setq org-crypt-disable-auto-save t)
-          (setq org-crypt-key "D7B83025"))
-        (add-hook 'org-mode-hook 'my-org-mode-hook)
         (org-crypt-use-before-save-magic)
         (org-babel-do-load-languages
          'org-babel-load-languages
@@ -2861,13 +2938,15 @@ IETF Yang mode.
 ***** Yasnippet
 #+begin_src emacs-lisp :tangle yes
   (req-package yasnippet
+    :commands (yas-reload-all yas-minor-mode)
     :init
     (progn
+      ;;(setq yas-trigger-key (kbd "C-c C-]"))
+      (setq yas-snippet-dirs (list (concat user-emacs-directory "snippets")))
+
       ;; (setq yas/trigger-key (kbd "C-c <kp-multiply>"))
       ;; (setq yas/trigger-key (kbd "C-c C-q"))
-      (setq yas/trigger-key (kbd "C-c C-]"))
       ;;     ;(setq yas/root-directory "~/.emacs.d/snippets")
-      ;;     (setq yas/snippet-dirs '("~/.emacs.d/snippets"))
       ;;     ;(yas/initialize)
       ;;     ;(yas/load-directory yas/root-directory)
 
@@ -2875,12 +2954,21 @@ IETF Yang mode.
       ;; In fact, set it to something we'll never use because
       ;; we'll only ever trigger it indirectly.
 
-      (add-hook 'yas-after-exit-snippet-hook
-                (lambda () (setq ac-trigger-key nil)))
-      (add-hook 'yas-before-expand-snippet-hook
-                (lambda () (setq ac-trigger-key "TAB"))))
+      ;; recent deletion
+      ;; (add-hook 'yas-after-exit-snippet-hook
+      ;;           (lambda () (setq ac-trigger-key nil)))
+      ;; (add-hook 'yas-before-expand-snippet-hook
+      ;;           (lambda () (setq ac-trigger-key "TAB"))))
+      (add-hook 'all-prog-mode-hook #'yas-minor-mode)
+      )
     :config
-    (yas-reload-all))
+    (progn
+      (yas-reload-all)
+      (define-key yas-minor-mode-map (kbd "<tab>") nil)
+      (define-key yas-minor-mode-map (kbd "TAB") nil)
+      (define-key yas-minor-mode-map (kbd "<C-tab>") 'yas-expand)
+      )
+    )
   ;;     (yas/global-mode 1)))
 #+end_src
 
@@ -3120,7 +3208,7 @@ IETF Yang mode.
 
   (global-set-key (kbd "A-`") 'other-frame)
 
-  (global-set-key [C-tab] 'other-window-or-frame)
+  ;; (global-set-key [C-tab] 'other-window-or-frame)
 
   (global-set-key (kbd "C-\\") 'other-window-or-frame)
 
