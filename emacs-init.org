@@ -514,171 +514,8 @@ without relaunching.
     (let* ((netrc (netrc-parse (expand-file-name "~/.netrc.gpg")))
            (hostentry (netrc-machine netrc host port port)))
       (when hostentry (netrc-get hostentry "password"))))
-#+end_src
 
 
-#+BEGIN_SRC emacs-lisp :tangle no
-  ;; XXXnew
-  (req-package bbdb
-    :commands (bbdb-initialize bbdb-complete-mail)
-    :init
-    (setq bbdb-file "~/.emacs.d/bbdb")
-    :config
-    (progn
-      (setq
-       bbdb-offer-save 1                        ;; 1 means save-without-asking
-
-
-       bbdb-use-pop-up t                        ;; allow popups for addresses
-       bbdb-electric-p t                        ;; be disposable with SPC
-       bbdb-popup-target-lines  1               ;; very small
-
-       bbdb-dwim-net-address-allow-redundancy t ;; always use full name
-       bbdb-quiet-about-name-mismatches 2       ;; show name-mismatches 2 secs
-
-       bbdb-always-add-address t                ;; add new addresses to existing...
-                                                ;; ...contacts automatically
-       bbdb-canonicalize-redundant-nets-p t     ;; x@foo.bar.cx => x@bar.cx
-
-       bbdb-completion-type nil                 ;; complete on anything
-
-       bbdb-complete-name-allow-cycling t       ;; cycle through matches
-                                               ;; this only works partially
-
-       bbbd-message-caching-enabled t           ;; be fast
-       bbdb-use-alternate-names t               ;; use AKA
-
-
-       bbdb-elided-display t                    ;; single-line addresses
-
-       ;; auto-create addresses from mail
-       bbdb/mail-auto-create-p 'bbdb-ignore-some-messages-hook
-       bbdb-ignore-some-messages-alist ;; don't ask about fake addresses
-       ;; NOTE: there can be only one entry per header (such as To, From)
-       ;; http://flex.ee.uec.ac.jp/texi/bbdb/bbdb_11.html
-
-       '(( "From" . "no.?reply\\|DAEMON\\|daemon\\|facebookmail\\|twitter"))
-       )))
-#+END_SRC
-#+BEGIN_SRC emacs-lisp :tangle no
-  ;; (req-package wl-user-agent-compose)
-  ;; (req-package wl-other-frame)
-  ;; (req-package wl-draft)
-  ;; (autoload 'wl-other-frame "wl" "Wanderlust on new frame." t)
-  ;; (autoload 'wl-draft "wl-draft" "Write draft with Wanderlust." t)
-  ;; (autoload 'wl-user-agent-compose "wl-draft" nil t)
-
-
-  (req-package bbdbV3-wl
-    :require (mime-view bbdb)
-    :commands bbdbV3-wl
-   )
-
-  (req-package wl-draft
-    :commands (wl-draft-send wl-draft-kill))
-
-  (req-package wl
-    :require bbdbV3-wl
-    :commands (wl wl-other-frame wl-draft wl-user-agent-compose)
-    :init
-    (progn
-      (setq
-       elmo-maildir-folder-path  "~/Maildir/chopps.org"
-       wl-maildir-folder-path  "~/Maildir/chopps.org"
-
-       wl-stay-folder-window t
-       wl-folder-window-width 30
-
-       wl-from "Christian Hopps <chopps@chopps.org>"
-
-       wl-fcc ".Sent Messages"
-       wl-fcc-force-as-read t
-
-       ;; Maildirs
-       wl-default-folder ".INBOX"
-       wl-draft-folder ".Drafts"
-       wl-spam-folder ".Spam"
-       wl-trash-folder ".Trash"
-       wl-queue-folder ".Queue" ;; not needed?
-
-       ;; SMTP
-       wl-draft-send-mail-function 'smtpmail-send-it
-       ;; wl-local-domain "chopps.org"
-       ;; wl-message-id-domain "chopps.org"
-       ;; wl-smtp-connection-type 'starttls
-       ;; wl-smtp-posting-port 9005
-       ;; wl-smtp-authenticate-type "login"
-       ;; wl-smtp-posting-user "chopps"
-       ;; wl-smtp-posting-server "smtp.chopps.org"
-
-       ;; check this folder periodically, and update modeline
-       wl-biff-check-folder-list '(".todo") ;; check every 180 seconds
-       ;; (default: wl-biff-check-interval)
-
-       ;; hide many fields from message buffers
-       wl-message-ignored-field-list '("^.*:")
-       wl-message-visible-field-list '("^\\(To\\|Cc\\):"
-                                       "^Subject:"
-                                       "^\\(From\\|Reply-To\\):"
-                                       "^Organization:"
-                                       "^Message-Id:"
-                                       "^\\(Posted\\|Date\\):")
-       wl-message-sort-field-list '("^From"
-                                    "^Organization:"
-                                    "^X-Attribution:"
-                                    "^Subject"
-                                    "^Date"
-                                    "^To"
-                                    "^Cc")
-       wl-folder-check-async t
-
-        ;; elmo-imap4-default-server "imap.gmail.com"
-        ;; elmo-imap4-default-user "chopps@gmail.com"
-        ;; elmo-imap4-default-authenticate-type 'clear
-        ;; elmo-imap4-default-port 993
-        ;; elmo-imap4-default-stream-type 'ssl
-        ;; elmo-imap4-use-modified-utf7 t
-
-        ;; wl-smtp-connection-type 'starttls
-        ;; wl-smtp-posting-port 587
-        ;; wl-smtp-authenticate-type "plain"
-        ;; wl-smtp-posting-user "chopps"
-        ;; wl-smtp-posting-server "smtp.gmail.com"
-        ;; wl-local-domain "gmail.com"
-
-        ;; wl-default-folder "%inbox"
-        ;; wl-default-spec "%"
-        ;; wl-draft-folder "%[Gmail]/Drafts"
-        ;; wl-trash-folder "%[Gmail]/Trash"
-        )
-
-        (if (boundp 'mail-user-agent)
-          (setq mail-user-agent 'wl-user-agent))
-
-        (if (fboundp 'define-mail-user-agent)
-          (define-mail-user-agent
-            'wl-user-agent
-            'wl-user-agent-compose
-            'wl-draft-send
-            'wl-draft-kill
-            'mail-send-hook))
-        )
-    :config
-    (progn
-      (require 'wl-draft)
-      ;; (bbdb-wl-setup)
-      ;; (setq bbdb-wl-folder-regexp "INBOX\\|Sent")
-      (evil-set-initial-state 'wl-folder-mode 'emacs)
-      (evil-set-initial-state 'wl-summary-mode 'emacs)
-      (evil-set-initial-state 'mime-view-mode 'emacs)
-
-      ;; do we need this to get the map?
-      (define-key wl-draft-mode-map (kbd "<C-tab>") 'bbdb-complete-name)
-      )
-    )
-
-#+END_SRC
-#+BEGIN_SRC emacs-lisp :tangle yes
   ;; Generic Mail variables
   (setq
    message-send-mail-function 'smtpmail-send-it
@@ -694,8 +531,8 @@ without relaunching.
 
    user-mail-address  "chopps@chopps.org"
    user-full-name     "Christian Hopps")
-#+END_SRC
-#+BEGIN_SRC emacs-lisp :tangle yes
+
+
   ;; We need to use brew command to get the path here.
 
 
@@ -708,18 +545,19 @@ without relaunching.
   (req-package mu4e-maildirs-extension
     :defer t
     :init
-    (setq mu4e-maildirs-extension-custom-list '("/chopps.org/INBOX"
-                                                "/chopps.org/a-terastream"
-                                                "/chopps.org/ietf-announce"
-                                                "/chopps.org/ietf-chairs"
-                                                "/chopps.org/ietf-chairs-rtg"
-                                                "/chopps.org/ietf-wg-isis"
-                                                "/chopps.org/ietf-yang-rtg-dt"
-                                                "/chopps.org/nbsd-announce"
-                                                "/chopps.org/wgchairs"
-                                                "/chopps.org/nbsd-developers"
-                                                "/terastrm.net/INBOX"
-                                                "/gmail.com/INBOX")))
+    ;; (setq mu4e-maildirs-extension-custom-list '("/chopps.org/INBOX"
+    ;;                                             "/chopps.org/a-terastream"
+    ;;                                             "/chopps.org/ietf-announce"
+    ;;                                             "/chopps.org/ietf-chairs"
+    ;;                                             "/chopps.org/ietf-chairs-rtg"
+    ;;                                             "/chopps.org/ietf-wg-isis"
+    ;;                                             "/chopps.org/ietf-yang-rtg-dt"
+    ;;                                             "/chopps.org/nbsd-announce"
+    ;;                                             "/chopps.org/wgchairs"
+    ;;                                             "/chopps.org/nbsd-developers"
+    ;;                                             "/terastrm.net/INBOX"
+    ;;                                             "/gmail.com/INBOX")))
+    )
 
 
   ;; we have to use-package here b/c it doesn't see the package installed by homebrew
@@ -772,9 +610,13 @@ without relaunching.
                                   )
                             (mapcar (lambda (x) (cons (concat (car x) mu4e-not-junk-folder-filter) (cdr x)))
                                    '(("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
+                                     ("date:1h..now" "Last hours messages" ?h)
+                                     ("date:24h..now" "Today's messages" ?d)
                                      ("date:today..now" "Today's messages" ?t)
                                      ("date:7d..now" "Last 7 days" ?w)
-                                     ("mime:image/*" "Messages with images" 112)
+                                     ("mime:7d..now" "Last 7 days" ?w)
+                                     ("mime:*pdf" "Messages with PDF" 112)
+                                     ("mime:*vcs" "Messages with VCS" 113)
                                      )))
 
 
@@ -959,20 +801,20 @@ without relaunching.
     :config
     (progn
       ;; (require 'mu4e-maildirs-extension)
-      ;; (mu4e-maildirs-extension)
+      (mu4e-maildirs-extension)
       (require 'mu4e-contrib)
 
-      ;; (mu4e-alert-enable-mode-line-display)
-      ;; (mu4e-alert-enable-notifications)
-      ;; (add-hook 'mu4e-headers-mode-hook
-      ;;           (lambda () (progn
-      ;;                        (make-local-variable 'scroll-conservatively)
-      ;;                        (setq
-      ;;                         show-trailing-whitespace nil
-      ;;                         scroll-conservatively 0
-      ;;                         scroll-up-aggressively .8
-      ;;                         scroll-down-aggressively .8)
-      ;;                       )))
+      (mu4e-alert-enable-mode-line-display)
+      (mu4e-alert-enable-notifications)
+      (add-hook 'mu4e-headers-mode-hook
+                (lambda () (progn
+                             (make-local-variable 'scroll-conservatively)
+                             (setq
+                              show-trailing-whitespace nil
+                              scroll-conservatively 0
+                              scroll-up-aggressively .8
+                              scroll-down-aggressively .8)
+                            )))
       (add-hook 'mu4e-view-mode-hook
                 (lambda () (setq show-trailing-whitespace nil)))
       (add-hook 'mu4e-compose-pre-hook
@@ -989,22 +831,22 @@ without relaunching.
       (define-key mu4e-headers-mode-map "\\" 'mu4e-headers-mark-move-to-spam)
       (define-key mu4e-view-mode-map "\\" 'mu4e-view-mark-move-to-spam)
 
-      ;; (add-to-list 'mu4e-header-info-custom
-      ;;              '(:list-or-dir .
-      ;;                             (:name "ML or maildir" ;; long name, as seen in message view
-      ;;                                    :shortname "ML-D"     ;; short name, as seen in the headers view
-      ;;                                    :help "Mailing list or maildir if not set"
-      ;;                                    :function
-      ;;                                    (lambda (msg)
-      ;;                                      (or (mu4e-message-field msg :mailing-list)
-      ;;                                          (mu4e-message-field msg :maildir))))))
+      (add-to-list 'mu4e-header-info-custom
+                   '(:list-or-dir .
+                                  (:name "ML or maildir" ;; long name, as seen in message view
+                                         :shortname "ML-D"     ;; short name, as seen in the headers view
+                                         :help "Mailing list or maildir if not set"
+                                         :function
+                                         (lambda (msg)
+                                           (or (mu4e-message-field msg :mailing-list)
+                                               (mu4e-message-field msg :maildir))))))
 
       (setq
        ;; "Date         Flgs   List       From                   Subject
        mu4e-headers-fields '((:flags          .  5)
                              (:human-date     . 15)
                              (:from           . 26)
-                             ;; (:list-or-dir    . 30)
+                             (:list-or-dir    . 30)
                              (:thread-subject . nil)))
 
       )
@@ -1035,20 +877,21 @@ without relaunching.
 
 **** GIT (Magit)
 #+begin_src emacs-lisp :tangle yes
-    (req-package magit
-      :commands magit-status
-      :bind (("C-c g" . magit-status)
-             ("C-c m" . magit-status))
-      :init
-      (progn
-        (setq magit-last-seen-setup-instructions "1.4.0")))
+  (req-package magit-timemachine)
+  (req-package magit
+    :commands magit-status
+    :bind (("C-c g" . magit-status)
+           ("C-c m" . magit-status))
+    :init
+    (progn
+      (setq magit-last-seen-setup-instructions "1.4.0")))
 
-    (req-package gist
-      :commands gist-list)
+  (req-package gist
+    :commands gist-list)
 
-    (autoload 'svn-status "dsvn" "Run `svn status'." t)
-    (autoload 'svn-update "dsvn" "Run `svn update'." t)
-    ;; (req-package vc-svn)
+  (autoload 'svn-status "dsvn" "Run `svn status'." t)
+  (autoload 'svn-update "dsvn" "Run `svn update'." t)
+  ;; (req-package vc-svn)
 
 #+end_src
 **** Encryption
@@ -2494,10 +2337,10 @@ IETF Yang mode.
     ;;  :commands (org-magit-open org-magit-export org-magit-store-link))
 
     ;; XXX get rid of org load
-    ;; (req-package org-crypt
-    ;;   :commands (org-encrypt-entries org-decrypt-entries
-    ;;              org-encrypt-entry org-decrypt-entry
-    ;;              org-crypt-use-before-save-magic))
+    (req-package org-crypt
+      :commands (org-encrypt-entries org-decrypt-entries
+                 org-encrypt-entry org-decrypt-entry
+                 org-crypt-use-before-save-magic))
 
     ;; XXX get rid of org load
     ;; (req-package org-mu4e
@@ -2720,7 +2563,7 @@ IETF Yang mode.
                 (""     "latexsym"  t)
                 (""     "amssymb"   t)
                 (""     "hyperref"  nil)))
-              
+            
         ;; Packages to include when xelatex is used
         (if (string-match "LATEX_CMD: xelatex" (buffer-string))
             (setq org-latex-default-packages-alist
@@ -2876,6 +2719,113 @@ IETF Yang mode.
       ;;                                         (remove 'helm-source-projectile-files-list
       ;;                                                  helm-projectile-sources-list)))
       ;; (helm-projectile-on)
+
+  (setq email-groups
+        '(("ms" . "email1, email2")
+          ("phd" . "email3, email4")))
+
+
+  (defun org-contacts-open-from-email (email)
+    "Open org-contact with matching EMAIL. If no match, create new
+  entry with prompts for first and last name."
+    (let ((contact (catch 'contact
+                     (loop for contact in  (org-contacts-db)
+                           do
+                           (when (string= email (cdr (assoc "EMAIL" (elt contact 2))))
+                             (throw 'contact contact))))))
+
+      (unless contact
+                  (set-buffer (find-file-noselect (ido-completing-read
+                                                   "Select org-contact file: "
+                                                   org-contacts-files)))
+                  (goto-char (point-max))
+                  (insert (format  "\n* %s %s\n"
+                                   (read-input "First name: ")
+                                   (read-input "Last name: ")))
+                  (org-entry-put (point) "EMAIL" email)
+                  (save-buffer))
+
+      (when contact
+        (find-file  (cdr (assoc "FILE" (elt contact 2))))
+        (goto-char (elt contact 1))
+        (show-subtree))))
+
+
+  (defun org-contacts-tag-selection (selection)
+    "Prompts you for a tag, and tags each entry in org-contacts
+  that has a matching email in `helm-marked-candidates'. Ignore
+  emails that are not in an org-contact file. I am not sure what
+  the best thing to do there is. Probably prompt for a file, and
+  add an entry to the end of it."
+    (save-excursion
+      (let ((tag (read-input "Tag: ")))
+        (loop for email in (helm-marked-candidates)
+              do
+              (let ((contact (catch 'contact
+                               (loop for contact in  (org-contacts-db)
+                                     do
+                                     (when (string=
+                                            email
+                                            (cdr (assoc
+                                                  "EMAIL"
+                                                  (elt contact 2))))
+                                       (throw 'contact contact))))))
+                ;; add new contact and tag it
+                (unless contact
+                  (set-buffer (find-file-noselect (ido-completing-read
+                                                   "Select org-contact file: "
+                                                   org-contacts-files)))
+                  (goto-char (point-max))
+                  (insert (format  "\n* %s %s\n"
+                                   (read-input "First name: ")
+                                   (read-input "Last name: ")))
+                  (org-entry-put (point) "EMAIL" email)
+                  (org-set-tags-to (list tag))
+                  (save-buffer))
+                ;; update tags on existing entry
+                (when contact
+                  (find-file-noselect  (cdr (assoc "FILE" (elt contact 2))))
+                  (set-buffer (marker-buffer (elt contact 1)))
+                  (goto-char (elt contact 1))
+                  (org-set-tags-to (append (org-get-tags) (list tag)))))))))
+
+
+  (defun j-insert-emails ()
+    "Helm interface to email addresses"
+    (interactive)
+
+    (helm :sources `(((name . "Email address candidates")
+                     (candidates . ,(append
+                                     ;; my aliases
+                                     email-groups
+                                     ;; org-contacts
+                                     (loop for contact in (org-contacts-db)
+                                           collect
+                                           (cons (format
+                                                  "%s %s %s <%s> org-contact"
+                                                  (cdr (assoc "FIRSTNAME" (elt contact 2)))
+                                                  (cdr (assoc "LASTNAME" (elt contact 2)))
+                                                  (cdr (assoc "TAGS" (elt contact 2)))
+                                                  (cdr (assoc "EMAIL" (elt contact 2))))
+                                                 (cdr (assoc "EMAIL" (elt contact 2)))))
+                                     ;; mu contacts
+                                     (loop for contact in mu4e~contacts-for-completion
+                                           collect (cons contact contact))))
+                     ;; only action is to insert string at point.
+                     (action . (("insert" . (lambda (x)
+                                              (insert
+                                               (mapconcat
+                                                'identity
+                                                (helm-marked-candidates)
+                                                ","))))
+                                ("open" . org-contacts-open-from-email)
+                                ("tag"  . org-contacts-tag-selection)))))))
+
+  ;; Finally, let us bind this to something probably convenient. I use c-c ] for
+  ;; citations. Lets try that in compose mode.
+  (define-key mu4e-compose-mode-map "\C-c]" 'j-insert-emails)
+
+    
       ))
 #+END_SRC
 
@@ -3429,10 +3379,14 @@ IETF Yang mode.
     ;;    (iterm-set-backgroun-from-default))
 #+end_src
 
-**** GUI Interaction Display
+**** GUI-like Interaction Display
 #+begin_src emacs-lisp :tangle yes
+  (if (display-graphic-p)
+      (setq mouse-yank-at-point t)
+    (xterm-mouse-mode t)
+    (defun track-mouse (e))
+    (setq mouse-sel-mode t))
   (setq x-mouse-click-focus-ignore-position t)
-  (setq mouse-yank-at-point t)
 #+end_src
 ** End Req-Packages
 #+begin_src emacs-lisp :tangle yes
