@@ -10,8 +10,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
  '(ansi-color-names-vector
    ["#5f5f5f" "#ff4b4b" "#a1db00" "#fce94f" "#5fafd7" "#d18aff" "#afd7ff" "#ffffff"])
+ '(auth-sources (quote ("~/.authinfo.gpg")))
  '(blink-matching-paren (quote jump))
  '(compilation-message-face (quote default))
  '(cursor-color "#839496")
@@ -149,6 +152,10 @@ static char *gnus-pointer[] = {
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 160 :width normal :foundry "nil" :family "Ubuntu Mono"))))
+ '(erc-direct-msg-face ((t (:inherit font-lock-variable-name-face))))
+ '(erc-input-face ((t (:inherit font-lock-builtin-face))))
+ '(erc-my-nick-face ((t (:inherit erc-input-face :weight bold))))
+ '(erc-nick-default-face ((t (:inherit font-lock-keyword-face :weight bold))))
  '(fixed-pitch ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "nil" :family "Ubuntu Mono"))))
  '(irfc-head-name-face ((t (:inherit org-level-1))))
  '(irfc-head-number-face ((t (:inherit org-level-1))))
